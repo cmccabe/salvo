@@ -91,15 +91,6 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
         }
 
         /**
-         * Fetches the animation thread corresponding to this ScorchedView.
-         * 
-         * @return the animation thread
-         */
-        public ScorchedThread getThread() {
-            return mThread;
-        }
-
-        /**
          * Starts the game, setting parameters for the current difficulty.
          */
         public void doStart() {
@@ -264,6 +255,15 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
         });
 
         setFocusable(true); // make sure we get key events
+    }
+
+    /**
+     * Fetches the animation thread corresponding to this ScorchedView.
+     * 
+     * @return the animation thread
+     */
+    public ScorchedThread getThread() {
+        return mThread;
     }
 
     /**

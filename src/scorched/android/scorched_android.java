@@ -2,11 +2,19 @@ package scorched.android;
 
 import android.app.Activity;
 import android.content.res.Resources;
-import android.os.Bundle;
-import android.widget.TextView;
 import android.graphics.drawable.Drawable;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.Window;
+import android.widget.TextView;
+
+import scorched.android.ScorchedView.ScorchedThread;
 
 public class scorched_android extends Activity {
+	private static final String TAG = "scorched_android";
+	private ScorchedThread mThread;
+    private ScorchedView mView;
+    
     /**
      * Invoked when the Activity is created.
      * 
@@ -17,17 +25,17 @@ public class scorched_android extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        Log.w(TAG, "starting up2!");
+
         // turn off the window's title bar
         requestWindowFeature(Window.FEATURE_NO_TITLE);
 
-        setContentView(R.layout.scorched_layout);
+        setContentView(R.id.scorched_layout);
 
         Log.w(this.getClass().getName(), "creating scorched_view");
 
-        mView = (ScorchedView) findViewById(R.id.scorched_view);
+        mView = (ScorchedView) findViewById(R.id.scorched_layout);
         mThread = mView.getThread();
-
-        mLunarThread.setState(LunarThread.STATE_READY);
 
         //Drawable redDrawable = 
             //Resources.getSystem().getDrawable(R.drawable.color_red);
@@ -54,7 +62,7 @@ public class scorched_android extends Activity {
     protected void onSaveInstanceState(Bundle outState) {
         // just have the View's thread save its state into our Bundle
         super.onSaveInstanceState(outState);
-        mLunarThread.saveState(outState);
+        mThread.saveState(outState);
         Log.w(this.getClass().getName(), "onSaveInstanceState called");
     }
 }
