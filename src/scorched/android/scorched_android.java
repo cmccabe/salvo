@@ -9,6 +9,7 @@ import android.view.Window;
 import android.widget.TextView;
 
 import scorched.android.ScorchedView.ScorchedThread;
+import android.view.ViewGroup;
 
 public class scorched_android extends Activity {
 	private static final String TAG = "scorched_android";
@@ -30,13 +31,15 @@ public class scorched_android extends Activity {
         // turn off the window's title bar
         requestWindowFeature(Window.FEATURE_NO_TITLE);
 
-        setContentView(R.id.scorched_layout);
+        Log.w(TAG, "setting content view");
+        
+        setContentView(R.layout.main);
 
-        Log.w(this.getClass().getName(), "creating scorched_view");
+        /*Log.w(this.getClass().getName(), "creating scorched_view");
 
         mView = (ScorchedView) findViewById(R.id.scorched_layout);
         mThread = mView.getThread();
-
+*/
         //Drawable redDrawable = 
             //Resources.getSystem().getDrawable(R.drawable.color_red);
         //TextView tv = (TextView)findViewByID(R.id.text);
