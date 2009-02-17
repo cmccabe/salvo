@@ -30,7 +30,7 @@ import android.widget.TextView;
  * by the system.
  */
 class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
-	private static final String TAG = "ScorchedView";
+    private static final String TAG = "ScorchedView";
     class ScorchedThread extends Thread {
         /*
          * Member (state) fields
@@ -145,21 +145,21 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
         public void run() {
             while (mRun) {
                 Canvas c = null;
-            	if (rectX != oldRectX || rectY != oldRectY) {
-	                try {
-	                    c = mSurfaceHolder.lockCanvas(null);
-	                    synchronized (mSurfaceHolder) {
-	                        doDraw(c);
-	                    }
-	                } finally {
-	                    // do this in a finally so that if an exception is 
-	                    // thrown during the above, we don't leave the 
-	                    // Surface in an inconsistent state
-	                    if (c != null) {
-	                        mSurfaceHolder.unlockCanvasAndPost(c);
-	                    }
-	                }
-            	}
+                if (rectX != oldRectX || rectY != oldRectY) {
+                    try {
+                        c = mSurfaceHolder.lockCanvas(null);
+                        synchronized (mSurfaceHolder) {
+                            doDraw(c);
+                        }
+                    } finally {
+                        // do this in a finally so that if an exception is 
+                        // thrown during the above, we don't leave the 
+                        // Surface in an inconsistent state
+                        if (c != null) {
+                            mSurfaceHolder.unlockCanvasAndPost(c);
+                        }
+                    }
+                }
             }
         }
 
@@ -215,24 +215,24 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
          */
         boolean doKeyDown(int keyCode, KeyEvent msg) {
             synchronized (mSurfaceHolder) {
-            	Log.w(TAG, "Pressin dat key");
-            	switch (keyCode)
-            	{
-            	case KeyEvent.KEYCODE_DPAD_UP:
-            		rectY--;
-            		break;
-            	case KeyEvent.KEYCODE_DPAD_DOWN:
-            		rectY++;
-            		break;
-            	case KeyEvent.KEYCODE_DPAD_LEFT:
-            		rectX--;
-            		break;
-            	case KeyEvent.KEYCODE_DPAD_RIGHT:
-            		rectX++;
-            		break;
-            	default:
-            		Log.w(TAG, "Fuckin fake ass key");	
-            	}
+                Log.w(TAG, "Pressin dat key");
+                switch (keyCode)
+                {
+                case KeyEvent.KEYCODE_DPAD_UP:
+                    rectY--;
+                    break;
+                case KeyEvent.KEYCODE_DPAD_DOWN:
+                    rectY++;
+                    break;
+                case KeyEvent.KEYCODE_DPAD_LEFT:
+                    rectX--;
+                    break;
+                case KeyEvent.KEYCODE_DPAD_RIGHT:
+                    rectX++;
+                    break;
+                default:
+                    Log.w(TAG, "Fuckin fake ass key");    
+                }
             }
             return true;
         }
@@ -259,10 +259,10 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
          */
         private int oldRectX = rectX, oldRectY = rectY;
         private void doDraw(Canvas canvas) {
-        		Log.w(TAG, "Moved!");
-        		mScratchRect.set(0, 0, mCanvasWidth, mCanvasHeight);
-        		canvas.drawRect(mScratchRect, mClear);
-            	oldRectX = rectX; oldRectY = rectY;
+                Log.w(TAG, "Moved!");
+                mScratchRect.set(0, 0, mCanvasWidth, mCanvasHeight);
+                canvas.drawRect(mScratchRect, mClear);
+                oldRectX = rectX; oldRectY = rectY;
                 mScratchRect.set(rectX, rectY, rectX+100, rectY+100);
                 canvas.drawRect(mScratchRect, mPaint);
         
@@ -324,7 +324,7 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
     @Override
     public void onWindowFocusChanged(boolean hasWindowFocus) {
         if (!hasWindowFocus)
-        	mThread.pause();
+            mThread.pause();
     }
 
     /* Callback invoked when the surface dimensions change. */
