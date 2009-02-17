@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -29,6 +30,7 @@ import android.widget.TextView;
  * by the system.
  */
 class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
+	private static final String TAG = "ScorchedView";
     class ScorchedThread extends Thread {
         /*
          * Member (state) fields
@@ -69,10 +71,13 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
         private Context mContext;
 
         /** Paint to draw the lines on screen. */
-        private Paint mPaint;
+        private Paint mPaint, mClear;
 
         /** Scratch rect object. */
         private RectF mScratchRect;
+        
+        private int rectX = 4;
+        private int rectY = 4;
 
         public ScorchedThread(SurfaceHolder surfaceHolder, Context context,
                 Handler handler) {
@@ -86,6 +91,10 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
             mPaint = new Paint();
             mPaint.setAntiAlias(true);
             mPaint.setARGB(255, 0, 255, 0);
+            
+            mClear = new Paint();
+            mClear.setAntiAlias(false);
+            mClear.setARGB(255, 0, 0, 0);
 
             mScratchRect = new RectF(0, 0, 0, 0);
         }
@@ -136,19 +145,21 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
         public void run() {
             while (mRun) {
                 Canvas c = null;
-                try {
-                    c = mSurfaceHolder.lockCanvas(null);
-                    synchronized (mSurfaceHolder) {
-                        doDraw(c);
-                    }
-                } finally {
-                    // do this in a finally so that if an exception is 
-                    // thrown during the above, we don't leave the 
-                    // Surface in an inconsistent state
-                    if (c != null) {
-                        mSurfaceHolder.unlockCanvasAndPost(c);
-                    }
-                }
+            	if (rectX != oldRectX || rectY != oldRectY) {
+	                try {
+	                    c = mSurfaceHolder.lockCanvas(null);
+	                    synchronized (mSurfaceHolder) {
+	                        doDraw(c);
+	                    }
+	                } finally {
+	                    // do this in a finally so that if an exception is 
+	                    // thrown during the above, we don't leave the 
+	                    // Surface in an inconsistent state
+	                    if (c != null) {
+	                        mSurfaceHolder.unlockCanvasAndPost(c);
+	                    }
+	                }
+            	}
             }
         }
 
@@ -204,7 +215,24 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
          */
         boolean doKeyDown(int keyCode, KeyEvent msg) {
             synchronized (mSurfaceHolder) {
-                // foo
+            	Log.w(TAG, "Pressin dat key");
+            	switch (keyCode)
+            	{
+            	case KeyEvent.KEYCODE_DPAD_UP:
+            		rectY--;
+            		break;
+            	case KeyEvent.KEYCODE_DPAD_DOWN:
+            		rectY++;
+            		break;
+            	case KeyEvent.KEYCODE_DPAD_LEFT:
+            		rectX--;
+            		break;
+            	case KeyEvent.KEYCODE_DPAD_RIGHT:
+            		rectX++;
+            		break;
+            	default:
+            		Log.w(TAG, "Fuckin fake ass key");	
+            	}
             }
             return true;
         }
@@ -229,9 +257,15 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
         /**
          * Draws everything
          */
+        private int oldRectX = rectX, oldRectY = rectY;
         private void doDraw(Canvas canvas) {
-            mScratchRect.set(4, 4, 40, 40);
-            canvas.drawRect(mScratchRect, mPaint);
+        		Log.w(TAG, "Moved!");
+        		mScratchRect.set(0, 0, mCanvasWidth, mCanvasHeight);
+        		canvas.drawRect(mScratchRect, mClear);
+            	oldRectX = rectX; oldRectY = rectY;
+                mScratchRect.set(rectX, rectY, rectX+100, rectY+100);
+                canvas.drawRect(mScratchRect, mPaint);
+        
         }
     }
 
