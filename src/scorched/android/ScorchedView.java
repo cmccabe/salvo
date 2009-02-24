@@ -299,8 +299,8 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
             {
                 Path p = new Path();
                 p.moveTo(x, heightToScreenHeight(h[i]));
-                p.lineTo(x + dx, heightToScreenHeight(h[i+1]));
-                p.lineTo(x + dx + dx, heightToScreenHeight(h[i+2]));
+                p.quadTo(x + dx, heightToScreenHeight(h[i+1]),
+                         x + dx + dx, heightToScreenHeight(h[i+2]));
                 p.lineTo(x + dx + dx, mCanvasHeight);
                 p.lineTo(x, mCanvasHeight);
                 x += (2 * dx);
