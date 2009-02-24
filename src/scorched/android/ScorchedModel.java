@@ -19,7 +19,7 @@ public class ScorchedModel {
 
     /** Initialize height field with random values */
     private void initHeights() {
-    	mHeights = new float[MAX_HEIGHTS];
+        mHeights = new float[MAX_HEIGHTS];
         // Random height initialization
         for (int i = 0; i < MAX_HEIGHTS; i++) {
             mHeights[i] = ((i * 27 * 27) % 50);

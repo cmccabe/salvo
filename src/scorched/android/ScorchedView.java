@@ -130,15 +130,15 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
             /* wait for the Surface to be ready */
             synchronized (this) {
                 if (!mSurfaceHasBeenCreated) {
-                	while (true) {
-                		try {
-                			wait();
-                			break;
-                		}
-                		catch (InterruptedException e) {
-                			// continue to wait
-                		}
-                	}
+                    while (true) {
+                        try {
+                            wait();
+                            break;
+                        }
+                        catch (InterruptedException e) {
+                            // continue to wait
+                        }
+                    }
                 }
             }
 
@@ -147,10 +147,10 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
                 Canvas c = null;
                 try {
                     synchronized (mSurfaceHolder) {
-                    	if (mNeedScreenRedraw) {
-                    		c = mSurfaceHolder.lockCanvas(null);
+                        if (mNeedScreenRedraw) {
+                            c = mSurfaceHolder.lockCanvas(null);
                             drawScreen(c);
-                        	mNeedScreenRedraw = false;
+                            mNeedScreenRedraw = false;
                         }
                     }
 
@@ -271,8 +271,8 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
          * Draws everything
          */
         private void drawScreen(Canvas canvas) {
-        	Log.w(TAG, "Moved!");
-        	
+            Log.w(TAG, "Moved!");
+            
             mScratchRect.set(0, 0, mCanvasWidth, mCanvasHeight);
             canvas.drawRect(mScratchRect, mClear);
 
@@ -292,7 +292,7 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
     public ScorchedModel mModel;
 
     /** true if the screen needs to be redrawn */
-	public boolean mNeedScreenRedraw;
+    public boolean mNeedScreenRedraw;
 
     /*================= Accessors =================*/
     /** Fetches the animation thread for this ScorchedView. */
