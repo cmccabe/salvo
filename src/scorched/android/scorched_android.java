@@ -8,13 +8,14 @@ import android.util.Log;
 import android.view.Window;
 import android.widget.TextView;
 
+import scorched.android.ScorchedModel;
 import scorched.android.ScorchedView.ScorchedThread;
 import android.view.ViewGroup;
 
 public class scorched_android extends Activity {
 	private static final String TAG = "scorched_android";
-	private ScorchedThread mThread;
     private ScorchedView mView;
+    private ScorchedModel mModel;
     
     /**
      * Invoked when the Activity is created.
@@ -35,11 +36,12 @@ public class scorched_android extends Activity {
         
         setContentView(R.layout.main);
 
-        /*Log.w(this.getClass().getName(), "creating scorched_view");
+        Log.w(this.getClass().getName(), "creating scorched_view");
 
+        mModel = new ScorchedModel();
         mView = (ScorchedView) findViewById(R.id.scorched_layout);
-        mThread = mView.getThread();
-*/
+        mView.initialize(mModel);
+
         //Drawable redDrawable = 
             //Resources.getSystem().getDrawable(R.drawable.color_red);
         //TextView tv = (TextView)findViewByID(R.id.text);
@@ -65,7 +67,7 @@ public class scorched_android extends Activity {
     protected void onSaveInstanceState(Bundle outState) {
         // just have the View's thread save its state into our Bundle
         super.onSaveInstanceState(outState);
-        mThread.saveState(outState);
+        mView.getThread().saveState(outState);
         Log.w(this.getClass().getName(), "onSaveInstanceState called");
     }
 }
