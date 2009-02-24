@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -72,7 +73,7 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
         private Context mContext;
 
         /** Paint to draw the lines on screen. */
-        private Paint mPaint, mClear;
+        private Paint mPaint, mClear, mTerrainPaint;
 
         /** Scratch rect object. */
         private RectF mScratchRect;
@@ -93,6 +94,10 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
             mClear = new Paint();
             mClear.setAntiAlias(false);
             mClear.setARGB(255, 0, 0, 0);
+
+            mTerrainPaint = new Paint();
+            mTerrainPaint.setAntiAlias(false);
+            mTerrainPaint.setARGB(255, 0, 255, 255);
 
             mScratchRect = new RectF(0, 0, 0, 0);
         }
@@ -128,19 +133,22 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
         @Override
         public void run() {
             /* wait for the Surface to be ready */
-            synchronized (this) {
+            Log.w(TAG, "run(): waiting for surface to be created.");
+            synchronized (mSurfaceHasBeenCreatedLock) {
                 if (!mSurfaceHasBeenCreated) {
                     while (true) {
                         try {
-                            wait();
+                            mSurfaceHasBeenCreatedLock.wait();
                             break;
                         }
                         catch (InterruptedException e) {
+                            Log.w(TAG, "run(): interrupted");
                             // continue to wait
                         }
                     }
                 }
             }
+            Log.w(TAG, "run(): surface has been created.");
 
             while (mRun) {
                 /* Draw stuff */
@@ -212,7 +220,7 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
             synchronized (mSurfaceHolder) {
                 mCanvasWidth = width;
                 mCanvasHeight = height;
-
+                mNeedScreenRedraw = true;
                 // don't forget to resize the background image
                 //mBackgroundImage = mBackgroundImage.createScaledBitmap(
                         //mBackgroundImage, width, height, true);
@@ -271,13 +279,37 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
          * Draws everything
          */
         private void drawScreen(Canvas canvas) {
-            Log.w(TAG, "Moved!");
+            assert(ScorchedModel.MAX_HEIGHTS % 
+                    ScorchedModel.HEIGHTS_PER_POLY == 0);
+            Log.w(TAG, "running drawScreen with mCanvasWidth = " + mCanvasWidth +
+            		", mCanvasHeight = " + mCanvasHeight);
             
             mScratchRect.set(0, 0, mCanvasWidth, mCanvasHeight);
             canvas.drawRect(mScratchRect, mClear);
 
-            mScratchRect.set(0,0,100,100);
+            mScratchRect.set(0,0,50,100);
             canvas.drawRect(mScratchRect, mPaint);
+
+            float x = 0;
+            float dx = mCanvasWidth / (ScorchedModel.MAX_HEIGHTS - 1);
+            float h[] = mModel.getHeights();
+            for (int i = 0; 
+                i < ScorchedModel.MAX_HEIGHTS - 2;
+                i += 2) 
+            {
+                Path p = new Path();
+                p.moveTo(x, heightToScreenHeight(h[i]));
+                p.lineTo(x + dx, heightToScreenHeight(h[i+1]));
+                p.lineTo(x + dx + dx, heightToScreenHeight(h[i+2]));
+                p.lineTo(x + dx + dx, mCanvasHeight);
+                p.lineTo(x, mCanvasHeight);
+                x += (2 * dx);
+                canvas.drawPath(p, mTerrainPaint);
+            }
+        }
+
+        private float heightToScreenHeight(float h) {
+            return mCanvasHeight - (h * mCanvasHeight); 
         }
     }
 
@@ -286,6 +318,7 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
     private ScorchedThread mThread;
 
     /** True only once the Surface has been created and is ready to be used */
+    private Object mSurfaceHasBeenCreatedLock = new Object();
     private boolean mSurfaceHasBeenCreated = false;
 
     /** Pointer to the model */
@@ -334,12 +367,13 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
      * used.
      */
     public void surfaceCreated(SurfaceHolder holder) {
-        synchronized (this) {
+        synchronized (mSurfaceHasBeenCreatedLock) {
             // Wake up mThread.run() if it's waiting for the surface to have
             // ben created
             mSurfaceHasBeenCreated = true;
-            notify();
+            mSurfaceHasBeenCreatedLock.notify();
         }
+        Log.w(TAG, "surfaceCreated(): set mSurfaceHasBeenCreated");
     }
 
     /*

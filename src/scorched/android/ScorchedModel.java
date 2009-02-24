@@ -1,5 +1,7 @@
 package scorched.android;
 
+import java.util.Random;
+
 import android.os.Bundle;
 
 /**
@@ -11,19 +13,82 @@ import android.os.Bundle;
 public class ScorchedModel {
     /*================= Constants =================*/
     private static final String TAG = "ScorchedModel";
-    private static final int MAX_HEIGHTS = 100;
+    public static final int MAX_HEIGHTS = 21;
+    public static final int HEIGHTS_PER_POLY = 3;
 
+    enum TerrainType {
+        TRIANGULAR,
+        FLAT,
+        //PLATEAUS,
+        JAGGED,
+        HILLY,
+        ROLLING,
+    };
+        
+    /*================= Misc =================*/
+    public static Random mRandom = new Random();
+    
     /*================= Height field stuff =================*/
     /** The height field determines what the playing field looks like. */
     private float mHeights[] = null;
 
     /** Initialize height field with random values */
-    private void initHeights() {
-        mHeights = new float[MAX_HEIGHTS];
+    private void initHeights(TerrainType t) {
         // Random height initialization
-        for (int i = 0; i < MAX_HEIGHTS; i++) {
-            mHeights[i] = ((i * 27 * 27) % 50);
+        switch (t)
+        {
+            case TRIANGULAR:
+                mHeights = new float[MAX_HEIGHTS];
+                for (int i = 0; i < MAX_HEIGHTS; i++) {
+                    float tmp = (MAX_HEIGHTS - 1);
+                    mHeights[i] = (tmp - i) / (MAX_HEIGHTS - 1);
+                }
+                break;
+
+            case FLAT:
+                mHeights = new float[MAX_HEIGHTS];
+                float level = (float) (0.6 - (mRandom.nextFloat() / 4));
+                for (int i = 0; i < MAX_HEIGHTS; i++) {
+                    mHeights[i] = level;
+                }
+                break;
+
+            case JAGGED:
+                mHeights = getRandomHeights();
+                mHeights = movingWindow(mHeights, 2);
+                break;
+
+            case HILLY:
+                mHeights = getRandomHeights();
+                mHeights = movingWindow(mHeights, MAX_HEIGHTS / 10);
+                break;
+
+            case ROLLING:
+                mHeights = getRandomHeights();
+                mHeights = movingWindow(mHeights, MAX_HEIGHTS / 3);
+                break;
         }
+    }
+
+    private float[] getRandomHeights() {
+        float[] h = new float[MAX_HEIGHTS];
+        for (int i = 0; i < MAX_HEIGHTS; i++) {
+            h[i] = mRandom.nextFloat();
+        }
+        return h;
+    }
+
+    private float[] movingWindow(float[] input, int windowSize) {
+        float[] h = new float[MAX_HEIGHTS];
+        
+        for (int i = 0; i < MAX_HEIGHTS; i++) {
+            float acc = 0;
+            for (int j = 0; j < windowSize; ++j) {
+                acc += input[(i + j) % MAX_HEIGHTS];
+            }
+            h[i] = acc / windowSize;
+        }
+        return h;
     }
 
     float[] getHeights() {
@@ -44,6 +109,6 @@ public class ScorchedModel {
 
     /*================= Lifecycle =================*/
     public ScorchedModel() {
-        initHeights();
+        initHeights(TerrainType.ROLLING);
     }
 }
