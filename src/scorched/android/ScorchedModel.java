@@ -25,12 +25,37 @@ public class ScorchedModel {
         ROLLING,
     };
         
-    /*================= Misc =================*/
+    /*================= Data =================*/
+    /** A source of random numbers TODO: seed with current time */
     public static Random mRandom = new Random();
-    
-    /*================= Height field stuff =================*/
+
     /** The height field determines what the playing field looks like. */
     private float mHeights[] = null;
+
+    /** The players */
+    private static Player mPlayers[] = null;
+    
+    /*================= Access =================*/
+    public float[] getHeights() {
+        return mHeights;
+    }
+
+    public Player getPlayer(int num) {
+        return mPlayers[num];
+    }
+
+    public int getNumberOfPlayers() {
+        return mPlayers.length;
+    }
+
+    /*================= Operations =================*/
+    public void addPlayer(Player p, int num) {
+        // Consider providing a real PlayerIterator if more functions 
+        // dealing with mPlayers become necessary
+        mPlayers[num] = p;
+    }
+
+    /*================= Height field stuff =================*/
 
     /** Initialize height field with random values */
     private void initHeights(TerrainType t) {
@@ -91,8 +116,9 @@ public class ScorchedModel {
         return h;
     }
 
-    float[] getHeights() {
-        return mHeights;
+    /** Gets the terrain slot for player number N */
+    public int playerNumberToSlot(int playerNum) {
+        return (MAX_HEIGHTS * playerNum) / MAX_HEIGHTS;
     }
 
     /*================= Save / Restore =================*/
@@ -108,7 +134,12 @@ public class ScorchedModel {
     }
 
     /*================= Lifecycle =================*/
-    public ScorchedModel() {
+    public ScorchedModel(int totalPlayers) {
         initHeights(TerrainType.ROLLING);
+        mPlayers = new Player[totalPlayers];
+        if (totalPlayers > MAX_HEIGHTS) {
+        	assert(false); // we have to have enough slots to be sure that no two
+        			   // players will get the same slot
+        }
     }
 }

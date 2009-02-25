@@ -2,6 +2,7 @@ package scorched.android;
 
 import android.app.Activity;
 import android.content.res.Resources;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
@@ -13,10 +14,26 @@ import scorched.android.ScorchedView.ScorchedThread;
 import android.view.ViewGroup;
 
 public class scorched_android extends Activity {
-	private static final String TAG = "scorched_android";
+    /*================= Constants =================*/
+    private static final String TAG = "scorched_android";
+
+    /*================= Data =================*/
     private ScorchedView mView;
     private ScorchedModel mModel;
     
+    /*================= Utility =================*/
+    private final int[] getPlayerColors() {
+        String playerColorStr[] =
+        	getResources().getStringArray(R.array.player_colors);
+        int playerColors[] = new int[playerColorStr.length];
+        for (int i = 0; i < playerColorStr.length; ++i) {
+            Log.w(TAG, "trying to parse color " + playerColorStr[i]);
+            playerColors[i] = Color.parseColor(playerColorStr[i]);
+        }
+        return playerColors;
+    }
+
+    /*================= Operations =================*/
     /**
      * Invoked when the Activity is created.
      * 
@@ -36,10 +53,15 @@ public class scorched_android extends Activity {
         
         setContentView(R.layout.main);
 
-        Log.w(this.getClass().getName(), "creating scorched_view");
+        Log.w(this.getClass().getName(), "creating scorched_model");
+        mModel = new ScorchedModel(5);
+        int playerColors[] = getPlayerColors();
+        //mModel.addPlayer(LocalHumanPlayer(0)) ... etc
 
-        mModel = new ScorchedModel();
+        Log.w(this.getClass().getName(), "creating scorched_view");
         mView = (ScorchedView) findViewById(R.id.scorched_layout);
+
+        Log.w(this.getClass().getName(), "initializing scorched_model");
         mView.initialize(mModel);
 
         //Drawable redDrawable = 
