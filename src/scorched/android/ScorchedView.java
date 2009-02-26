@@ -78,6 +78,8 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
         
         private int rectX = 4;
         private int rectY = 4;
+        
+        private float zoom = 1.0f;
 
         public ScorchedThread(SurfaceHolder surfaceHolder, Context context,
                 Handler handler) {
@@ -145,7 +147,7 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
         public void run() {
             while (mRun) {
                 Canvas c = null;
-                if (rectX != oldRectX || rectY != oldRectY) {
+                if (rectX != oldRectX || rectY != oldRectY || zoom != oldZoom) {
                     try {
                         c = mSurfaceHolder.lockCanvas(null);
                         synchronized (mSurfaceHolder) {
@@ -230,6 +232,12 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
                 case KeyEvent.KEYCODE_DPAD_RIGHT:
                     rectX++;
                     break;
+                case KeyEvent.KEYCODE_Q:
+                	zoom *= 0.5f;
+                	break;
+                case KeyEvent.KEYCODE_A:
+                	zoom *= 2.0f;
+                	break;
                 default:
                     Log.w(TAG, "Fuckin fake ass key");    
                 }
@@ -257,14 +265,16 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
         /**
          * Draws everything
          */
-        private int oldRectX = rectX, oldRectY = rectY;
+        private int oldRectX = 0, oldRectY = 0;
+        private float oldZoom = 0.0f;
         private void doDraw(Canvas canvas) {
                 Log.w(TAG, "Moved!");
                 mScratchRect.set(0, 0, mCanvasWidth, mCanvasHeight);
                 canvas.drawRect(mScratchRect, mClear);
-                oldRectX = rectX; oldRectY = rectY;
+                canvas.scale(zoom, zoom);
+                oldRectX = rectX; oldRectY = rectY; oldZoom = zoom;
                 mScratchRect.set(rectX, rectY, rectX+100, rectY+100);
-                canvas.drawRect(mScratchRect, mPaint);
+                canvas.drawCircle(rectX+50, rectY+50, 50, mPaint);
         
         }
     }

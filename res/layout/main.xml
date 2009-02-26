@@ -23,4 +23,16 @@
           android:textColor="#88ffffff"
           android:textSize="24sp"/>
      </RelativeLayout>
+<LinearLayout android:layout_height="wrap_content" android:orientation="vertical" android:id="@+id/ControlsLayout" android:layout_width="fill_parent" android:gravity="112"><Spinner android:id="@+id/Spinner01" android:layout_width="wrap_content" android:layout_height="wrap_content"></Spinner><LinearLayout android:layout_height="wrap_content" android:id="@+id/PowerLayout" android:layout_width="fill_parent" android:gravity="80"><Button android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="−" android:id="@+id/PowerMinus"></Button>
+
+<TextView android:layout_height="wrap_content" android:text="Power" android:id="@+id/PowerText" android:layout_weight="1" android:layout_width="wrap_content" android:gravity="center"></TextView><Button android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="+" android:id="@+id/PowerPlus"></Button>
+
+</LinearLayout>
+<LinearLayout android:layout_height="wrap_content" android:id="@+id/AngleLayout" android:layout_width="fill_parent"><Button android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="−" android:id="@+id/AngleMinus"></Button>
+<TextView android:layout_height="wrap_content" android:text="Angle" android:id="@+id/AngleText" android:layout_width="wrap_content" android:gravity="center" android:layout_weight="1"></TextView>
+<Button android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="+" android:id="@+id/AnglePlus"></Button>
+</LinearLayout>
+
+
+</LinearLayout>
 </FrameLayout>
