@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -21,20 +22,21 @@ import android.widget.TextView;
 
 
 /**
- * View that draws, takes keystrokes, etc. for a simple LunarLander game.
+ * View (and Controller) for the Scorched Android game
  * 
- * Has a mode which RUNNING, PAUSED, etc. Has a x, y, dx, dy, ... capturing the
- * current ship physics. All x/y etc. are measured with (0,0) at the lower left.
- * updatePhysics() advances the physics based on realtime. draw() renders the
- * ship, and does an invalidate() to prompt another draw() as soon as possible
- * by the system.
+ * The view displays stuff on the screen and otherwise presents game state to
+ * the viewer. Ideally, this file would be mostly user interface stuff.
+ * 
+ * 'SurfaceView' in Android seems to double as a controller. It gets keystroke
+ * and touchpad callbacks. This is ok for now. If it gets too messy, we can
+ * always create a separate controller class later.
  */
 class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
+    /*================= Constants =================*/
     private static final String TAG = "ScorchedView";
+
+    /*================= ScorchedThread =================*/
     class ScorchedThread extends Thread {
-        /*
-         * Member (state) fields
-         */
         /** The drawable to use as the background of the animation canvas */
         //private Bitmap mBackground;
 
@@ -71,16 +73,11 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
         private Context mContext;
 
         /** Paint to draw the lines on screen. */
-        private Paint mPaint, mClear;
+        private Paint mPaint, mClear, mTerrainPaint;
 
         /** Scratch rect object. */
         private RectF mScratchRect;
         
-        private int rectX = 4;
-        private int rectY = 4;
-        
-        private float zoom = 1.0f;
-
         public ScorchedThread(SurfaceHolder surfaceHolder, Context context,
                 Handler handler) {
             // get handles to some important objects
@@ -97,6 +94,10 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
             mClear = new Paint();
             mClear.setAntiAlias(false);
             mClear.setARGB(255, 0, 0, 0);
+
+            mTerrainPaint = new Paint();
+            mTerrainPaint.setAntiAlias(false);
+            mTerrainPaint.setARGB(255, 0, 255, 255);
 
             mScratchRect = new RectF(0, 0, 0, 0);
         }
@@ -129,37 +130,44 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
             }
         }
 
-        /**
-         * Restores game state from the indicated Bundle. Typically called when
-         * the Activity is being restored after having been previously
-         * destroyed.
-         * 
-         * @param savedState Bundle containing the game state
-         */
-        public synchronized void restoreState(Bundle savedState) {
-            synchronized (mSurfaceHolder) {
-                mPaused = false;
-                /* do a bunch of stuff with savedState ... */
-            }
-        }
-
         @Override
         public void run() {
+            /* wait for the Surface to be ready */
+            Log.w(TAG, "run(): waiting for surface to be created.");
+            synchronized (mSurfaceHasBeenCreatedLock) {
+                if (!mSurfaceHasBeenCreated) {
+                    while (true) {
+                        try {
+                            mSurfaceHasBeenCreatedLock.wait();
+                            break;
+                        }
+                        catch (InterruptedException e) {
+                            Log.w(TAG, "run(): interrupted");
+                            // continue to wait
+                        }
+                    }
+                }
+            }
+            Log.w(TAG, "run(): surface has been created.");
+
             while (mRun) {
+                /* Draw stuff */
                 Canvas c = null;
-                if (rectX != oldRectX || rectY != oldRectY || zoom != oldZoom) {
-                    try {
-                        c = mSurfaceHolder.lockCanvas(null);
-                        synchronized (mSurfaceHolder) {
-                            doDraw(c);
+                try {
+                    synchronized (mSurfaceHolder) {
+                        if (mNeedScreenRedraw) {
+                            c = mSurfaceHolder.lockCanvas(null);
+                            drawScreen(c);
+                            mNeedScreenRedraw = false;
                         }
-                    } finally {
-                        // do this in a finally so that if an exception is 
-                        // thrown during the above, we don't leave the 
-                        // Surface in an inconsistent state
-                        if (c != null) {
-                            mSurfaceHolder.unlockCanvasAndPost(c);
-                        }
+                    }
+
+                    // if (mNeedBallisticsDraw) ...
+                }
+                finally {
+                    // Don't leave the Surface in an inconsistent state
+                    if (c != null) {
+                        mSurfaceHolder.unlockCanvasAndPost(c);
                     }
                 }
             }
@@ -173,12 +181,23 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
          */
         public Bundle saveState(Bundle map) {
             synchronized (mSurfaceHolder) {
-                if (map != null) {
-                    /*map.putDouble(KEY_FUEL, Double.valueOf(mFuel));
-                    etc... */
-                }
+                mModel.saveState(map);
             }
             return map;
+        }
+
+        /**
+         * Restores game state from the indicated Bundle. Typically called when
+         * the Activity is being restored after having been previously
+         * destroyed.
+         * 
+         * @param savedState Bundle containing the game state
+         */
+        public synchronized void restoreState(Bundle map) {
+            synchronized (mSurfaceHolder) {
+                mModel.restoreState(map);
+                mPaused = false;
+            }
         }
 
         /**
@@ -201,7 +220,7 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
             synchronized (mSurfaceHolder) {
                 mCanvasWidth = width;
                 mCanvasHeight = height;
-
+                mNeedScreenRedraw = true;
                 // don't forget to resize the background image
                 //mBackgroundImage = mBackgroundImage.createScaledBitmap(
                         //mBackgroundImage, width, height, true);
@@ -221,23 +240,17 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
                 switch (keyCode)
                 {
                 case KeyEvent.KEYCODE_DPAD_UP:
-                    rectY--;
+                    //rectY--;
                     break;
                 case KeyEvent.KEYCODE_DPAD_DOWN:
-                    rectY++;
+                    //rectY++;
                     break;
                 case KeyEvent.KEYCODE_DPAD_LEFT:
-                    rectX--;
+                    //rectX--;
                     break;
                 case KeyEvent.KEYCODE_DPAD_RIGHT:
-                    rectX++;
+                    //rectX++;
                     break;
-                case KeyEvent.KEYCODE_Q:
-                	zoom *= 0.5f;
-                	break;
-                case KeyEvent.KEYCODE_A:
-                	zoom *= 2.0f;
-                	break;
                 default:
                     Log.w(TAG, "Fuckin fake ass key");    
                 }
@@ -265,63 +278,69 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
         /**
          * Draws everything
          */
-        private int oldRectX = 0, oldRectY = 0;
-        private float oldZoom = 0.0f;
-        private void doDraw(Canvas canvas) {
-                Log.w(TAG, "Moved!");
-                mScratchRect.set(0, 0, mCanvasWidth, mCanvasHeight);
-                canvas.drawRect(mScratchRect, mClear);
-                canvas.scale(zoom, zoom);
-                oldRectX = rectX; oldRectY = rectY; oldZoom = zoom;
-                mScratchRect.set(rectX, rectY, rectX+100, rectY+100);
-                canvas.drawCircle(rectX+50, rectY+50, 50, mPaint);
-        
+        private void drawScreen(Canvas canvas) {
+            assert(ScorchedModel.MAX_HEIGHTS % 
+                    ScorchedModel.HEIGHTS_PER_POLY == 0);
+            Log.w(TAG, "running drawScreen with mCanvasWidth = " + mCanvasWidth +
+            		", mCanvasHeight = " + mCanvasHeight);
+            
+            mScratchRect.set(0, 0, mCanvasWidth, mCanvasHeight);
+            canvas.drawRect(mScratchRect, mClear);
+
+            mScratchRect.set(0,0,50,100);
+            canvas.drawRect(mScratchRect, mPaint);
+
+            float x = 0;
+            float dx = mCanvasWidth / (ScorchedModel.MAX_HEIGHTS - 1);
+            float h[] = mModel.getHeights();
+            for (int i = 0; 
+                i < ScorchedModel.MAX_HEIGHTS - 2;
+                i += 2) 
+            {
+                Path p = new Path();
+                p.moveTo(x, heightToScreenHeight(h[i]));
+                p.quadTo(x + dx, heightToScreenHeight(h[i+1]),
+                         x + dx + dx, heightToScreenHeight(h[i+2]));
+                p.lineTo(x + dx + dx, mCanvasHeight);
+                p.lineTo(x, mCanvasHeight);
+                x += (2 * dx);
+                canvas.drawPath(p, mTerrainPaint);
+            }
+        }
+
+        private float heightToScreenHeight(float h) {
+            return mCanvasHeight - (h * mCanvasHeight); 
         }
     }
 
-    /** The thread that actually draws the animation */
+    /*================= Members =================*/
+    /** The thread that draws the animation */
     private ScorchedThread mThread;
 
-    public ScorchedView(Context context, AttributeSet attrs) {
-        super(context, attrs);
+    /** True only once the Surface has been created and is ready to be used */
+    private Object mSurfaceHasBeenCreatedLock = new Object();
+    private boolean mSurfaceHasBeenCreated = false;
 
-        // register our interest in hearing about changes to our surface
-        SurfaceHolder holder = getHolder();
-        holder.addCallback(this);
+    /** Pointer to the model */
+    public ScorchedModel mModel;
 
-        // create thread only; it's started in surfaceCreated()
-        mThread = new ScorchedThread(holder, context, new Handler() {
-            @Override
-            public void handleMessage(Message m) {
-                //mStatusText.setVisibility(m.getData().getInt("viz"));
-                //mStatusText.setText(m.getData().getString("text"));
-            }
-        });
+    /** true if the screen needs to be redrawn */
+    public boolean mNeedScreenRedraw;
 
-        setFocusable(true); // make sure we get key events
-    }
-
-    /**
-     * Fetches the animation thread corresponding to this ScorchedView.
-     * 
-     * @return the animation thread
-     */
+    /*================= Accessors =================*/
+    /** Fetches the animation thread for this ScorchedView. */
     public ScorchedThread getThread() {
         return mThread;
     }
 
-    /**
-     * Standard override to get key-press events.
-     */
+    /*================= User Input Operations =================*/
+    /** Standard override to get key-press events. */
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent msg) {
         return mThread.doKeyDown(keyCode, msg);
     }
 
-    /**
-     * Standard override for key-up. We actually care about these, so we can
-     * turn off the engine or stop rotating.
-     */
+    /** Standard override to get key-up (released) events. */
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent msg) {
         return mThread.doKeyUp(keyCode, msg);
@@ -348,10 +367,13 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
      * used.
      */
     public void surfaceCreated(SurfaceHolder holder) {
-        // start the thread here so that we don't busy-wait in run()
-        // waiting for the surface to be created
-        mThread.setRunning(true);
-        mThread.start();
+        synchronized (mSurfaceHasBeenCreatedLock) {
+            // Wake up mThread.run() if it's waiting for the surface to have
+            // ben created
+            mSurfaceHasBeenCreated = true;
+            mSurfaceHasBeenCreatedLock.notify();
+        }
+        Log.w(TAG, "surfaceCreated(): set mSurfaceHasBeenCreated");
     }
 
     /*
@@ -371,5 +393,35 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
             } catch (InterruptedException e) {
             }
         }
+    }
+
+    /*================= Lifecycle =================*/
+    public ScorchedView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+
+        // register our interest in hearing about changes to our surface
+        SurfaceHolder holder = getHolder();
+        holder.addCallback(this);
+
+        // Create animation thread
+        mThread = new ScorchedThread(holder, context, new Handler() {
+            @Override
+            public void handleMessage(Message m) {
+                //mStatusText.setVisibility(m.getData().getInt("viz"));
+                //mStatusText.setText(m.getData().getString("text"));
+            }
+        });
+
+        setFocusable(true); // make sure we get key events
+    }
+
+    public void initialize(ScorchedModel model)
+    {
+        mModel = model;
+        mNeedScreenRedraw = true;
+        
+        // Start the animation thread
+        mThread.setRunning(true);
+        mThread.start();
     }
 }
