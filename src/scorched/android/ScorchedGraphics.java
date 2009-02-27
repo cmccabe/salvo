@@ -32,7 +32,8 @@ public class ScorchedGraphics {
     private Paint mClear, mTerrainPaint;
 
     /** Paint to draw the players */
-    private Paint mPlayerPaint[] = null;
+    private Paint mPlayerThinPaint[] = null;
+    private Paint mPlayerThickPaint[] = null;
 
     /** true if the screen needs to be redrawn */
     private boolean mNeedScreenRedraw;
@@ -117,17 +118,34 @@ public class ScorchedGraphics {
         for (int i = 0; i < mModel.getNumberOfPlayers(); i++) {
             Player p = mModel.getPlayer(i);
             int slot = p.getSlot();
-            drawPlayer(canvas, mPlayerPaint[i], 
-                        slotToScreenX(slot) - (playerSize / 2),
-                        heightToScreenHeight(p.getHeight()) - playerSize);
+            drawPlayer(canvas,
+            			mPlayerThinPaint[i], mPlayerThickPaint[i],
+                        p.getTurretAngle(), playerSize,
+                        slotToScreenX(slot),
+                        heightToScreenHeight(p.getHeight()));
         }
     }
 
     /** Draws a single player */
-    private void drawPlayer(Canvas canvas, Paint paint, float x, float y) {
+    private void drawPlayer(Canvas canvas, 
+                            Paint thinPaint, Paint thickPaint, 
+                            float turretAngle, float playerSize,
+                            float tx,
+                            float ty) 
+    {
         final float t = getPlayerSize();
+        float centerX = tx;
+        float centerY = ty - (playerSize / 2);
+
+        // draw turret
+        canvas.drawLine(centerX, centerY, 
+                centerX + (t * (float)Math.cos(turretAngle)),
+                centerY - (t * (float)Math.sin(turretAngle)),
+                thickPaint);
 
         // draw top part
+        float x = tx - (playerSize / 2);
+        float y = ty - playerSize;
         final float a = t / 7;
         final float b = t / 7;
         final float d = t / 6;
@@ -140,7 +158,7 @@ public class ScorchedGraphics {
         p.lineTo(x + t - (a), y + d + e);
         p.lineTo(x + a, y + d + e);
         p.lineTo(x + a, y + d);
-        canvas.drawPath(p, paint);
+        canvas.drawPath(p, thinPaint);
 
         // draw bottom part
         final float h = t / 5;
@@ -158,7 +176,7 @@ public class ScorchedGraphics {
         q.lineTo(x + t, y + d + e + h);
         q.lineTo(x + t - (n), y + d + e);
         q.lineTo(x + n, y + d + e);
-        canvas.drawPath(q, paint);
+        canvas.drawPath(q, thinPaint);
     }
 
     /*================= Lifecycle =================*/
@@ -176,12 +194,19 @@ public class ScorchedGraphics {
         mTerrainPaint.setARGB(255, 0, 255, 0);
 
         int playerColors[] = getPlayerColors();
-        mPlayerPaint = new Paint[playerColors.length];
+        mPlayerThinPaint = new Paint[playerColors.length];
+        mPlayerThickPaint = new Paint[playerColors.length];
         for (int i = 0; i < playerColors.length; ++i) {
-            Paint p = new Paint();
-            p.setAntiAlias(false);
-            p.setColor(playerColors[i]);
-            mPlayerPaint[i] = p;
+            Paint pthin = new Paint();
+            pthin.setAntiAlias(false);
+            pthin.setColor(playerColors[i]);
+            mPlayerThinPaint[i] = pthin;
+
+            Paint pthick = new Paint();
+            pthick.setAntiAlias(false);
+            pthick.setColor(playerColors[i]);
+            pthick.setStrokeWidth(10);
+            mPlayerThickPaint[i] = pthick;
         }
 
         mScratchRect = new RectF(0, 0, 0, 0);
