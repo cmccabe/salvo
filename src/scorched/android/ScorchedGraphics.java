@@ -5,7 +5,9 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.Region;
 import android.util.Log;
 
 /**
@@ -133,16 +135,31 @@ public class ScorchedGraphics {
                             float tx,
                             float ty) 
     {
-        final float t = getPlayerSize();
+    	float halfPlayerSize = playerSize / 2;
+        final float t = playerSize;
         float centerX = tx;
-        float centerY = ty - (playerSize / 2);
+        float centerY = ty - halfPlayerSize;
 
         // draw turret
         canvas.drawLine(centerX, centerY, 
-                centerX + (t * (float)Math.cos(turretAngle)),
-                centerY - (t * (float)Math.sin(turretAngle)),
+                centerX + (playerSize * (float)Math.cos(turretAngle)),
+                centerY - (playerSize * (float)Math.sin(turretAngle)),
                 thickPaint);
-
+        
+/*        // draw dome
+        Rect oldClip = canvas.getClipBounds();
+        canvas.clipRect(centerX - halfPlayerSize,
+        				centerY - halfPlayerSize,
+        				centerX + halfPlayerSize,
+        				centerY + halfPlayerSize,
+        				Region.Op.REPLACE);
+        mScratchRect.left = centerX - halfPlayerSize;
+        mScratchRect.right = centerX + halfPlayerSize;
+        mScratchRect.top = centerY - halfPlayerSize;
+        mScratchRect.bottom = centerY + halfPlayerSize + playerSize;
+        canvas.drawOval(mScratchRect, thinPaint);
+        canvas.clipRect(oldClip);*/
+                
         // draw top part
         float x = tx - (playerSize / 2);
         float y = ty - playerSize;
@@ -205,7 +222,7 @@ public class ScorchedGraphics {
             Paint pthick = new Paint();
             pthick.setAntiAlias(false);
             pthick.setColor(playerColors[i]);
-            pthick.setStrokeWidth(10);
+            pthick.setStrokeWidth(7);
             mPlayerThickPaint[i] = pthick;
         }
 
