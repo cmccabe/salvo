@@ -22,16 +22,6 @@ public class scorched_android extends Activity {
     private ScorchedModel mModel;
     
     /*================= Utility =================*/
-    private final int[] getPlayerColors() {
-        String playerColorStr[] =
-        	getResources().getStringArray(R.array.player_colors);
-        int playerColors[] = new int[playerColorStr.length];
-        for (int i = 0; i < playerColorStr.length; ++i) {
-            Log.w(TAG, "trying to parse color " + playerColorStr[i]);
-            playerColors[i] = Color.parseColor(playerColorStr[i]);
-        }
-        return playerColors;
-    }
 
     /*================= Operations =================*/
     /**
@@ -55,7 +45,6 @@ public class scorched_android extends Activity {
 
         Log.w(this.getClass().getName(), "creating scorched_model");
         mModel = new ScorchedModel(5);
-        int playerColors[] = getPlayerColors();
         //mModel.addPlayer(LocalHumanPlayer(0)) ... etc
 
         Log.w(this.getClass().getName(), "creating scorched_view");
