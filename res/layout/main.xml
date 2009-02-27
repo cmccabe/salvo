@@ -23,4 +23,21 @@
           android:textColor="#88ffffff"
           android:textSize="24sp"/>
      </RelativeLayout>
+<LinearLayout android:layout_height="wrap_content" android:orientation="vertical" android:id="@+id/ControlsLayout" android:layout_width="fill_parent" android:gravity="bottom"><LinearLayout android:layout_height="wrap_content" android:id="@+id/PowerLayout" android:layout_width="fill_parent" android:gravity="bottom"><TextView android:layout_height="wrap_content" android:text="Power" android:id="@+id/PowerText" android:layout_width="wrap_content" android:textSize="5pt" android:layout_weight="1" android:gravity="right" android:paddingRight="3dp"></TextView><Button android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="−" android:id="@+id/PowerMinus" android:background="@drawable/minibutton_bg" android:paddingLeft="5dp" android:paddingRight="5dp"></Button>
+
+<TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/PowerNumber" android:text="000"></TextView><Button android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="+" android:id="@+id/PowerPlus" android:background="@drawable/minibutton_bg" android:paddingLeft="5dp" android:paddingRight="5dp"></Button>
+
+
+</LinearLayout>
+<LinearLayout android:layout_height="wrap_content" android:id="@+id/AngleLayout" android:layout_width="fill_parent"><TextView android:layout_height="wrap_content" android:text="Angle" android:id="@+id/AngleText" android:layout_width="wrap_content" android:layout_weight="1" android:textSize="5pt" android:gravity="right" android:paddingRight="3dp"></TextView><Button android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="−" android:id="@+id/AngleMinus" android:background="@drawable/minibutton_bg" android:paddingLeft="5dp" android:paddingRight="5dp"></Button>
+
+<TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/AngleNumber" android:text="000"></TextView><Button android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="+" android:id="@+id/AnglePlus" android:background="@drawable/minibutton_bg" android:paddingLeft="5dp" android:paddingRight="5dp"></Button>
+
+</LinearLayout>
+
+
+<LinearLayout android:layout_height="wrap_content" android:layout_width="fill_parent" android:id="@+id/FireLayout"><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_weight="1" android:id="@+id/FirePadding"></TextView>
+<Button android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="FIRE!" android:background="@drawable/minibutton_bg" android:id="@+id/FireButton" android:paddingLeft="15dp" android:paddingRight="14dp"></Button>
+</LinearLayout>
+</LinearLayout>
 </FrameLayout>
