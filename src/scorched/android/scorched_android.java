@@ -18,8 +18,9 @@ public class scorched_android extends Activity {
     private static final String TAG = "scorched_android";
 
     /*================= Data =================*/
-    private ScorchedView mView;
+    private ScorchedView mWin;
     private ScorchedModel mModel;
+    private ScorchedGraphics mGraphics;
     
     /*================= Utility =================*/
 
@@ -34,24 +35,26 @@ public class scorched_android extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Log.w(TAG, "starting up2!");
-
-        // turn off the window's title bar
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-
-        Log.w(TAG, "setting content view");
-        
-        setContentView(R.layout.main);
-
-        Log.w(this.getClass().getName(), "creating scorched_model");
-        mModel = new ScorchedModel(5);
+        // Create Model
         //mModel.addPlayer(LocalHumanPlayer(0)) ... etc
+        Player players[] = new Player[5];
+        players[0] = new LocalHumanPlayer(0);
+        players[1] = new ComputerPlayer(1);
+        players[2] = new ComputerPlayer(2);
+        players[3] = new ComputerPlayer(3);
+        players[4] = new LocalHumanPlayer(4);
+        mModel = new ScorchedModel(players);
 
-        Log.w(this.getClass().getName(), "creating scorched_view");
-        mView = (ScorchedView) findViewById(R.id.scorched_layout);
+        // Create View
+        mGraphics = new ScorchedGraphics(getBaseContext(), mModel);
 
-        Log.w(this.getClass().getName(), "initializing scorched_model");
-        mView.initialize(mModel);
+        // Create Controller / Window object
+        requestWindowFeature(Window.FEATURE_NO_TITLE); // turn off title bar
+        Log.w(TAG, "setContentView");
+        setContentView(R.layout.main);
+        Log.w(TAG, "findViewById");
+        mWin = (ScorchedView) findViewById(R.id.scorched_layout);
+        mWin.initialize(mModel, mGraphics);
 
         //Drawable redDrawable = 
             //Resources.getSystem().getDrawable(R.drawable.color_red);
@@ -65,7 +68,7 @@ public class scorched_android extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
-        mView.getThread().pause(); // pause game when Activity pauses
+        mWin.getThread().pause(); // pause game when Activity pauses
     }
 
     /**
@@ -78,7 +81,7 @@ public class scorched_android extends Activity {
     protected void onSaveInstanceState(Bundle outState) {
         // just have the View's thread save its state into our Bundle
         super.onSaveInstanceState(outState);
-        mView.getThread().saveState(outState);
+        mWin.getThread().saveState(outState);
         Log.w(this.getClass().getName(), "onSaveInstanceState called");
     }
 }

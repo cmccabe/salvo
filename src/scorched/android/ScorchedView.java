@@ -5,10 +5,6 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.Path;
-import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
@@ -23,14 +19,14 @@ import android.widget.TextView;
 
 
 /**
- * View (and Controller) for the Scorched Android game
+ * Controller for the Scorched Android game
  * 
- * The view displays stuff on the screen and otherwise presents game state to
- * the viewer. Ideally, this file would be mostly user interface stuff.
- * 
- * 'SurfaceView' in Android seems to double as a controller. It gets keystroke
- * and touchpad callbacks. This is ok for now. If it gets too messy, we can
- * always create a separate controller class later.
+ * ScorchedView gets input from the user, as well as events from other
+ * parts of the system, and presents them to mGraphics and mModel.
+ *
+ * The nomenclature is unfortunate; despite its name, this is *not* a View
+ * in the model-view-controller sense. In the MVC sense, the View would be
+ * ScorchedGraphics.
  */
 class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
     /*================= Constants =================*/
@@ -38,30 +34,14 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
 
     /*================= ScorchedThread =================*/
     class ScorchedThread extends Thread {
-        /** The drawable to use as the background of the animation canvas */
-        //private Bitmap mBackground;
-
-        /**
-         * Current height of the surface/canvas.
-         * 
-         * @see #setSurfaceSize
-         */
-        private int mCanvasHeight = 1;
-
-        /**
-         * Current width of the surface/canvas.
-         * 
-         * @see #setSurfaceSize
-         */
-        private int mCanvasWidth = 1;
-
-        /** Indicate whether the surface has been created & is ready
-         *  to draw 
-         */
+        /** Controls whether the thread should run */
         private boolean mRun = false;
 
         /** Indicate whether or not the game is paused */
         private boolean mPaused = false;
+
+        /** Pointer to the view */
+        public ScorchedGraphics mGraphics = null;
 
         /** Handle to the surface manager object we interact with */
         private SurfaceHolder mSurfaceHolder;
@@ -73,35 +53,17 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
          *  used to e.g. fetch Drawables. */
         private Context mContext;
 
-        /** Paint to draw the lines on screen. */
-        private Paint mPaint, mClear, mTerrainPaint;
-        private Paint mPlayerPaint[] = null;
-
         /** Scratch rect object. */
-        private RectF mScratchRect;
         
-        public ScorchedThread(SurfaceHolder surfaceHolder, Context context,
-                Handler handler) {
+        public ScorchedThread(ScorchedGraphics graphics,
+                            SurfaceHolder surfaceHolder, 
+                            Context context,
+                            Handler handler) {
+            mGraphics = graphics;
             // get handles to some important objects
             mSurfaceHolder = surfaceHolder;
             mHandler = handler;
             mContext = context;
-
-            Resources res = context.getResources();
-
-            mPaint = new Paint();
-            mPaint.setAntiAlias(true);
-            mPaint.setARGB(255, 0, 255, 0);
-            
-            mClear = new Paint();
-            mClear.setAntiAlias(false);
-            mClear.setARGB(255, 0, 0, 0);
-
-            mTerrainPaint = new Paint();
-            mTerrainPaint.setAntiAlias(false);
-            mTerrainPaint.setARGB(255, 0, 255, 255);
-
-            mScratchRect = new RectF(0, 0, 0, 0);
         }
 
         /**
@@ -134,17 +96,7 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
 
         @Override
         public void run() {
-            // Load Paints
-            int playerColors[] = getPlayerColors();
-            mPlayerPaint = new Paint[playerColors.length];
-            for (int i = 0; i < playerColors.length; ++i) {
-                Paint p = new Paint();
-                p.setAntiAlias(false);
-                p.setColor(playerColors[i]);
-                mPlayerPaint[i] = p;
-            }
-
-            /* wait for the Surface to be ready */
+            // wait for the Surface to be ready
             Log.w(TAG, "run(): waiting for surface to be created.");
             synchronized (mSurfaceHasBeenCreatedLock) {
                 if (!mSurfaceHasBeenCreated) {
@@ -154,7 +106,6 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
                             break;
                         }
                         catch (InterruptedException e) {
-                            Log.w(TAG, "run(): interrupted");
                             // continue to wait
                         }
                     }
@@ -162,24 +113,19 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
             }
             Log.w(TAG, "run(): surface has been created.");
 
+            // main loop
             while (mRun) {
-                /* Draw stuff */
-                Canvas c = null;
+                Canvas canvas = null;
                 try {
-                    synchronized (mSurfaceHolder) {
-                        if (mNeedScreenRedraw) {
-                            c = mSurfaceHolder.lockCanvas(null);
-                            drawScreen(c);
-                            mNeedScreenRedraw = false;
-                        }
+                    if (mGraphics.needScreenUpdate()) {
+                        canvas = mSurfaceHolder.lockCanvas(null);
+                        mGraphics.drawScreen(canvas);
                     }
-
-                    // if (mNeedBallisticsDraw) ...
                 }
                 finally {
-                    // Don't leave the Surface in an inconsistent state
-                    if (c != null) {
-                        mSurfaceHolder.unlockCanvasAndPost(c);
+                    if (canvas != null) {
+                        // Don't leave the Surface in an inconsistent state
+                        mSurfaceHolder.unlockCanvasAndPost(canvas);
                     }
                 }
             }
@@ -230,12 +176,7 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
         public void setSurfaceSize(int width, int height) {
             // synchronized to make sure these all change atomically
             synchronized (mSurfaceHolder) {
-                mCanvasWidth = width;
-                mCanvasHeight = height;
-                mNeedScreenRedraw = true;
-                // don't forget to resize the background image
-                //mBackgroundImage = mBackgroundImage.createScaledBitmap(
-                        //mBackgroundImage, width, height, true);
+                mGraphics.setSurfaceSize(width, height);
             }
         }
 
@@ -286,108 +227,23 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
 
             return handled;
         }
-
-        /**
-         * Draws everything
-         */
-        private void drawScreen(Canvas canvas) {
-            assert(ScorchedModel.MAX_HEIGHTS % 
-                    ScorchedModel.HEIGHTS_PER_POLY == 0);
-            Log.w(TAG, "running drawScreen with mCanvasWidth = " + mCanvasWidth +
-            		", mCanvasHeight = " + mCanvasHeight);
-            
-            mScratchRect.set(0, 0, mCanvasWidth, mCanvasHeight);
-            canvas.drawRect(mScratchRect, mClear);
-
-            mScratchRect.set(0,0,50,100);
-            canvas.drawRect(mScratchRect, mPaint);
-
-            // Draw the terrain
-            float x = 0;
-            float dx = mCanvasWidth / (ScorchedModel.MAX_HEIGHTS - 1);
-            float h[] = mModel.getHeights();
-            for (int i = 0; 
-                i < ScorchedModel.MAX_HEIGHTS - 2;
-                i += 2) 
-            {
-                Path p = new Path();
-                p.moveTo(x, heightToScreenHeight(h[i]));
-                p.quadTo(x + dx, heightToScreenHeight(h[i+1]),
-                         x + dx + dx, heightToScreenHeight(h[i+2]));
-                p.lineTo(x + dx + dx, mCanvasHeight);
-                p.lineTo(x, mCanvasHeight);
-                x += (2 * dx);
-                canvas.drawPath(p, mTerrainPaint);
-            }
-
-            // Draw the players
-            drawPlayer(canvas, mPlayerPaint[0], 100, 100);
-        }
-
-        private float heightToScreenHeight(float h) {
-            return mCanvasHeight - (h * mCanvasHeight); 
-        }
-
-        private void drawPlayer(Canvas canvas, Paint paint, float x, float y) {
-            final float t = 25;
-
-            // draw top part
-            final float a = t / 7;
-            final float b = t / 7;
-            final float d = t / 6;
-            final float e = t / 5;
-            Path p = new Path();
-            p.moveTo(x + a, y + d);
-            p.lineTo(x + a + b, y);
-            p.lineTo(x + t - (a + b), y);
-            p.lineTo(x + t - (a), y + d);
-            p.lineTo(x + t - (a), y + d + e);
-            p.lineTo(x + a, y + d + e);
-            p.lineTo(x + a, y + d);
-            canvas.drawPath(p, paint);
-
-            // draw bottom part
-            final float h = t / 5;
-            final float j = t / 5;
-            final float k = t / 5;
-            final float l = t / 6;
-            final float n = t / 6;
-            Path q = new Path();
-            q.moveTo(x + n, y + d + e);
-            q.lineTo(x, y + d + e + h);
-            q.lineTo(x, y + d + e + h + j);
-            q.lineTo(x + l, y + d + e + h + j + k);
-            q.lineTo(x + t - (l), y + d + e + h + j + k);
-            q.lineTo(x + t, y + d + e + h + j);
-            q.lineTo(x + t, y + d + e + h);
-            q.lineTo(x + t - (n), y + d + e);
-            q.lineTo(x + n, y + d + e);
-            canvas.drawPath(q, paint);
-        }
-//            Path p = new Path();
-//            p.moveTo(x + a, y + d);
-//            p.lineTo(x + a + b, y);
-//            p.lineTo(x + a + b + c, y);
-//            p.lineTo(x + a + b + c + b, y + d);
-//            p.lineTo(x + a + b + c + b, y + d + e);
-//            p.lineTo(x + a, y + d + e);
-//            p.lineTo(x + a, y + d);
-//            canvas.drawPath(p, mPaint);
     }
 
     /*================= Members =================*/
     /** The thread that draws the animation */
     private ScorchedThread mThread;
 
-    /** True only once the Surface has been created and is ready to be used */
     private Object mSurfaceHasBeenCreatedLock = new Object();
+
+    /** True only once the Surface has been created and is ready to 
+     * be used */
     private boolean mSurfaceHasBeenCreated = false;
 
     /** Pointer to the model */
-    public ScorchedModel mModel;
+    public ScorchedModel mModel = null;
 
-    /** true if the screen needs to be redrawn */
-    public boolean mNeedScreenRedraw;
+    /** Pointer to the view */
+    public ScorchedGraphics mGraphics = null;
 
     /*================= Accessors =================*/
     /** Fetches the animation thread for this ScorchedView. */
@@ -457,42 +313,31 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
         }
     }
 
-    /*================= Utility =================*/
-    private final int[] getPlayerColors() {
-        String playerColorStr[] =
-        	getResources().getStringArray(R.array.player_colors);
-        int playerColors[] = new int[playerColorStr.length];
-        for (int i = 0; i < playerColorStr.length; ++i) {
-            Log.w(TAG, "trying to parse color " + playerColorStr[i]);
-            playerColors[i] = Color.parseColor(playerColorStr[i]);
-        }
-        return playerColors;
-    }
-
     /*================= Lifecycle =================*/
     public ScorchedView(Context context, AttributeSet attrs) {
         super(context, attrs);
+    }
+
+    public void initialize(ScorchedModel model, ScorchedGraphics graphics)
+    {
+        mModel = model;
+        mGraphics = graphics;
 
         // register our interest in hearing about changes to our surface
         SurfaceHolder holder = getHolder();
         holder.addCallback(this);
 
         // Create animation thread
-        mThread = new ScorchedThread(holder, context, new Handler() {
-            @Override
-            public void handleMessage(Message m) {
-                //mStatusText.setVisibility(m.getData().getInt("viz"));
-                //mStatusText.setText(m.getData().getString("text"));
-            }
+        mThread = new ScorchedThread(mGraphics, holder, getContext(), 
+            new Handler() {
+                @Override
+                public void handleMessage(Message m) {
+                    //mStatusText.setVisibility(m.getData().getInt("viz"));
+                    //mStatusText.setText(m.getData().getString("text"));
+                }
         });
 
         setFocusable(true); // make sure we get key events
-    }
-
-    public void initialize(ScorchedModel model)
-    {
-        mModel = model;
-        mNeedScreenRedraw = true;
         
         // Start the animation thread
         mThread.setRunning(true);

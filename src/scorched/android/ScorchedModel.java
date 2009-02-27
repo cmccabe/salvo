@@ -48,13 +48,6 @@ public class ScorchedModel {
         return mPlayers.length;
     }
 
-    /*================= Operations =================*/
-    public void addPlayer(Player p, int num) {
-        // Consider providing a real PlayerIterator if more functions 
-        // dealing with mPlayers become necessary
-        mPlayers[num] = p;
-    }
-
     /*================= Height field stuff =================*/
 
     /** Initialize height field with random values */
@@ -117,8 +110,8 @@ public class ScorchedModel {
     }
 
     /** Gets the terrain slot for player number N */
-    public int playerNumberToSlot(int playerNum) {
-        return (MAX_HEIGHTS * playerNum) / MAX_HEIGHTS;
+    public int playerIdToSlot(int playerId) {
+        return ((MAX_HEIGHTS /2) + (MAX_HEIGHTS * playerId)) / mPlayers.length;
     }
 
     /*================= Save / Restore =================*/
@@ -134,12 +127,18 @@ public class ScorchedModel {
     }
 
     /*================= Lifecycle =================*/
-    public ScorchedModel(int totalPlayers) {
+    public ScorchedModel(Player players[]) {
         initHeights(TerrainType.ROLLING);
-        mPlayers = new Player[totalPlayers];
-        if (totalPlayers > MAX_HEIGHTS) {
-        	assert(false); // we have to have enough slots to be sure that no two
-        			   // players will get the same slot
+        mPlayers = players;
+        if (mPlayers.length > MAX_HEIGHTS) {
+            // We have to have enough slots to be sure that no two
+            // players will get the same slot
+            assert(false); 
+        }
+        for (int i = 0; i < mPlayers.length; i++) {
+        	int id = mPlayers[i].getId();
+        	assert (id == i);
+            mPlayers[i].setSlot(playerIdToSlot(id));
         }
     }
 }
