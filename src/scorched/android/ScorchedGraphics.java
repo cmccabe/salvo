@@ -72,7 +72,7 @@ public class ScorchedGraphics {
     /** The player occupies a square area on the screen. This returns the size of the
      * square. */
     private float getPlayerSize() {
-    	return 25;
+    	return slotToScreenX(3);
     }
     
     /*================= Operations =================*/
@@ -119,7 +119,7 @@ public class ScorchedGraphics {
             int slot = p.getSlot();
             drawPlayer(canvas, mPlayerPaint[i], 
                         slotToScreenX(slot) - (playerSize / 2),
-                        heightToScreenHeight(h[slot]) - playerSize);
+                        heightToScreenHeight(p.getHeight()) - playerSize);
         }
     }
 

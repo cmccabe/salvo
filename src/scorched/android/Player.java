@@ -8,22 +8,53 @@ public class Player {
     private int mId;
     private int mSlot = -1;
     private int mLife;
+    private float mHeight;
+    
+    /*================= Static =================*/
+    private final float avg4f(float a, float b, float c, float d) {
+    	return (a + b + c + d) / 4;
+    }
+    
+    private final float min3f(float f, float g, float h) {
+    	if (f < g) {
+    		if (h < f)
+    			return h;
+    		else
+    			return f;
+    	}
+    	else if (h < g)
+    		return h;
+    	else
+    		return g;
+    }
 
     /*================= Access =================*/
-    int getId() {
+    public int getId() {
         return mId;
     }
 
-    int getSlot() {
+    public int getSlot() {
         return mSlot;
     }
 
+    public float getHeight() {
+    	return mHeight;
+    }
+    
     /*================= Operations =================*/
-    void setSlot(int slot) {
+    public void setSlot(int slot) {
         mSlot = slot;
+        assert(mSlot >= 1);
+    }
+    
+    public void calcHeight(ScorchedModel model) {
+    	float h[] = model.getHeights();
+    	mHeight = 
+    		avg4f(h[mSlot - 1], h[mSlot], h[mSlot + 1],
+    				min3f(h[mSlot - 1], h[mSlot], h[mSlot + 1]));
     }
 
-    /*================= Lifecycle =================*/
+	/*================= Lifecycle =================*/
     public Player(int id) {
         mId = id;
         mLife = MAX_LIFE;

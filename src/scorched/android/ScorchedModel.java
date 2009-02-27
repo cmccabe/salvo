@@ -13,7 +13,7 @@ import android.os.Bundle;
 public class ScorchedModel {
     /*================= Constants =================*/
     private static final String TAG = "ScorchedModel";
-    public static final int MAX_HEIGHTS = 21;
+    public static final int MAX_HEIGHTS = 41;
     public static final int HEIGHTS_PER_POLY = 3;
 
     enum TerrainType {
@@ -139,6 +139,7 @@ public class ScorchedModel {
         	int id = mPlayers[i].getId();
         	assert (id == i);
             mPlayers[i].setSlot(playerIdToSlot(id));
+            mPlayers[i].calcHeight(this);
         }
     }
 }
