@@ -18,9 +18,9 @@ import android.util.Log;
  * ensure that everything is protected properly.
  */
 public class ScorchedGraphics {
-	/*================= Constants =================*/
-	private final String TAG = "ScorchedGraphics";
-	
+    /*================= Constants =================*/
+    private final String TAG = "ScorchedGraphics";
+        
     /*================= Members =================*/
     private RectF mScratchRect;
 
@@ -72,13 +72,17 @@ public class ScorchedGraphics {
         return mNeedScreenRedraw;
     }
     
-    /** The player occupies a square area on the screen. This returns the size of the
-     * square. */
+    /** The player occupies a square area on the screen. This returns 
+     * the size of the square. */
     private float getPlayerSize() {
-    	return slotToScreenX(3);
+        return slotToScreenX(3);
     }
     
     /*================= Operations =================*/
+    public void setNeedScreenRedraw() {
+        mNeedScreenRedraw = true;
+    }
+
     public void setSurfaceSize(int width, int height) {
         mCanvasWidth = width;
         mCanvasHeight = height;
@@ -116,43 +120,48 @@ public class ScorchedGraphics {
         }
 
         // Draw the players
-        float playerSize = getPlayerSize();
         for (int i = 0; i < mModel.getNumberOfPlayers(); i++) {
             Player p = mModel.getPlayer(i);
-            int slot = p.getSlot();
-            drawPlayer(canvas,
-            			mPlayerThinPaint[i], mPlayerThickPaint[i],
-                        p.getTurretAngle(), playerSize,
-                        slotToScreenX(slot),
-                        heightToScreenHeight(p.getHeight()));
+            drawPlayer(canvas, p);
         }
     }
 
+    private void drawPlayer(Canvas canvas, Player p) {
+        int slot = p.getSlot();
+        drawPlayerImpl(canvas,
+                    mPlayerThinPaint[p.getId()], mPlayerThickPaint[p.getId()],
+                    p.getAngle(), getPlayerSize(),
+                    slotToScreenX(slot),
+                    heightToScreenHeight(p.getHeight()));
+    }
+
     /** Draws a single player */
-    private void drawPlayer(Canvas canvas, 
+    private void drawPlayerImpl(Canvas canvas, 
                             Paint thinPaint, Paint thickPaint, 
                             float turretAngle, float playerSize,
                             float tx,
                             float ty) 
     {
-    	float halfPlayerSize = playerSize / 2;
+        float halfPlayerSize = playerSize / 2;
         final float t = playerSize;
         float centerX = tx;
         float centerY = ty - halfPlayerSize;
 
         // draw turret
         canvas.drawLine(centerX, centerY, 
-                centerX + (playerSize * (float)Math.cos(turretAngle)),
-                centerY - (playerSize * (float)Math.sin(turretAngle)),
+                centerX + (playerSize *
+                    (float)Math.cos(Math.toRadians(turretAngle))),
+                centerY - (playerSize *
+                    (float)Math.sin(Math.toRadians(turretAngle))),
                 thickPaint);
         
 /*        // draw dome
         Rect oldClip = canvas.getClipBounds();
         canvas.clipRect(centerX - halfPlayerSize,
-        				centerY - halfPlayerSize,
-        				centerX + halfPlayerSize,
-        				centerY + halfPlayerSize,
-        				Region.Op.REPLACE);
+                                        centerY - halfPlayerSize,
+                                        centerX + halfPlayerSize,
+                                        centerY + halfPlayerSize,
+                                        Region.Op.REPLACE);
         mScratchRect.left = centerX - halfPlayerSize;
         mScratchRect.right = centerX + halfPlayerSize;
         mScratchRect.top = centerY - halfPlayerSize;
@@ -199,9 +208,9 @@ public class ScorchedGraphics {
     /*================= Lifecycle =================*/
     public ScorchedGraphics(Context context, ScorchedModel model) {
         mContext = context;
-    	mModel = model;
-    	
-    	// Load Paints
+        mModel = model;
+        
+        // Load Paints
         mClear = new Paint();
         mClear.setAntiAlias(false);
         mClear.setARGB(255, 0, 0, 0);
