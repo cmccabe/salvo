@@ -44,6 +44,13 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
 
     /*================= ScorchedThread =================*/
     class ScorchedThread extends Thread {
+        /** The semaphore representing user input during a player's turn */
+        private Object mUserInputSem = new Object();
+
+        /** The game state we should transition to next. Protected by
+          * mUserInputSem */
+        private GameState mNextGameState;
+
         /** Represents the current controller state */
         volatile private GameState mGameState;
 
@@ -115,10 +122,12 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
 
         /* Callback invoked when the surface dimensions change. */
         public void setSurfaceSize(int width, int height) {
-            // synchronized to make sure these all change atomically
-            synchronized (mSurfaceHolder) {
+        	synchronized (mSurfaceHolder) {
                 mGraphics.setSurfaceSize(width, height);
             }
+        	synchronized (mUserInputSem) {
+        		mUserInputSem.notify();
+        	}
         }
 
         /*================= Main =================*/
@@ -191,10 +200,17 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
         private GameState runHumanMove(Player curPlayer) 
             throws InterruptedException
         {
+            synchronized (mUserInputSem) {
+                mNextGameState = GameState.PLAYER_MOVE;
+            }
+
             while (true) {
                 runScreenRefresh();
                 synchronized (mUserInputSem) {
                     mUserInputSem.wait();
+                    if (mNextGameState != GameState.PLAYER_MOVE) {
+                        return mNextGameState;
+                    }
                 }
             }
         }
@@ -279,6 +295,14 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
                     case KeyEvent.KEYCODE_DPAD_RIGHT:
                         p.turretRight();
                         break;
+                    case KeyEvent.KEYCODE_SPACE:
+                        // launch!
+                        mNextGameState = GameState.BALLISTICS;
+                        break;
+                    case KeyEvent.KEYCODE_Q:
+                        // quit.
+                        mNextGameState = GameState.QUIT;
+                        break;
                     default:
                         throw new RuntimeException("can't handle keycode " +
                         		                   keyCode);
@@ -295,6 +319,8 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
                 case KeyEvent.KEYCODE_DPAD_DOWN:
                 case KeyEvent.KEYCODE_DPAD_LEFT:
                 case KeyEvent.KEYCODE_DPAD_RIGHT:
+                case KeyEvent.KEYCODE_SPACE:
+                case KeyEvent.KEYCODE_Q:
                     return true;
                 default:
                     return false;
@@ -318,8 +344,6 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
     private ScorchedThread mThread;
 
     private Object mSurfaceHasBeenCreatedSem = new Object();
-
-    private Object mUserInputSem = new Object();
 
     /** True only once the Surface has been created and is ready to 
      * be used */
