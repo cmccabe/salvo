@@ -1,10 +1,14 @@
 package scorched.android;
 
+import java.sql.Time;
+
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
@@ -155,14 +159,13 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
             {
                 mGameState = GameState.PLAYER_MOVE;
                 while (true) {
-                    GameState nextState = mGameState;
                     switch (mGameState) {
                         case IDLE:
                             // Should not get here
                             throw new RuntimeException(
                                 "Got mGameState = IDLE in main loop");
     
-                        case PLAYER_MOVE:
+                        case PLAYER_MOVE: {
                             // The player is moving around his 
                             // turret, etc. 
                             Player curPlayer = mModel.getCurPlayer();
@@ -172,16 +175,31 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
                             else {
                                 throw new RuntimeException("unimplemented");
                             }
+                        }
+                        break;
     
-                        case BALLISTICS:
+                        case BALLISTICS: {
                             // The projectile is moving through the sky
-                            //mGameState = runBallistics();
-                            break;
+                            Player curPlayer = mModel.getCurPlayer();
+                            mGameState = runBallistics(curPlayer);
+                        }
+                        break;
     
-                        case EXPLOSION:
+                        case EXPLOSION: {
+                            Log.w(TAG, "entering EXPLOSION state");
                             // The projectile is exploding onscreen
+                            Canvas canvas = mSurfaceHolder.lockCanvas(null);
+                            Paint p = new Paint();
+                            p.setAntiAlias(false);
+                            p.setARGB(128, 255, 0, 255);
+                            Rect rect = new Rect();
+                            rect.set(0, 0, 200, 200);
+                            canvas.drawRect(rect, p);
                             //mGameState = runExplosion();
-                            break;
+                            mSurfaceHolder.unlockCanvasAndPost(canvas);
+                            Thread.sleep(10000);
+                        }
+                        break;
     
                         case QUIT:
                             // The user has requested QUIT
@@ -205,7 +223,7 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
             }
 
             while (true) {
-                runScreenRefresh();
+                runScreenRefresh(curPlayer, null);
                 synchronized (mUserInputSem) {
                     mUserInputSem.wait();
                     if (mNextGameState != GameState.PLAYER_MOVE) {
@@ -215,7 +233,32 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
             }
         }
 
-        private void runScreenRefresh()
+        private GameState runBallistics(Player curPlayer)
+            throws InterruptedException
+        {
+            synchronized (mUserInputSem) {
+                mNextGameState = GameState.BALLISTICS;
+            }
+
+            Weapon weapon = curPlayer.getWeapon();
+            while (true) {
+                runScreenRefresh(curPlayer, weapon);
+                synchronized (mUserInputSem) {
+                    mUserInputSem.wait(1);
+                    weapon.nextSample();
+                    Weapon.Point collisionPoint = weapon.testCollision();
+                    if (collisionPoint != null) {
+                    	mNextGameState = GameState.EXPLOSION;
+                    }
+                    if (mNextGameState != GameState.BALLISTICS) {
+                        return mNextGameState;
+                    }
+                    mGraphics.setNeedScreenRedraw();
+                }
+            }
+        }
+
+        private void runScreenRefresh(Player player, Weapon weapon)
         {
             // redraw canvas if necessary
             Canvas canvas = null;
@@ -223,6 +266,9 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
                 if (mGraphics.needScreenUpdate()) {
                     canvas = mSurfaceHolder.lockCanvas(null);
                     mGraphics.drawScreen(canvas);
+                    if (weapon != null) {
+                        mGraphics.drawWeapon(canvas, weapon, player);
+                    }
                 }
             }
             finally {
@@ -297,7 +343,7 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
                         break;
                     case KeyEvent.KEYCODE_SPACE:
                         // launch!
-                        mNextGameState = GameState.BALLISTICS;
+                        mNextGameState = GameState.BALLISTICS; //GameState.EXPLOSION;
                         break;
                     case KeyEvent.KEYCODE_Q:
                         // quit.

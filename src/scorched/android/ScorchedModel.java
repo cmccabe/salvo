@@ -7,14 +7,44 @@ import android.os.Bundle;
 /**
  * Model for the Scorched Android game.
  * 
- * The model contains the 'meat' of the game logic.
- * It contains all game state except for state relating to the user interface.
+ * ScorchedModel contains all game state except for state relating 
+ * to the user interface.
+ * It owns all classes, like Player, that contain important game state.
+ * 
+ * The Game Board
+ * height
+ *  1.0   +------------------------------------------+
+ *        |                                          |
+ *        |  __                                    __|
+ *        | _  ___             _____              _  |
+ *        |_      _    ________     ________     _   |
+ *        |        ____                     _____    |
+ *  0.0   +------------------------------------------+
+ *         01234567...                               MAX_HEIGHTS
+ *
+ * Height, or Y, is measured from 0 (floor) to 1 (ceiling).
+ * The draw routines do whatever scaling is required.
+ *
+ * Slot, or X, is measured from 0 to MAX_HEIGHTS. The height field
+ * stores the height of the terrain at each slot; intermediate values
+ * are interpolated. Weapons can have a fractional (float) X, but
+ * players can not.
+ *
+ * Players are assumed to be square, and their X size is defined as
+ * SLOTS_PER_PLAYER slots.
  */
 public class ScorchedModel {
     /*================= Constants =================*/
     private static final String TAG = "ScorchedModel";
+
+    /** How many entries are there in the height field */
     public static final int MAX_HEIGHTS = 41;
-    public static final int HEIGHTS_PER_POLY = 3;
+
+    /** How many 'slots' each player takes up */
+    public static final int SLOTS_PER_PLAYER = 3;
+
+    /** How many 'slots' the player's turret takes up */
+    public static final int SLOTS_PER_TURRET = 3;
 
     enum TerrainType {
         TRIANGULAR,
@@ -140,7 +170,8 @@ public class ScorchedModel {
 
     /** Gets the terrain slot for player number N */
     public int playerIdToSlot(int playerId) {
-        return ((MAX_HEIGHTS /2) + (MAX_HEIGHTS * playerId)) / mPlayers.length;
+        return ((MAX_HEIGHTS /2) + 
+                    (MAX_HEIGHTS * playerId)) / mPlayers.length;
     }
 
     /*================= Save / Restore =================*/

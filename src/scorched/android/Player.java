@@ -78,7 +78,32 @@ public class Player {
     public boolean isHuman() {
         return true;
     }
+
+    public Weapon getWeapon() {
+        // Eventually this will return the specific type of weapon you
+        // have selected.
+        // It might be even better to cache the Weapon instance in Player
+        // to avoid making another allocation.
+        return new Weapon(getTurretSlot(), getTurretHeight(),
+        					(float)((Math.cos(Math.toRadians(mAngle)) * mPower) / 
+        							10000.0),
+        					(float)((Math.sin(Math.toRadians(mAngle)) * mPower) / 
+        							(10000.0 * ScorchedModel.MAX_HEIGHTS)));
+    }
     
+    /** Return a float representing the X position of the gun turret */
+    private float getTurretSlot() {
+        float ret = mSlot;
+        return ret;// + ((float)Math.cos(Math.toRadians(mAngle) * 
+                   //     ScorchedModel.SLOTS_PER_TURRET));
+    }
+
+    /** Return a float representing the Y position of the gun turret */
+    private float getTurretHeight() {
+        return mHeight;// + ((float)Math.sin(Math.toRadians(mAngle) * 
+                      //      ScorchedModel.SLOTS_PER_TURRET));
+    }
+
     /*================= Operations =================*/
     public void setSlot(int slot) {
         mSlot = slot;
