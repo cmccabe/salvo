@@ -34,7 +34,9 @@ public class ScorchedModel {
 
     /** The players */
     private static Player mPlayers[] = null;
-    
+
+    private int mCurPlayerId;
+
     /*================= Access =================*/
     public float[] getHeights() {
         return mHeights;
@@ -46,6 +48,33 @@ public class ScorchedModel {
 
     public int getNumberOfPlayers() {
         return mPlayers.length;
+    }
+
+    public Player getCurPlayer() {
+        return mPlayers[mCurPlayerId];
+    }
+
+    public int getCurPlayerId() {
+        return mCurPlayerId;
+    }
+
+    /** Advances to the next player's turn, if there are any players left.
+     * Returns false if the round is over, true otherwise */
+    public boolean nextPlayer() {
+        int oldPlayer = mCurPlayerId;
+        int player = mCurPlayerId + 1;
+        while (true) {
+            if (player > mPlayers.length)
+                player = 0;
+            if (player == oldPlayer)
+                return false;
+            if (mPlayers[player].isAlive()) {
+                mCurPlayerId = player;
+                return true;
+            }
+            else
+                player++;
+        }
     }
 
     /*================= Height field stuff =================*/
@@ -141,5 +170,6 @@ public class ScorchedModel {
             mPlayers[i].setSlot(playerIdToSlot(id));
             mPlayers[i].calcHeight(this);
         }
+        mCurPlayerId = 0;
     }
 }

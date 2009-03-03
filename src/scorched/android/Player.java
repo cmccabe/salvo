@@ -3,14 +3,34 @@ package scorched.android;
 public class Player {
     /*================= Constants =================*/
     private static final int MAX_LIFE = 1000;
+    private static final int MAX_POWER = 1000;
+    private static final int MIN_TURRET_ANGLE = 0;
+    private static final int MAX_TURRET_ANGLE = 180;
 
     /*================= Members =================*/
     private int mId;
+
+    /** The horizontal 'slot' that the tank occupies on the playing field. */
     private int mSlot = -1;
+
+    /** How much life we have. If this is 0 then we're dead. */
     private int mLife;
+
+    /** Current y-position of the tank. */
     private float mHeight;
-    private float mTurretAngle;
-    private int mTurretPower;
+
+    /** Current turret angle. Turret angles are represented like this:
+     *           90
+     *       135  |   45
+     *         \  |  /
+     *          \ | /
+     *    180 ========== 0
+     */
+    private float mAngle;
+
+    /** The power that we're firing with. Measured on the same 
+     * scale as life. */ 
+    private int mPower;
     
     /*================= Static =================*/
     private final float avg4f(float a, float b, float c, float d) {
@@ -43,12 +63,20 @@ public class Player {
         return mHeight;
     }
 
-    public float getTurretAngle() {
-        return mTurretAngle;
+    public float getAngle() {
+        return mAngle;
     }
 
-    public float getTurretPower() {
-        return mTurretPower;
+    public float getPower() {
+        return mPower;
+    }
+
+    public boolean isAlive() {
+        return mLife > 0;
+    }
+
+    public boolean isHuman() {
+        return true;
     }
     
     /*================= Operations =================*/
@@ -63,11 +91,54 @@ public class Player {
                                 min3f(h[mSlot - 1], h[mSlot], h[mSlot + 1]));
     }
 
-        /*================= Lifecycle =================*/
+    /** set turret power. */
+    public void setPower(int val) {
+        mPower = val;
+    }
+
+    /** set turret angle.
+     *  'val' is scaled to 0...1000 and must be normalized */
+    public void setAngle(int val) {
+        float angle = 1000 - val;
+        angle *= 0.18;
+        mAngle = angle;
+    }
+
+    /** Move turret left by one degree */
+    public void turretLeft() {
+        mAngle += 1;
+        if (mAngle > MAX_TURRET_ANGLE) {
+            mAngle = MAX_TURRET_ANGLE;
+        }
+    }
+
+    /** Move turret right by one degree */
+    public void turretRight() {
+        mAngle -= 1;
+        if (mAngle < MIN_TURRET_ANGLE) {
+            mAngle = MIN_TURRET_ANGLE;
+        }
+    }
+
+    public void powerUp() {
+        mPower += 1;
+        if (mPower > MAX_POWER) {
+            mPower = MAX_POWER;
+        }
+    }
+
+    public void powerDown() {
+        mPower -= 1;
+        if (mPower < 1) {
+            mPower = 1;
+        }
+    }
+
+    /*================= Lifecycle =================*/
     public Player(int id) {
         mId = id;
         mLife = MAX_LIFE;
-        mTurretAngle = 45;
-        mTurretPower = 500;
+        mAngle = 45;
+        mPower = 500;
     }
 }

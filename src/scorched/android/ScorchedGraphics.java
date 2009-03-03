@@ -5,7 +5,9 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.Region;
 import android.util.Log;
 
 /**
@@ -16,9 +18,9 @@ import android.util.Log;
  * ensure that everything is protected properly.
  */
 public class ScorchedGraphics {
-	/*================= Constants =================*/
-	private final String TAG = "ScorchedGraphics";
-	
+    /*================= Constants =================*/
+    private final String TAG = "ScorchedGraphics";
+        
     /*================= Members =================*/
     private RectF mScratchRect;
 
@@ -36,7 +38,7 @@ public class ScorchedGraphics {
     private Paint mPlayerThickPaint[] = null;
 
     /** true if the screen needs to be redrawn */
-    private boolean mNeedScreenRedraw;
+    private volatile boolean mNeedScreenRedraw;
 
     private ScorchedModel mModel;
 
@@ -70,13 +72,17 @@ public class ScorchedGraphics {
         return mNeedScreenRedraw;
     }
     
-    /** The player occupies a square area on the screen. This returns the size of the
-     * square. */
+    /** The player occupies a square area on the screen. This returns 
+     * the size of the square. */
     private float getPlayerSize() {
-    	return slotToScreenX(3);
+        return slotToScreenX(3);
     }
     
     /*================= Operations =================*/
+    public void setNeedScreenRedraw() {
+        mNeedScreenRedraw = true;
+    }
+
     public void setSurfaceSize(int width, int height) {
         mCanvasWidth = width;
         mCanvasHeight = height;
@@ -114,35 +120,55 @@ public class ScorchedGraphics {
         }
 
         // Draw the players
-        float playerSize = getPlayerSize();
         for (int i = 0; i < mModel.getNumberOfPlayers(); i++) {
             Player p = mModel.getPlayer(i);
-            int slot = p.getSlot();
-            drawPlayer(canvas,
-            			mPlayerThinPaint[i], mPlayerThickPaint[i],
-                        p.getTurretAngle(), playerSize,
-                        slotToScreenX(slot),
-                        heightToScreenHeight(p.getHeight()));
+            drawPlayer(canvas, p);
         }
     }
 
+    private void drawPlayer(Canvas canvas, Player p) {
+        int slot = p.getSlot();
+        drawPlayerImpl(canvas,
+                    mPlayerThinPaint[p.getId()], mPlayerThickPaint[p.getId()],
+                    p.getAngle(), getPlayerSize(),
+                    slotToScreenX(slot),
+                    heightToScreenHeight(p.getHeight()));
+    }
+
     /** Draws a single player */
-    private void drawPlayer(Canvas canvas, 
+    private void drawPlayerImpl(Canvas canvas, 
                             Paint thinPaint, Paint thickPaint, 
                             float turretAngle, float playerSize,
                             float tx,
                             float ty) 
     {
-        final float t = getPlayerSize();
+        float halfPlayerSize = playerSize / 2;
+        final float t = playerSize;
         float centerX = tx;
-        float centerY = ty - (playerSize / 2);
+        float centerY = ty - halfPlayerSize;
 
         // draw turret
         canvas.drawLine(centerX, centerY, 
-                centerX + (t * (float)Math.cos(turretAngle)),
-                centerY - (t * (float)Math.sin(turretAngle)),
+                centerX + (playerSize *
+                    (float)Math.cos(Math.toRadians(turretAngle))),
+                centerY - (playerSize *
+                    (float)Math.sin(Math.toRadians(turretAngle))),
                 thickPaint);
-
+        
+/*        // draw dome
+        Rect oldClip = canvas.getClipBounds();
+        canvas.clipRect(centerX - halfPlayerSize,
+                                        centerY - halfPlayerSize,
+                                        centerX + halfPlayerSize,
+                                        centerY + halfPlayerSize,
+                                        Region.Op.REPLACE);
+        mScratchRect.left = centerX - halfPlayerSize;
+        mScratchRect.right = centerX + halfPlayerSize;
+        mScratchRect.top = centerY - halfPlayerSize;
+        mScratchRect.bottom = centerY + halfPlayerSize + playerSize;
+        canvas.drawOval(mScratchRect, thinPaint);
+        canvas.clipRect(oldClip);*/
+                
         // draw top part
         float x = tx - (playerSize / 2);
         float y = ty - playerSize;
@@ -195,9 +221,9 @@ public class ScorchedGraphics {
     /*================= Lifecycle =================*/
     public ScorchedGraphics(Context context, ScorchedModel model) {
         mContext = context;
-    	mModel = model;
-    	
-    	// Load Paints
+        mModel = model;
+        
+        // Load Paints
         mClear = new Paint();
         mClear.setAntiAlias(false);
         mClear.setARGB(255, 0, 0, 0);
