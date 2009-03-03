@@ -42,168 +42,10 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
 
     /*================= Types =================*/
 
-    /** Represents player input gathered from various functions. 
-     *  This class must be used as a singleton because of locking issues.
-     */
-    private static class PlayerInput {
-        /*================= Constants =================*/
-        public enum PlayerInputAction {
-            /** No player input */
-            NONE,
-            /** Key (or button) was pressed */
-            KEY_DOWN,
-            /** Key (or button) was released */
-            KEY_UP,
-            /** Slider was set to a particular value */  
-            SET_SLIDER,
-        };
-
-        public enum PlayerKeys {
-            TURRET_LEFT,
-            TURRET_RIGHT,
-            POWER_UP,
-            POWER_DOWN,
-            FIRE,
-            QUIT,
-        };
-
-        public enum Slider {
-            TURRET_SLIDER,
-            POWER_SLIDER,
-        };
-
-        /*================= Members =================*/
-        PlayerInputAction mAct;
-        PlayerKeys mKey;
-        Slider mSlider;
-        int mVal;
-        boolean mIgnoreInput;
-
-        /*================= Access =================*/
-        /** Returns the current action the player wishes to take, or NONE if
-         *  'timeout' milliseconds elapsed without user input. */
-        PlayerInputAction poll(int timeout) throws InterruptedException {
-            assert Thread.holdsLock(this);
-            if (mAct == PlayerInputAction.NONE) {
-                this.wait(timeout);
-            }
-            return mAct;
-        }
-
-        PlayerKeys getKey() {
-            assert Thread.holdsLock(this);
-            assert((mAct == PlayerInputAction.KEY_UP) ||
-            		(mAct == PlayerInputAction.KEY_DOWN));
-            return mKey;
-        }
-
-        Slider getSlider() {
-            assert Thread.holdsLock(this);
-            assert(mAct == PlayerInputAction.SET_SLIDER);
-            return mSlider;
-        }
-
-        int getVal() {
-            assert Thread.holdsLock(this);
-            assert(mAct == PlayerInputAction.SET_SLIDER);
-            return mVal;
-        }
-
-        /*================= Operations =================*/
-        // These functions handle user input.
-        // Basically, the goal is to serialize user input so that
-        // it is easier for the main thread to process.
-
-        // It might seem easier to move some things out of the main thread
-        // and into doKeyDown, etc. However, doKeyDown is purely a callback
-        // and cannot do things like continue to move the turret until the
-        // user lets go of the key. In order to do that, you need a thread.
-
-        /** Handle key press events. 
-         * Returns false if the key press was ignored. */
-        boolean pressKey(PlayerKeys key) throws InterruptedException {
-            synchronized (this) {
-                while (mAct != PlayerInputAction.NONE) {
-                    if (mIgnoreInput) {
-                        return false;
-                    }
-                    this.wait();
-                }
-                mAct = PlayerInputAction.KEY_DOWN;
-                mKey = key;
-                this.notifyAll();
-            }
-            return true;
-        }
-
-        /** Handle key release events. 
-         * Returns false if the key release was ignored. */
-        boolean releaseKey(PlayerKeys key) throws InterruptedException {
-            synchronized (this) {
-                while (mAct != PlayerInputAction.NONE) {
-                    if (mIgnoreInput) {
-                        return false;
-                    }
-                    this.wait();
-                }
-                mAct = PlayerInputAction.KEY_UP;
-                mKey = key;
-                this.notifyAll();
-            }
-            return true;
-        }
-
-        /** Handle slider events. */
-        void setSlider(Slider slider, int val) throws InterruptedException {
-            synchronized (this) {
-                while (mAct != PlayerInputAction.NONE) {
-                    if (mIgnoreInput) {
-                        return;
-                    }
-                    this.wait();
-                }
-                mAct = PlayerInputAction.SET_SLIDER;
-                mSlider = slider;
-                mVal = val;
-                this.notifyAll();
-            }
-        }
-
-        void clearInput() {
-            assert Thread.holdsLock(this);
-            mAct = PlayerInputAction.NONE; 
-            this.notifyAll();
-        }
-
-        /* Controls whether the player input should be ignored or not. */
-        void changeIgnoreInput(boolean ignoreInput) {
-            synchronized (this) {
-                mIgnoreInput = ignoreInput;
-
-                // If anyone is waiting to put his event into the object,
-                // tell him to wake up
-                this.notifyAll();
-            }
-        }
-
-        /*================= Lifecycle =================*/
-        PlayerInput() {
-            mAct = PlayerInputAction.NONE;
-            mIgnoreInput = true;
-        }
-    };
-
-
     /*================= ScorchedThread =================*/
     class ScorchedThread extends Thread {
-        // TODO: have the thread stop routines etc. give ScorchedThread an
-        // interrupt()
-
         /** Represents the current controller state */
         volatile private GameState mGameState;
-
-        /** Represents the current user input */
-        private PlayerInput mCurPlayerInput;
 
         /** Indicate whether or not the game is paused */
         private boolean mPaused = false;
@@ -232,7 +74,6 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
             mContext = context;
 
             mGameState = GameState.PLAYER_MOVE;
-            mCurPlayerInput = new PlayerInput();
         }
 
         /*================= Operations =================*/
@@ -350,77 +191,11 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
         private GameState runHumanMove(Player curPlayer) 
             throws InterruptedException
         {
-            // TODO: implement 'quick tweak' followed by delay, and then 
-            // more motion
-            PlayerInput.PlayerKeys curKey = 
-                PlayerInput.PlayerKeys.TURRET_RIGHT;
-            boolean keyDown = false;
-            mCurPlayerInput.changeIgnoreInput(false);
-
             while (true) {
                 runScreenRefresh();
-                synchronized (mCurPlayerInput) {
-                    PlayerInput.PlayerInputAction act = 
-                        mCurPlayerInput.poll(10);
-                    switch (act) {
-                        case NONE:
-                            break;
-
-                        case KEY_DOWN:
-                            keyDown = true;
-                            curKey = mCurPlayerInput.getKey();
-                            mCurPlayerInput.clearInput();
-                            break;
-
-                        case KEY_UP:
-                            keyDown = false;
-                            mCurPlayerInput.clearInput();
-                            break;
-
-                        case SET_SLIDER:
-                            switch (mCurPlayerInput.getSlider()) {
-                                case TURRET_SLIDER:
-                                    curPlayer.setAngle(
-                                        mCurPlayerInput.getVal());
-                                    break;
-                                case POWER_SLIDER:
-                                    curPlayer.setPower(
-                                        mCurPlayerInput.getVal());
-                                    break;
-                            }
-                            mCurPlayerInput.clearInput();
-                            mGraphics.setNeedScreenRedraw();
-                            break;
-                    }
+                synchronized (mUserInputSem) {
+                    mUserInputSem.wait();
                 }
-
-                if (keyDown) {
-	                switch (curKey) {
-	                    case TURRET_LEFT:
-	                        curPlayer.turretLeft();
-	                        mGraphics.setNeedScreenRedraw();
-	                        break;
-	                    case TURRET_RIGHT:
-	                        curPlayer.turretRight();
-	                        mGraphics.setNeedScreenRedraw();
-	                        break;
-	                    case POWER_UP:
-	                        curPlayer.powerUp();
-	                        mGraphics.setNeedScreenRedraw();
-	                        break;
-	                    case POWER_DOWN:
-	                        curPlayer.powerDown();
-	                        mGraphics.setNeedScreenRedraw();
-	                        break;
-	                    case FIRE:
-	                        mCurPlayerInput.changeIgnoreInput(true);
-	                        return GameState.BALLISTICS;
-	                    case QUIT:
-	                        mCurPlayerInput.changeIgnoreInput(true);
-	                        return GameState.QUIT;
-	                }
-                }
-                keyDown = false;
             }
         }
 
@@ -478,29 +253,52 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
          * @return true
          */
         boolean doKeyDown(int keyCode, KeyEvent msg) {
+            if (mGameState != GameState.PLAYER_MOVE) {
+                Log.w(TAG, "doKeyDown: ignoring");
+                return false;
+            }
+
+            if (!isKnownKey(keyCode)) {
+                return false;
+            }
+
             Log.w(TAG, "doKeyDown");
-        	try {
-	        	switch (keyCode) {
-	                case KeyEvent.KEYCODE_DPAD_UP:
-	                    return mCurPlayerInput.pressKey(
-	                            PlayerInput.PlayerKeys.POWER_UP);
-	                case KeyEvent.KEYCODE_DPAD_DOWN:
-	                    return mCurPlayerInput.pressKey(
-	                            PlayerInput.PlayerKeys.POWER_DOWN);
-	                case KeyEvent.KEYCODE_DPAD_LEFT:
-	                    return mCurPlayerInput.pressKey(
-	                            PlayerInput.PlayerKeys.TURRET_LEFT);
-	                case KeyEvent.KEYCODE_DPAD_RIGHT:
-	                    return mCurPlayerInput.pressKey(
-	                            PlayerInput.PlayerKeys.TURRET_RIGHT);
-	                default:
-	                    break;
-	            }
-        	}
-        	catch (InterruptedException e) {
-        		return false;
-        	}
-            return false;
+
+            synchronized (mUserInputSem) {
+                Player p = mModel.getCurPlayer();
+                switch (keyCode) {
+                    case KeyEvent.KEYCODE_DPAD_UP:
+                        p.powerUp();
+                        break;
+                    case KeyEvent.KEYCODE_DPAD_DOWN:
+                        p.powerDown();
+                        break;
+                    case KeyEvent.KEYCODE_DPAD_LEFT:
+                        p.turretLeft();
+                        break;
+                    case KeyEvent.KEYCODE_DPAD_RIGHT:
+                        p.turretRight();
+                        break;
+                    default:
+                        throw new RuntimeException("can't handle keycode " +
+                        		                   keyCode);
+                }
+                mGraphics.setNeedScreenRedraw();
+                mUserInputSem.notify();
+            }
+            return true;
+        }
+
+        private boolean isKnownKey(int keyCode) {
+            switch (keyCode) {
+                case KeyEvent.KEYCODE_DPAD_UP:
+                case KeyEvent.KEYCODE_DPAD_DOWN:
+                case KeyEvent.KEYCODE_DPAD_LEFT:
+                case KeyEvent.KEYCODE_DPAD_RIGHT:
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         /**
@@ -511,29 +309,7 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
          * @return true if the key was handled and consumed, or else false
          */
         boolean doKeyUp(int keyCode, KeyEvent msg) {
-            Log.w(TAG, "doKeyUp");
-        	try {
-	        	switch (keyCode) {
-	                case KeyEvent.KEYCODE_DPAD_UP:
-	                    return mCurPlayerInput.releaseKey(
-                                        PlayerInput.PlayerKeys.POWER_UP);
-	                case KeyEvent.KEYCODE_DPAD_DOWN:
-	                    return mCurPlayerInput.releaseKey(
-                                        PlayerInput.PlayerKeys.POWER_DOWN);
-	                case KeyEvent.KEYCODE_DPAD_LEFT:
-	                    return mCurPlayerInput.releaseKey(
-                                        PlayerInput.PlayerKeys.TURRET_LEFT);
-	                case KeyEvent.KEYCODE_DPAD_RIGHT:
-	                    return mCurPlayerInput.releaseKey(
-                                        PlayerInput.PlayerKeys.TURRET_RIGHT);
-	                default:
-	                    break;
-	            }
-	            return false;
-	        }
-        	catch (InterruptedException e) {
-        		return false;
-        	}
+            return false;
         }
     }
         
@@ -542,6 +318,8 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
     private ScorchedThread mThread;
 
     private Object mSurfaceHasBeenCreatedSem = new Object();
+
+    private Object mUserInputSem = new Object();
 
     /** True only once the Surface has been created and is ready to 
      * be used */

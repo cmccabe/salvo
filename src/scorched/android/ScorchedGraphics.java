@@ -38,7 +38,7 @@ public class ScorchedGraphics {
     private Paint mPlayerThickPaint[] = null;
 
     /** true if the screen needs to be redrawn */
-    private boolean mNeedScreenRedraw;
+    private volatile boolean mNeedScreenRedraw;
 
     private ScorchedModel mModel;
 
