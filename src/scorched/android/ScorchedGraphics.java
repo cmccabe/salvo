@@ -182,9 +182,7 @@ public class ScorchedGraphics {
         p.lineTo(x + t - (a + b), y);
         p.lineTo(x + t - (a), y + d);
         p.lineTo(x + t - (a), y + d + e);
-        p.lineTo(x + a, y + d + e);
-        p.lineTo(x + a, y + d);
-        canvas.drawPath(p, thinPaint);
+        // canvas.drawPath(p, thinPaint);
 
         // draw bottom part
         final float h = t / 5;
@@ -192,17 +190,32 @@ public class ScorchedGraphics {
         final float k = t / 5;
         final float l = t / 6;
         final float n = t / 6;
-        Path q = new Path();
-        q.moveTo(x + n, y + d + e);
-        q.lineTo(x, y + d + e + h);
-        q.lineTo(x, y + d + e + h + j);
-        q.lineTo(x + l, y + d + e + h + j + k);
-        q.lineTo(x + t - (l), y + d + e + h + j + k);
-        q.lineTo(x + t, y + d + e + h + j);
-        q.lineTo(x + t, y + d + e + h);
-        q.lineTo(x + t - (n), y + d + e);
-        q.lineTo(x + n, y + d + e);
-        canvas.drawPath(q, thinPaint);
+        //Path q = new Path();
+        p.lineTo(x + n, y + d + e);
+        p.lineTo(x, y + d + e + h);
+        p.lineTo(x, y + d + e + h + j);
+        //p.lineTo(x, y + d + e + h + j + k);
+        //p.lineTo(x + t, y + d + e + h + j + k);
+        p.lineTo(x + t, y + d + e + h + j);
+        p.lineTo(x + t, y + d + e + h);
+        p.lineTo(x + t - (n), y + d + e);
+        // p.lineTo(x + n, y + d + e);
+        
+        // finish top part
+        p.lineTo(x + a, y + d + e);
+        p.lineTo(x + a, y + d);
+
+        
+        canvas.drawPath(p, thinPaint);
+        Paint circPaint = new Paint();
+        circPaint.setAntiAlias(true);
+        circPaint.setColor(Color.BLACK);
+        canvas.drawCircle(x+n, y+d+e+h+j, n, circPaint);
+        canvas.drawCircle(x+n, y+d+e+h+j, a, thinPaint);
+        canvas.drawCircle(x+3*n, y+d+e+h+j, n, circPaint);
+        canvas.drawCircle(x+3*n, y+d+e+h+j, a, thinPaint);
+        canvas.drawCircle(x+5*n, y+d+e+h+j, n, circPaint);
+        canvas.drawCircle(x+5*n, y+d+e+h+j, a, thinPaint);
     }
 
     /*================= Lifecycle =================*/
@@ -216,7 +229,7 @@ public class ScorchedGraphics {
         mClear.setARGB(255, 0, 0, 0);
 
         mTerrainPaint = new Paint();
-        mTerrainPaint.setAntiAlias(false);
+        mTerrainPaint.setAntiAlias(true);
         mTerrainPaint.setARGB(255, 0, 255, 0);
 
         int playerColors[] = getPlayerColors();
@@ -224,14 +237,14 @@ public class ScorchedGraphics {
         mPlayerThickPaint = new Paint[playerColors.length];
         for (int i = 0; i < playerColors.length; ++i) {
             Paint pthin = new Paint();
-            pthin.setAntiAlias(false);
+            pthin.setAntiAlias(true);
             pthin.setColor(playerColors[i]);
             mPlayerThinPaint[i] = pthin;
 
             Paint pthick = new Paint();
-            pthick.setAntiAlias(false);
+            pthick.setAntiAlias(true);
             pthick.setColor(playerColors[i]);
-            pthick.setStrokeWidth(7);
+            pthick.setStrokeWidth(3);
             mPlayerThickPaint[i] = pthick;
         }
 
