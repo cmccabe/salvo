@@ -3,9 +3,13 @@ package scorched.android;
 public class Player {
     /*================= Constants =================*/
     private static final int MAX_LIFE = 1000;
+
+    private static final int MIN_POWER = 50;
     private static final int MAX_POWER = 1000;
-    private static final int MIN_TURRET_ANGLE = 0;
-    private static final int MAX_TURRET_ANGLE = 180;
+    
+    private static final float MIN_TURRET_ANGLE = 0;
+    private static final float MAX_TURRET_ANGLE = 3.1415926535f;
+    private static final float ANGLE_STEP = 0.031415926535f;
 
     /*================= Members =================*/
     private int mId;
@@ -19,12 +23,13 @@ public class Player {
     /** Current y-position of the tank. */
     private float mHeight;
 
-    /** Current turret angle. Turret angles are represented like this:
-     *           90
-     *       135  |   45
+    /** Current turret angle, in radians. Turret angles are represented 
+     * like this:
+     *           pi/2
+     *     3pi/4  |   pi/4
      *         \  |  /
      *          \ | /
-     *    180 ========== 0
+     *    pi =========== 0
      */
     private float mAngle;
 
@@ -78,7 +83,39 @@ public class Player {
     public boolean isHuman() {
         return true;
     }
+
+    public Weapon getWeapon() {
+        // Eventually this will return the specific type of weapon you
+        // have selected.
+        // It might be even better to cache the Weapon instance in Player
+        // to avoid making another allocation.
+        float dx = (float)Math.cos(mAngle);
+        dx = (dx * mPower) / 10000.0f;
+        float dy = (float)Math.sin(mAngle);
+        dy = (dy * mPower) / ((ScorchedModel.MAX_HEIGHTS - 1) * 10000.0f);
+        return new Weapon(getTurretSlot(), getTurretHeight(), dx, dy);
+    }
     
+    /** Return a float representing the X position of the gun turret */
+    private float getTurretSlot() {
+        float ret = mSlot;
+        return ret;// + ((float)Math.cos(mAngle * 
+                   //     ScorchedModel.SLOTS_PER_TURRET));
+    }
+
+    /** Return a float representing the Y position of the gun turret */
+    private float getTurretHeight() {
+    	float halfPlayerHeight = 
+            ((float)ScorchedModel.SLOTS_PER_PLAYER) / 2.0f;
+    	halfPlayerHeight /= (ScorchedModel.MAX_HEIGHTS - 1);
+    	
+//    	float turretDisplacement = (float)Math.sin(mAngle);
+//    	turretDisplacement *= ScorchedModel.SLOTS_PER_TURRET;
+//        turretDisplacement /= ScorchedModel.MAX_HEIGHTS;
+
+    	return mHeight + halfPlayerHeight; // + turretDisplacement;    	
+    }
+
     /*================= Operations =================*/
     public void setSlot(int slot) {
         mSlot = slot;
@@ -100,13 +137,14 @@ public class Player {
      *  'val' is scaled to 0...1000 and must be normalized */
     public void setAngle(int val) {
         float angle = 1000 - val;
-        angle *= 0.18;
+        angle *= MAX_TURRET_ANGLE;
+        angle /= 1000f;
         mAngle = angle;
     }
 
     /** Move turret left by one degree */
     public void turretLeft() {
-        mAngle += 1;
+        mAngle += ANGLE_STEP;
         if (mAngle > MAX_TURRET_ANGLE) {
             mAngle = MAX_TURRET_ANGLE;
         }
@@ -114,7 +152,7 @@ public class Player {
 
     /** Move turret right by one degree */
     public void turretRight() {
-        mAngle -= 1;
+        mAngle -= ANGLE_STEP;
         if (mAngle < MIN_TURRET_ANGLE) {
             mAngle = MIN_TURRET_ANGLE;
         }
@@ -129,8 +167,8 @@ public class Player {
 
     public void powerDown() {
         mPower -= 1;
-        if (mPower < 1) {
-            mPower = 1;
+        if (mPower < MIN_POWER) {
+            mPower = MIN_POWER;
         }
     }
 
@@ -138,7 +176,7 @@ public class Player {
     public Player(int id) {
         mId = id;
         mLife = MAX_LIFE;
-        mAngle = 45;
-        mPower = 500;
+        mAngle = MAX_TURRET_ANGLE / 4;
+        mPower = MAX_POWER / 2;
     }
 }

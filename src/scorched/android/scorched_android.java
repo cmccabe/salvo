@@ -10,7 +10,6 @@ import android.view.Window;
 import android.widget.TextView;
 
 import scorched.android.ScorchedModel;
-import scorched.android.ScorchedView.ScorchedThread;
 import android.view.ViewGroup;
 
 public class scorched_android extends Activity {

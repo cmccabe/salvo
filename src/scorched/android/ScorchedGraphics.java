@@ -1,5 +1,7 @@
 package scorched.android;
 
+import java.util.Iterator;
+
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -57,7 +59,7 @@ public class ScorchedGraphics {
     }
 
     /*================= Access =================*/
-    private float slotToScreenX(int slot) {
+    private float slotToScreenX(float slot) {
         float x = mCanvasWidth;
         x *= slot;
         x /= (ScorchedModel.MAX_HEIGHTS - 1);
@@ -75,7 +77,7 @@ public class ScorchedGraphics {
     /** The player occupies a square area on the screen. This returns 
      * the size of the square. */
     private float getPlayerSize() {
-        return slotToScreenX(3);
+        return slotToScreenX(ScorchedModel.SLOTS_PER_PLAYER);
     }
     
     /*================= Operations =================*/
@@ -92,8 +94,6 @@ public class ScorchedGraphics {
     /** Draws the playing field */
     public void drawScreen(Canvas canvas) {
         mNeedScreenRedraw = false;
-        assert(ScorchedModel.MAX_HEIGHTS % 
-                ScorchedModel.HEIGHTS_PER_POLY == 0);
         //Log.w(TAG, "running drawScreen with "
         //      "mCanvasWidth = " + mCanvasWidth +
         //      ", mCanvasHeight = " + mCanvasHeight);
@@ -149,10 +149,8 @@ public class ScorchedGraphics {
 
         // draw turret
         canvas.drawLine(centerX, centerY, 
-                centerX + (playerSize *
-                    (float)Math.cos(Math.toRadians(turretAngle))),
-                centerY - (playerSize *
-                    (float)Math.sin(Math.toRadians(turretAngle))),
+                centerX + (playerSize * (float)Math.cos(turretAngle)),
+                centerY - (playerSize * (float)Math.sin(turretAngle)),
                 thickPaint);
         
 /*        // draw dome
@@ -216,6 +214,33 @@ public class ScorchedGraphics {
         canvas.drawCircle(x+3*n, y+d+e+h+j, a, thinPaint);
         canvas.drawCircle(x+5*n, y+d+e+h+j, n, circPaint);
         canvas.drawCircle(x+5*n, y+d+e+h+j, a, thinPaint);
+    }
+
+    public void drawWeapon(Canvas canvas, Weapon weapon, Player player)
+    {
+        Iterator<Weapon.Point> iter = weapon.getPoints();
+        assert (iter.hasNext());
+        Weapon.Point firstPoint = (Weapon.Point)iter.next();
+//        Path p = new Path();
+        Paint paint = mPlayerThickPaint[2];//player.getId()];
+        float x = slotToScreenX(firstPoint.getX());
+        float y = heightToScreenHeight(firstPoint.getY());
+        canvas.drawCircle(x, y, 2, paint);
+        Log.w(TAG, "firstX=" + slotToScreenX(firstPoint.getX()) + 
+        			",y=" + heightToScreenHeight(firstPoint.getY()));
+        while (iter.hasNext()) {
+            Weapon.Point point = (Weapon.Point)iter.next();
+            x = slotToScreenX(point.getX());
+            y = heightToScreenHeight(point.getY());
+//            p.lineTo(x, y);
+            canvas.drawCircle(x, y, 2, paint);
+//            Log.w(TAG, "x=" + x + ",y=" + y);
+        }
+//        canvas.drawPath(p, paint);
+        
+//        Rect rect = new Rect();
+//        rect.set(0, 0, 200, 200);
+//        canvas.drawRect(rect, paint);
     }
 
     /*================= Lifecycle =================*/
