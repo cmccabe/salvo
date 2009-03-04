@@ -9,7 +9,7 @@ public class Weapon
 {
     /*================= Constants =================*/
     final private int MAX_NUM_SAMPLES = 10000;
-    final private float MIN_UPDATE_DIST_SQUARED = (float)0.001;
+    final private float MIN_UPDATE_DIST_SQUARED = (float)0.1;
     final private String TAG = "Weapon";
     
     /*================= Types =================*/
@@ -63,6 +63,7 @@ public class Weapon
     float distance_squared(float x1, float y1, float x2, float y2) {
     	float xDelta = (x1 - x2);
     	float yDelta = (y1 - y2);
+    	yDelta *= ScorchedModel.MAX_HEIGHTS;
     	return (xDelta * xDelta) + (yDelta * yDelta);
     }
     /*================= Operations =================*/
@@ -76,8 +77,8 @@ public class Weapon
         Point old = mPoints.peek();
         float nextX = cur.getX() + mDeltaX;
         float nextY = cur.getY() + mDeltaY;
-        if (false) {//distance_squared(nextX, nextY, old.getX(), old.getY()) <
-            //MIN_UPDATE_DIST_SQUARED) {
+        if (distance_squared(nextX, nextY, old.getX(), old.getY()) <
+        		MIN_UPDATE_DIST_SQUARED) {
             cur.setX(nextX);
             cur.setY(nextY);
             mPoints.push(cur);

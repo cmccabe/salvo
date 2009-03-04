@@ -149,10 +149,8 @@ public class ScorchedGraphics {
 
         // draw turret
         canvas.drawLine(centerX, centerY, 
-                centerX + (playerSize *
-                    (float)Math.cos(Math.toRadians(turretAngle))),
-                centerY - (playerSize *
-                    (float)Math.sin(Math.toRadians(turretAngle))),
+                centerX + (playerSize * (float)Math.cos(turretAngle)),
+                centerY - (playerSize * (float)Math.sin(turretAngle)),
                 thickPaint);
         
 /*        // draw dome
@@ -227,7 +225,7 @@ public class ScorchedGraphics {
         Paint paint = mPlayerThickPaint[2];//player.getId()];
         float x = slotToScreenX(firstPoint.getX());
         float y = heightToScreenHeight(firstPoint.getY());
-        canvas.drawCircle(x, y, 10, paint);
+        canvas.drawCircle(x, y, 2, paint);
         Log.w(TAG, "firstX=" + slotToScreenX(firstPoint.getX()) + 
         			",y=" + heightToScreenHeight(firstPoint.getY()));
         while (iter.hasNext()) {
@@ -235,7 +233,7 @@ public class ScorchedGraphics {
             x = slotToScreenX(point.getX());
             y = heightToScreenHeight(point.getY());
 //            p.lineTo(x, y);
-            canvas.drawCircle(x, y, 10, paint);
+            canvas.drawCircle(x, y, 2, paint);
 //            Log.w(TAG, "x=" + x + ",y=" + y);
         }
 //        canvas.drawPath(p, paint);
