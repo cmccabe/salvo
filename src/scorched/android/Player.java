@@ -14,14 +14,14 @@ public class Player {
     /*================= Members =================*/
     private int mId;
 
-    /** The horizontal 'slot' that the tank occupies on the playing field. */
-    private int mSlot = -1;
-
     /** How much life we have. If this is 0 then we're dead. */
     private int mLife;
 
-    /** Current y-position of the tank. */
-    private float mHeight;
+    /** The horizontal 'slot' that the tank occupies on the playing field. */
+    private int mX = -1;
+
+    /** Current y-position of the bottom of the tank. */
+    private float mY;
 
     /** Current turret angle, in radians. Turret angles are represented 
      * like this:
@@ -60,12 +60,14 @@ public class Player {
         return mId;
     }
 
-    public int getSlot() {
-        return mSlot;
+    /** Get the x-coordinate of the center of the tank */
+    public int getX() {
+        return mX;
     }
 
-    public float getHeight() {
-        return mHeight;
+    /** Get the y-coordinate of the bottom of the tank */
+    public float getY() {
+        return mY;
     }
 
     public float getAngle() {
@@ -92,40 +94,36 @@ public class Player {
         float dx = (float)Math.cos(mAngle);
         dx = (dx * mPower) / 10000.0f;
         float dy = (float)Math.sin(mAngle);
-        dy = (dy * mPower) / ((ScorchedModel.MAX_HEIGHTS - 1) * 10000.0f);
-        return new Weapon(getTurretSlot(), getTurretHeight(), dx, dy);
+        dy = (dy * mPower) / 10000.0f;
+        return new Weapon(getTurretX(), getTurretY(), dx, dy);
     }
     
-    /** Return a float representing the X position of the gun turret */
-    private float getTurretSlot() {
-        float ret = mSlot;
-        return ret;// + ((float)Math.cos(mAngle * 
-                   //     ScorchedModel.SLOTS_PER_TURRET));
+    /** Return a float representing the X position of the end of the 
+     *  gun turret */
+    private float getTurretX() {
+        float x = mX;
+        float turretX = (float)Math.cos(mAngle);
+        return x + (ScorchedModel.TURRET_LENGTH * turretX);
     }
 
-    /** Return a float representing the Y position of the gun turret */
-    private float getTurretHeight() {
-    	float halfPlayerHeight = 
-            ((float)ScorchedModel.SLOTS_PER_PLAYER) / 2.0f;
-    	halfPlayerHeight /= (ScorchedModel.MAX_HEIGHTS - 1);
-    	
-//    	float turretDisplacement = (float)Math.sin(mAngle);
-//    	turretDisplacement *= ScorchedModel.SLOTS_PER_TURRET;
-//        turretDisplacement /= ScorchedModel.MAX_HEIGHTS;
-
-    	return mHeight + halfPlayerHeight; // + turretDisplacement;    	
+    /** Return a float representing the Y position of the end of the 
+     *  gun turret */
+    private float getTurretY() {
+        float turretY = (float)Math.sin(mAngle);
+        return mY + (ScorchedModel.TURRET_LENGTH * turretY);
     }
 
     /*================= Operations =================*/
-    public void setSlot(int slot) {
-        mSlot = slot;
-        assert(mSlot >= 1);
+    public void setX(int x) {
+        mX = x;
+        assert(x >= 1);
+        assert(x < (ScorchedModel.MAX_X - 1));
     }
     
-    public void calcHeight(ScorchedModel model) {
+    public void calcY(ScorchedModel model) {
         float h[] = model.getHeights();
-        mHeight = avg4f(h[mSlot - 1], h[mSlot], h[mSlot + 1],
-                                min3f(h[mSlot - 1], h[mSlot], h[mSlot + 1]));
+        mY = avg4f(h[mX - 1], h[mX], h[mX + 1],
+                                min3f(h[mX - 1], h[mX], h[mX + 1]));
     }
 
     /** set turret power. */
