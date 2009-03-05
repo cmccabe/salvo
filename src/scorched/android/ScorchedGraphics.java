@@ -275,6 +275,36 @@ public class ScorchedGraphics {
 //        canvas.drawRect(rect, paint);
     }
 
+    public void zoomOut() {
+        mZoom = mZoom * 2f;
+        mNeedScreenRedraw = true;
+    }
+
+    public void zoomIn() {
+        mZoom = mZoom / 2f;
+        mNeedScreenRedraw = true;
+    }
+
+    public void viewLeft() {
+        mViewX -= 0.1;
+        mNeedScreenRedraw = true;
+    }
+
+    public void viewRight() {
+        mViewX += 0.1;
+        mNeedScreenRedraw = true;
+    }
+
+    public void viewUp() {
+        mViewY += 0.1;
+        mNeedScreenRedraw = true;
+    }
+
+    public void viewDown() {
+        mViewY -= 0.1;
+        mNeedScreenRedraw = true;
+    }
+
     /*================= Lifecycle =================*/
     public ScorchedGraphics(Context context, ScorchedModel model) {
         mContext = context;
@@ -286,7 +316,7 @@ public class ScorchedGraphics {
         mClear.setARGB(255, 0, 0, 0);
 
         mTerrainPaint = new Paint();
-        mTerrainPaint.setAntiAlias(true);
+        mTerrainPaint.setAntiAlias(false);
         mTerrainPaint.setARGB(255, 0, 255, 0);
 
         int playerColors[] = getPlayerColors();
