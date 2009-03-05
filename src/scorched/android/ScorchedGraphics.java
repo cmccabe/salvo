@@ -56,17 +56,17 @@ public class ScorchedGraphics {
     private Context mContext;
     
     /*================= Static =================*/
-    private static final int roundDownToMultipleOfThree(float x) {
-        int ret = (int)(x / 3);
-        ret *= 3;
+    private static final int roundDownToMultipleOfTwo(float x) {
+        int ret = (int)(x / 2);
+        ret *= 2;
         return ret;
     }
 
     private static final int boundaryCheckDrawSlot(int slot) {
         if (slot < 0)
             return 0;
-        else if (slot > (ScorchedModel.MAX_X - 3))
-            return ScorchedModel.MAX_X - 3;
+        else if (slot > (ScorchedModel.MAX_X - 2))
+            return ScorchedModel.MAX_X - 2;
         else
             return slot;
     }
@@ -122,9 +122,9 @@ public class ScorchedGraphics {
         float maxY = mViewY + (mCanvasHeight * mZoom);
         float slotWidth = 1.0f / mZoom;
         int firstSlot =
-            boundaryCheckDrawSlot(roundDownToMultipleOfThree(mViewX));
+            boundaryCheckDrawSlot(roundDownToMultipleOfTwo(mViewX));
         int lastSlot = 
-            boundaryCheckDrawSlot(roundDownToMultipleOfThree(maxX) + 3);
+            boundaryCheckDrawSlot(roundDownToMultipleOfTwo(maxX) + 2);
 
         float x = gameXtoViewX(firstSlot);
         Log.w(TAG, "canvasWidth=" + mCanvasWidth + 

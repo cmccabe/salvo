@@ -35,7 +35,7 @@ public class ScorchedModel {
     private static final String TAG = "ScorchedModel";
 
     /** The highest X coordinate */
-    public static final int MAX_X = 41;
+    public static final int MAX_X = 40;
 
     /** The highest Y coordinate */
     public static final int MAX_Y = 10000;
@@ -196,9 +196,9 @@ public class ScorchedModel {
             assert(false); 
         }
 
-        // We must have MAX_X mod 3 == 2
+        // We must have MAX_X mod 2 == 0
         // Because of how drawScreen works
-        assert(MAX_X % 3 == 2);
+        assert(MAX_X % 2 == 0);
 
         initHeights(TerrainType.ROLLING);
         mPlayers = players;
