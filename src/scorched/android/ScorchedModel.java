@@ -49,6 +49,10 @@ public class ScorchedModel {
     /** How long the player's turret is */
     public static final int TURRET_LENGTH = 3;
 
+    /** The force of gravity.
+      * As measured by change in downward force each sample */
+    public static final float GRAVITY = 0.0001f;
+
     enum TerrainType {
         TRIANGULAR,
         FLAT,
