@@ -101,16 +101,16 @@ public class Player {
     /** Return a float representing the X position of the end of the 
      *  gun turret */
     private float getTurretX() {
-        float x = mX;
-        float turretX = (float)Math.cos(mAngle);
-        return x + (ScorchedModel.TURRET_LENGTH * turretX);
+    	return (float)mX + 
+    		((float)Math.cos(mAngle) * ScorchedModel.TURRET_LENGTH);
     }
 
     /** Return a float representing the Y position of the end of the 
      *  gun turret */
     private float getTurretY() {
-        float turretY = (float)Math.sin(mAngle);
-        return mY + (ScorchedModel.TURRET_LENGTH * turretY);
+    	return (float)mY + 
+    		((float)ScorchedModel.PLAYER_SIZE / 2f) +
+    		((float)Math.sin(mAngle) * ScorchedModel.TURRET_LENGTH);
     }
 
     /*================= Operations =================*/
