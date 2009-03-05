@@ -8,10 +8,16 @@ import android.util.Log;
 public class Weapon 
 {
     /*================= Constants =================*/
-    final private int MAX_NUM_SAMPLES = 10000;
-    final private float MIN_UPDATE_DIST_SQUARED = (float)0.1;
     final private String TAG = "Weapon";
+
+    /** The maximum number of times we will recalculate trajectory before giving up
+     * and triggering the explosion. */
+	final private int MAX_NUM_SAMPLES = 10000;
     
+    /** The minimum distance squared (in slots) we will accept between two points on 
+     * our trajectory before we accept the need to keep draw both points */
+    final private float MIN_UPDATE_DIST_SQUARED = (float)0.1;
+
     /*================= Types =================*/
     static class Point {
         /*================= Data =================*/
@@ -60,12 +66,13 @@ public class Weapon
         return iter;
     }
 
+    /** Returns the distance squared between two points */
     float distance_squared(float x1, float y1, float x2, float y2) {
     	float xDelta = (x1 - x2);
     	float yDelta = (y1 - y2);
-    	yDelta *= ScorchedModel.MAX_HEIGHTS;
     	return (xDelta * xDelta) + (yDelta * yDelta);
     }
+    
     /*================= Operations =================*/
     /** Move the projectile forward. */
     public void nextSample() {

@@ -10,41 +10,44 @@ import android.os.Bundle;
  * ScorchedModel contains all game state except for state relating 
  * to the user interface.
  * It owns all classes, like Player, that contain important game state.
- * 
- * The Game Board
- * height
- *  1.0   +------------------------------------------+
- *        |                                          |
- *        |  __                                    __|
- *        | _  ___             _____              _  |
- *        |_      _    ________     ________     _   |
- *        |        ____                     _____    |
- *  0.0   +------------------------------------------+
- *         01234567...                               MAX_HEIGHTS
  *
- * Height, or Y, is measured from 0 (floor) to 1 (ceiling).
- * The draw routines do whatever scaling is required.
+ *                 The Playing Field
+ *  MAX_Y +----------------------------------+
+ *        |                                  |
+ *        |  __                              |
+ *        | _  ___             __           _|
+ *        |_      _    _______   ___     ___ |
+ *        |        ____             _____    |
+ *    0   +----------------------------------+
+ *        0                                MAX_X
  *
- * Slot, or X, is measured from 0 to MAX_HEIGHTS. The height field
+ * X is measured from 0 to MAX_X. The height field
  * stores the height of the terrain at each slot; intermediate values
  * are interpolated. Weapons can have a fractional (float) X, but
  * players can not.
+
+ * Y is measured from 0 (floor) to MAX_Y (extremely high in the air)
  *
- * Players are assumed to be square, and their X size is defined as
- * SLOTS_PER_PLAYER slots.
+ * Players are assumed to be square. The size of the player is PLAYER_SIZE.
  */
 public class ScorchedModel {
     /*================= Constants =================*/
     private static final String TAG = "ScorchedModel";
 
-    /** How many entries are there in the height field */
-    public static final int MAX_HEIGHTS = 41;
+    /** The highest X coordinate */
+    public static final int MAX_X = 40;
 
-    /** How many 'slots' each player takes up */
-    public static final int SLOTS_PER_PLAYER = 3;
+    /** The highest Y coordinate */
+    public static final int MAX_Y = 10000;
 
-    /** How many 'slots' the player's turret takes up */
-    public static final int SLOTS_PER_TURRET = 3;
+    /** The highest terrain point */
+    public static final float MAX_ELEVATION = 10;
+    
+    /** Player size */
+    public static final int PLAYER_SIZE = 3;
+
+    /** How long the player's turret is */
+    public static final int TURRET_LENGTH = 3;
 
     enum TerrainType {
         TRIANGULAR,
@@ -115,17 +118,17 @@ public class ScorchedModel {
         switch (t)
         {
             case TRIANGULAR:
-                mHeights = new float[MAX_HEIGHTS];
-                for (int i = 0; i < MAX_HEIGHTS; i++) {
-                    float tmp = (MAX_HEIGHTS - 1);
-                    mHeights[i] = (tmp - i) / (MAX_HEIGHTS - 1);
+                mHeights = new float[MAX_X];
+                for (int i = 0; i < MAX_X; i++) {
+                    float tmp = (MAX_X - 1);
+                    mHeights[i] = (tmp - i) / (MAX_X - 1);
                 }
                 break;
 
             case FLAT:
-                mHeights = new float[MAX_HEIGHTS];
+                mHeights = new float[MAX_X];
                 float level = (float) (0.6 - (mRandom.nextFloat() / 4));
-                for (int i = 0; i < MAX_HEIGHTS; i++) {
+                for (int i = 0; i < MAX_X; i++) {
                     mHeights[i] = level;
                 }
                 break;
@@ -137,31 +140,31 @@ public class ScorchedModel {
 
             case HILLY:
                 mHeights = getRandomHeights();
-                mHeights = movingWindow(mHeights, MAX_HEIGHTS / 10);
+                mHeights = movingWindow(mHeights, MAX_X / 10);
                 break;
 
             case ROLLING:
                 mHeights = getRandomHeights();
-                mHeights = movingWindow(mHeights, MAX_HEIGHTS / 3);
+                mHeights = movingWindow(mHeights, MAX_X / 3);
                 break;
         }
     }
 
     private float[] getRandomHeights() {
-        float[] h = new float[MAX_HEIGHTS];
-        for (int i = 0; i < MAX_HEIGHTS; i++) {
-            h[i] = mRandom.nextFloat();
+        float[] h = new float[MAX_X];
+        for (int i = 0; i < MAX_X; i++) {
+            h[i] = mRandom.nextFloat() * MAX_ELEVATION;
         }
         return h;
     }
 
     private float[] movingWindow(float[] input, int windowSize) {
-        float[] h = new float[MAX_HEIGHTS];
+        float[] h = new float[MAX_X];
         
-        for (int i = 0; i < MAX_HEIGHTS; i++) {
+        for (int i = 0; i < MAX_X; i++) {
             float acc = 0;
             for (int j = 0; j < windowSize; ++j) {
-                acc += input[(i + j) % MAX_HEIGHTS];
+                acc += input[(i + j) % MAX_X];
             }
             h[i] = acc / windowSize;
         }
@@ -169,9 +172,8 @@ public class ScorchedModel {
     }
 
     /** Gets the terrain slot for player number N */
-    public int playerIdToSlot(int playerId) {
-        return ((MAX_HEIGHTS /2) + 
-                    (MAX_HEIGHTS * playerId)) / mPlayers.length;
+    private int playerIdToSlot(int playerId) {
+        return ((MAX_X /2) + (MAX_X * playerId)) / mPlayers.length;
     }
 
     /*================= Save / Restore =================*/
@@ -188,18 +190,23 @@ public class ScorchedModel {
 
     /*================= Lifecycle =================*/
     public ScorchedModel(Player players[]) {
-        initHeights(TerrainType.ROLLING);
-        mPlayers = players;
-        if (mPlayers.length > MAX_HEIGHTS) {
-            // We have to have enough slots to be sure that no two
-            // players will get the same slot
+        // We have to have enough slots to be sure that no two
+        // players will get the same slot
+        if (players.length >= MAX_X) {
             assert(false); 
         }
+
+        // We must have MAX_X mod 2 == 0
+        // Because of how drawScreen works
+        assert(MAX_X % 2 == 0);
+
+        initHeights(TerrainType.ROLLING);
+        mPlayers = players;
         for (int i = 0; i < mPlayers.length; i++) {
         	int id = mPlayers[i].getId();
         	assert (id == i);
-            mPlayers[i].setSlot(playerIdToSlot(id));
-            mPlayers[i].calcHeight(this);
+            mPlayers[i].setX(playerIdToSlot(id));
+            mPlayers[i].calcY(this);
         }
         mCurPlayerId = 0;
     }

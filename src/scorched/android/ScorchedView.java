@@ -341,13 +341,32 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
                     case KeyEvent.KEYCODE_DPAD_RIGHT:
                         p.turretRight();
                         break;
-                    case KeyEvent.KEYCODE_SPACE:
-                        // launch!
-                        mNextGameState = GameState.BALLISTICS; //GameState.EXPLOSION;
+                    case KeyEvent.KEYCODE_H:
+                        mGraphics.viewLeft();
+                        break;
+                    case KeyEvent.KEYCODE_I:
+                        mGraphics.zoomIn();
+                        break;
+                    case KeyEvent.KEYCODE_J:
+                        mGraphics.viewUp();
+                        break;
+                    case KeyEvent.KEYCODE_K:
+                        mGraphics.viewDown();
+                        break;
+                    case KeyEvent.KEYCODE_L:
+                        mGraphics.viewRight();
                         break;
                     case KeyEvent.KEYCODE_Q:
                         // quit.
                         mNextGameState = GameState.QUIT;
+                        break;
+                    case KeyEvent.KEYCODE_SPACE:
+                        // launch!
+                        mNextGameState = GameState.BALLISTICS; 
+                            //GameState.EXPLOSION;
+                        break;
+                    case KeyEvent.KEYCODE_U:
+                        mGraphics.zoomOut();
                         break;
                     default:
                         throw new RuntimeException("can't handle keycode " +
@@ -361,12 +380,18 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
 
         private boolean isKnownKey(int keyCode) {
             switch (keyCode) {
-                case KeyEvent.KEYCODE_DPAD_UP:
                 case KeyEvent.KEYCODE_DPAD_DOWN:
                 case KeyEvent.KEYCODE_DPAD_LEFT:
                 case KeyEvent.KEYCODE_DPAD_RIGHT:
-                case KeyEvent.KEYCODE_SPACE:
+                case KeyEvent.KEYCODE_DPAD_UP:
+                case KeyEvent.KEYCODE_H:
+                case KeyEvent.KEYCODE_I:
+                case KeyEvent.KEYCODE_J:
+                case KeyEvent.KEYCODE_K:
+                case KeyEvent.KEYCODE_L:
                 case KeyEvent.KEYCODE_Q:
+                case KeyEvent.KEYCODE_SPACE:
+                case KeyEvent.KEYCODE_U:
                     return true;
                 default:
                     return false;

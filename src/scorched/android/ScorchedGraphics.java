@@ -32,6 +32,15 @@ public class ScorchedGraphics {
     /** Current width of the surface/canvas. */ 
     private int mCanvasWidth = 0;
 
+    /** The X-offset of the view window */
+    private float mViewX;
+
+    /** The Y-offset of the view window */
+    private float mViewY;
+
+    /** The zoom factor */
+    private float mZoom;
+
     /** Paint to draw the lines on screen. */
     private Paint mClear, mTerrainPaint;
 
@@ -47,6 +56,22 @@ public class ScorchedGraphics {
     private Context mContext;
     
     /*================= Static =================*/
+    private static final int roundDownToMultipleOfTwo(float x) {
+        int ret = (int)(x / 2);
+        ret *= 2;
+        return ret;
+    }
+
+    private static final int boundaryCheckDrawSlot(int slot) {
+        if (slot < 0)
+            return 0;
+        else if (slot > (ScorchedModel.MAX_X - 2))
+            return ScorchedModel.MAX_X - 2;
+        else
+            return slot;
+    }
+
+    /*================= Access =================*/
     private int[] getPlayerColors() {
         String playerColorStr[] = mContext.getResources().
                     getStringArray(R.array.player_colors);
@@ -58,28 +83,21 @@ public class ScorchedGraphics {
         return playerColors;
     }
 
-    /*================= Access =================*/
-    private float slotToScreenX(float slot) {
-        float x = mCanvasWidth;
-        x *= slot;
-        x /= (ScorchedModel.MAX_HEIGHTS - 1);
-        return x;
-    }
-
-    private float heightToScreenHeight(float h) {
-        return mCanvasHeight - (h * mCanvasHeight); 
-    }
 
     public boolean needScreenUpdate() {
         return mNeedScreenRedraw;
     }
     
-    /** The player occupies a square area on the screen. This returns 
-     * the size of the square. */
-    private float getPlayerSize() {
-        return slotToScreenX(ScorchedModel.SLOTS_PER_PLAYER);
+    /** Give the onscreen coordinate corresponding to x */
+    private float gameXtoViewX(float x) {
+        return (x - mViewX) / mZoom;
     }
-    
+
+    /** Give the onscreen coordinate corresponding to y */
+    private float gameYtoViewY(float y) {
+        return mCanvasHeight - ((y - mViewY) / mZoom);
+    }
+
     /*================= Operations =================*/
     public void setNeedScreenRedraw() {
         mNeedScreenRedraw = true;
@@ -94,82 +112,97 @@ public class ScorchedGraphics {
     /** Draws the playing field */
     public void drawScreen(Canvas canvas) {
         mNeedScreenRedraw = false;
-        //Log.w(TAG, "running drawScreen with "
-        //      "mCanvasWidth = " + mCanvasWidth +
-        //      ", mCanvasHeight = " + mCanvasHeight);
         
+        // Clear canvas
         mScratchRect.set(0, 0, mCanvasWidth, mCanvasHeight);
         canvas.drawRect(mScratchRect, mClear);
 
         // Draw the terrain
-        float x = 0;
-        float dx = slotToScreenX(1);
-        float h[] = mModel.getHeights();
-        for (int i = 0; 
-            i < ScorchedModel.MAX_HEIGHTS - 2;
-            i += 2) 
-        {
-            Path p = new Path();
-            p.moveTo(x, heightToScreenHeight(h[i]));
-            p.quadTo(x + dx, heightToScreenHeight(h[i+1]),
-                     x + dx + dx, heightToScreenHeight(h[i+2]));
-            p.lineTo(x + dx + dx, mCanvasHeight);
-            p.lineTo(x, mCanvasHeight);
-            x += (2 * dx);
-            canvas.drawPath(p, mTerrainPaint);
-        }
+        float maxX = mViewX + (mCanvasWidth * mZoom);
+        float maxY = mViewY + (mCanvasHeight * mZoom);
+        float slotWidth = 1.0f / mZoom;
+        int firstSlot =
+            boundaryCheckDrawSlot(roundDownToMultipleOfTwo(mViewX));
+        int lastSlot = 
+            boundaryCheckDrawSlot(roundDownToMultipleOfTwo(maxX) + 2);
 
+        float x = gameXtoViewX(firstSlot);
+        Log.w(TAG, "canvasWidth=" + mCanvasWidth + 
+    			",firstSlot=" + firstSlot + 
+    			",lastSlot=" + lastSlot +
+    			",slotWidth=" + slotWidth +
+    			",x="+x);
+        float h[] = mModel.getHeights();
+        for (int i = firstSlot; i < lastSlot; i += 2) {
+            Path p = new Path();
+            p.moveTo(x, gameYtoViewY(h[i]));
+            p.quadTo(x + slotWidth, gameYtoViewY(h[i+1]),
+                     x + slotWidth + slotWidth, gameYtoViewY(h[i+2]));
+            p.lineTo(x + slotWidth + slotWidth, mCanvasHeight);
+            p.lineTo(x, mCanvasHeight);
+            canvas.drawPath(p, mTerrainPaint);
+            x += (slotWidth + slotWidth);
+        }
+        Log.w(TAG, "finalX=" + x); 
+        		
         // Draw the players
         for (int i = 0; i < mModel.getNumberOfPlayers(); i++) {
             Player p = mModel.getPlayer(i);
             drawPlayer(canvas, p);
         }
+        
+        try {
+        	Thread.sleep(1);
+        }
+        catch (InterruptedException e) {
+        	
+        }
     }
 
     private void drawPlayer(Canvas canvas, Player p) {
-        int slot = p.getSlot();
         drawPlayerImpl(canvas,
-                    mPlayerThinPaint[p.getId()], mPlayerThickPaint[p.getId()],
-                    p.getAngle(), getPlayerSize(),
-                    slotToScreenX(slot),
-                    heightToScreenHeight(p.getHeight()));
+                mPlayerThinPaint[p.getId()], mPlayerThickPaint[p.getId()],
+                p.getAngle(),
+                gameXtoViewX(p.getX()),
+                gameYtoViewY(p.getY()));
     }
 
     /** Draws a single player */
     private void drawPlayerImpl(Canvas canvas, 
                             Paint thinPaint, Paint thickPaint, 
-                            float turretAngle, float playerSize,
+                            float turretAngle,
                             float tx,
                             float ty) 
     {
-        float halfPlayerSize = playerSize / 2;
-        final float t = playerSize;
+        final float ps = ScorchedModel.PLAYER_SIZE / mZoom;
+        final float tl = ScorchedModel.TURRET_LENGTH / mZoom;
+        final float t = ScorchedModel.PLAYER_SIZE / mZoom;
         float centerX = tx;
-        float centerY = ty - halfPlayerSize;
+        float centerY = ty - (ps/2);
 
         // draw turret
         canvas.drawLine(centerX, centerY, 
-                centerX + (playerSize * (float)Math.cos(turretAngle)),
-                centerY - (playerSize * (float)Math.sin(turretAngle)),
+                centerX + (tl * (float)Math.cos(turretAngle)),
+                centerY - (tl * (float)Math.sin(turretAngle)),
                 thickPaint);
         
 /*        // draw dome
         Rect oldClip = canvas.getClipBounds();
-        canvas.clipRect(centerX - halfPlayerSize,
-                                        centerY - halfPlayerSize,
-                                        centerX + halfPlayerSize,
-                                        centerY + halfPlayerSize,
-                                        Region.Op.REPLACE);
-        mScratchRect.left = centerX - halfPlayerSize;
-        mScratchRect.right = centerX + halfPlayerSize;
-        mScratchRect.top = centerY - halfPlayerSize;
-        mScratchRect.bottom = centerY + halfPlayerSize + playerSize;
+        canvas.clipRect(centerX - (ps/2),
+                                    centerY - (ps/2),
+                                    centerX + (ps/2),
+                                    centerY + (ps/2),
+                                    Region.Op.REPLACE);
+        mScratchRect.left = centerX - (ps/2);
+        mScratchRect.right = centerX + (ps/2);
+        mScratchRect.top = centerY - (ps/2);
+        mScratchRect.bottom = centerY + (ps/2) + ps;
         canvas.drawOval(mScratchRect, thinPaint);
         canvas.clipRect(oldClip);*/
                 
         // draw top part
-        float x = tx - (playerSize / 2);
-        float y = ty - playerSize;
+        float x = tx - (ps / 2);
+        float y = ty - ps;
         final float a = t / 7;
         final float b = t / 7;
         final float d = t / 6;
@@ -223,15 +256,14 @@ public class ScorchedGraphics {
         Weapon.Point firstPoint = (Weapon.Point)iter.next();
 //        Path p = new Path();
         Paint paint = mPlayerThickPaint[2];//player.getId()];
-        float x = slotToScreenX(firstPoint.getX());
-        float y = heightToScreenHeight(firstPoint.getY());
+        float x = gameXtoViewX(firstPoint.getX());
+        float y = gameYtoViewY(firstPoint.getY());
         canvas.drawCircle(x, y, 2, paint);
-        Log.w(TAG, "firstX=" + slotToScreenX(firstPoint.getX()) + 
-        			",y=" + heightToScreenHeight(firstPoint.getY()));
+        Log.w(TAG, "firstX=" + x + ",y=" + y);
         while (iter.hasNext()) {
             Weapon.Point point = (Weapon.Point)iter.next();
-            x = slotToScreenX(point.getX());
-            y = heightToScreenHeight(point.getY());
+            x = gameXtoViewX(point.getX());
+            y = gameYtoViewY(point.getY());
 //            p.lineTo(x, y);
             canvas.drawCircle(x, y, 2, paint);
 //            Log.w(TAG, "x=" + x + ",y=" + y);
@@ -241,6 +273,36 @@ public class ScorchedGraphics {
 //        Rect rect = new Rect();
 //        rect.set(0, 0, 200, 200);
 //        canvas.drawRect(rect, paint);
+    }
+
+    public void zoomOut() {
+        mZoom = mZoom * 2f;
+        mNeedScreenRedraw = true;
+    }
+
+    public void zoomIn() {
+        mZoom = mZoom / 2f;
+        mNeedScreenRedraw = true;
+    }
+
+    public void viewLeft() {
+        mViewX -= 0.1;
+        mNeedScreenRedraw = true;
+    }
+
+    public void viewRight() {
+        mViewX += 0.1;
+        mNeedScreenRedraw = true;
+    }
+
+    public void viewUp() {
+        mViewY += 0.1;
+        mNeedScreenRedraw = true;
+    }
+
+    public void viewDown() {
+        mViewY -= 0.1;
+        mNeedScreenRedraw = true;
     }
 
     /*================= Lifecycle =================*/
@@ -254,7 +316,7 @@ public class ScorchedGraphics {
         mClear.setARGB(255, 0, 0, 0);
 
         mTerrainPaint = new Paint();
-        mTerrainPaint.setAntiAlias(true);
+        mTerrainPaint.setAntiAlias(false);
         mTerrainPaint.setARGB(255, 0, 255, 0);
 
         int playerColors[] = getPlayerColors();
@@ -277,5 +339,10 @@ public class ScorchedGraphics {
         //Resources res = context.getResources();
 
         mNeedScreenRedraw = false;
+
+        // Set pan/zoom values
+        mViewX = 4;
+        mViewY = 0.5f;
+        mZoom = 0.020f;
     }
 }
