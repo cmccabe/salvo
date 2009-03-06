@@ -11,7 +11,14 @@
                   android:layout_width="fill_parent" 
                   android:layout_height="wrap_content"
                   android:layout_weight="1"/>
-    <TableLayout android:id="@+id/ControlsLayout" 
+    <TextView     android:text="Player 1" 
+                  android:id="@+id/PlayerLabel"
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:textColor="#ff0000"
+                  android:textStyle="bold"
+                  android:layout_gravity="center_horizontal"></TextView>
+    <TableLayout  android:id="@+id/ControlsLayout" 
                   android:orientation="horizontal"
                   android:layout_width="fill_parent"
                   android:layout_height="wrap_content">
@@ -26,7 +33,12 @@
 	                  android:id="@+id/PowerSlider" 
 	                  android:layout_weight="1"
 	                  min="0"
-	                  max="1000"/>
+	                  max="999"/>
+            <TextView android:text="000" 
+                      android:id="@+id/PowerValue" 
+                      android:layout_gravity="center"
+                      android:paddingLeft="5dp">
+                      </TextView>
         </TableRow>
         <TableRow>
             <TextView android:text="Angle" 
@@ -40,8 +52,18 @@
                       android:layout_weight="1"
                       min="0"
                       max="180"/>
+            <TextView android:text="000" 
+                      android:id="@+id/AngleValue" 
+                      android:layout_gravity="center"
+                      android:paddingLeft="5dp">
+                      </TextView>
         </TableRow>
     </TableLayout>
-    <Spinner android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/WeaponSpinner"></Spinner>
-    <Button android:id="@+id/FireButton" android:layout_width="fill_parent" android:layout_height="wrap_content" android:textSize="10pt" android:text="F I R E !" android:textStyle="bold" android:paddingLeft="19dp" android:paddingRight="19dp"></Button>
+    <LinearLayout android:id="@+id/WeaponLayout"
+                  android:orientation="horizontal" 
+                  android:layout_height="wrap_content" 
+                  android:layout_width="fill_parent">
+        <Spinner android:layout_width="wrap_content" android:layout_weight="1" android:layout_height="wrap_content" android:id="@+id/WeaponSpinner"></Spinner>
+        <Button android:id="@+id/FireButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="15sp" android:text="FIRE!" android:textStyle="bold"></Button>
+    </LinearLayout>
 </LinearLayout>

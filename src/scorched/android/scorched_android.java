@@ -12,6 +12,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import scorched.android.ScorchedModel;
+import scorched.android.Slider.OnPositionChangedListener;
 import android.view.ViewGroup;
 
 public class scorched_android extends Activity {
@@ -70,6 +71,40 @@ public class scorched_android extends Activity {
         adapterForSpinner.add("Mini Missile");
         adapterForSpinner.add("Mega Missile");
         adapterForSpinner.add("Flying Monkey");
+        Slider powerSlider = (Slider)findViewById(R.id.PowerSlider);
+        powerSlider.max = 999;
+        final TextView powerValue = (TextView)findViewById(R.id.PowerValue);
+        powerSlider.setOnPositionChangedListener(new OnPositionChangedListener() {
+
+			public void onPositionChangeCompleted() {
+				// TODO Auto-generated method stub
+				
+			}
+
+			public void onPositionChanged(Slider slider, int oldPosition,
+					int newPosition) {
+				powerValue.setText(Integer.toString(newPosition+1000).substring(1));
+				
+			}
+        	
+        });
+        Slider angleSlider = (Slider)findViewById(R.id.AngleSlider);
+        angleSlider.max = 180;
+        final TextView angleValue = (TextView)findViewById(R.id.AngleValue);
+        angleSlider.setOnPositionChangedListener(new OnPositionChangedListener() {
+
+			public void onPositionChangeCompleted() {
+				// TODO Auto-generated method stub
+				
+			}
+
+			public void onPositionChanged(Slider slider, int oldPosition,
+					int newPosition) {
+				angleValue.setText(Integer.toString(newPosition+1000).substring(1));
+				
+			}
+        	
+        });
 
     }
 
