@@ -253,7 +253,9 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
                     if (mNextGameState != GameState.BALLISTICS) {
                         return mNextGameState;
                     }
-                    mGraphics.setNeedScreenRedraw();
+                    if (weapon.getNeedsRedraw()) {
+                    	mGraphics.setNeedScreenRedraw();
+                    }
                 }
             }
         }
