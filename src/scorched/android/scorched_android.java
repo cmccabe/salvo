@@ -7,6 +7,8 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Window;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import scorched.android.ScorchedModel;
@@ -59,6 +61,16 @@ public class scorched_android extends Activity {
             //Resources.getSystem().getDrawable(R.drawable.color_red);
         //TextView tv = (TextView)findViewByID(R.id.text);
         //tv.setBackgroundColor(redDrawable);
+        Spinner spinner = (Spinner)findViewById(R.id.WeaponSpinner);
+        ArrayAdapter<String> adapterForSpinner = new ArrayAdapter<String>(this,
+        		android.R.layout.simple_spinner_item);
+        		                adapterForSpinner.setDropDownViewResource
+        		(android.R.layout.simple_spinner_dropdown_item);
+        		                spinner.setAdapter(adapterForSpinner);
+        adapterForSpinner.add("Mini Missile");
+        adapterForSpinner.add("Mega Missile");
+        adapterForSpinner.add("Flying Monkey");
+
     }
 
     /**
