@@ -6,14 +6,17 @@ import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.view.Window;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
 
 import scorched.android.ScorchedModel;
 import scorched.android.Slider.OnPositionChangedListener;
 import android.view.ViewGroup;
+import android.view.View.OnClickListener;
 
 public class scorched_android extends Activity {
     /*================= Constants =================*/
@@ -71,7 +74,7 @@ public class scorched_android extends Activity {
         adapterForSpinner.add("Mini Missile");
         adapterForSpinner.add("Mega Missile");
         adapterForSpinner.add("Flying Monkey");
-        Slider powerSlider = (Slider)findViewById(R.id.PowerSlider);
+        final Slider powerSlider = (Slider)findViewById(R.id.PowerSlider);
         powerSlider.max = 999;
         final TextView powerValue = (TextView)findViewById(R.id.PowerValue);
         powerSlider.setOnPositionChangedListener(new OnPositionChangedListener() {
@@ -88,7 +91,29 @@ public class scorched_android extends Activity {
 			}
         	
         });
-        Slider angleSlider = (Slider)findViewById(R.id.AngleSlider);
+        Button powerMinus = (Button)findViewById(R.id.PowerMinus);
+        powerMinus.setOnClickListener(new OnClickListener() {
+
+			public void onClick(View arg0) {
+				if (powerSlider.pos > powerSlider.min) {
+					powerSlider.setPosition(powerSlider.pos - 1);
+					powerValue.setText(Integer.toString(powerSlider.pos+1000).substring(1));
+				}
+			}
+        	
+        });
+        Button powerPlus = (Button)findViewById(R.id.PowerPlus);
+        powerPlus.setOnClickListener(new OnClickListener() {
+
+			public void onClick(View arg0) {
+				if (powerSlider.pos < powerSlider.max) {
+					powerSlider.setPosition(powerSlider.pos + 1);
+					powerValue.setText(Integer.toString(powerSlider.pos+1000).substring(1));
+				}
+			}
+        	
+        });
+        final Slider angleSlider = (Slider)findViewById(R.id.AngleSlider);
         angleSlider.max = 180;
         final TextView angleValue = (TextView)findViewById(R.id.AngleValue);
         angleSlider.setOnPositionChangedListener(new OnPositionChangedListener() {
@@ -102,6 +127,30 @@ public class scorched_android extends Activity {
 					int newPosition) {
 				angleValue.setText(Integer.toString(newPosition+1000).substring(1));
 				
+			}
+        	
+        });
+        Button angleMinus = (Button)findViewById(R.id.AngleMinus);
+        angleMinus.setOnClickListener(new OnClickListener() {
+
+			public void onClick(View arg0) {
+				if (angleSlider.pos > angleSlider.min)
+				{
+					angleSlider.setPosition(angleSlider.pos - 1);
+					angleValue.setText(Integer.toString(angleSlider.pos+1000).substring(1));
+				}
+			}
+        	
+        });
+        Button anglePlus = (Button)findViewById(R.id.AnglePlus);
+        anglePlus.setOnClickListener(new OnClickListener() {
+
+			public void onClick(View arg0) {
+				if (angleSlider.pos < angleSlider.max)
+				{
+					angleSlider.setPosition(angleSlider.pos + 1);
+					angleValue.setText(Integer.toString(angleSlider.pos+1000).substring(1));
+				}
 			}
         	
         });

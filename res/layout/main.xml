@@ -29,11 +29,13 @@
 	                  android:layout_gravity="center"
 	                  android:paddingRight="5dp">
 	                  </TextView>
+            <Button  android:text="-" android:id="@+id/PowerMinus"/>
 	        <scorched.android.Slider 
 	                  android:id="@+id/PowerSlider" 
 	                  android:layout_weight="1"
 	                  min="0"
 	                  max="999"/>
+	        <Button  android:text="+" android:id="@+id/PowerPlus"/>
             <TextView android:text="000" 
                       android:id="@+id/PowerValue" 
                       android:layout_gravity="center"
@@ -47,11 +49,13 @@
                       android:layout_gravity="center"
                       android:paddingRight="5dp">
                       </TextView>
+            <Button  android:text="-" android:id="@+id/AngleMinus"/>
             <scorched.android.Slider 
                       android:id="@+id/AngleSlider" 
                       android:layout_weight="1"
                       min="0"
                       max="180"/>
+            <Button  android:text="+" android:id="@+id/AnglePlus"/>
             <TextView android:text="000" 
                       android:id="@+id/AngleValue" 
                       android:layout_gravity="center"
