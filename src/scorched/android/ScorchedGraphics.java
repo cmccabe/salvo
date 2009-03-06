@@ -136,13 +136,13 @@ public class ScorchedGraphics {
     	//		",x="+x);
         float h[] = mModel.getHeights();
         for (int i = firstSlot; i < lastSlot; i += 2) {
-            mTempPath.rewind();
             mTempPath.moveTo(x, gameYtoViewY(h[i]));
             mTempPath.quadTo(x + slotWidth, gameYtoViewY(h[i+1]),
                      x + slotWidth + slotWidth, gameYtoViewY(h[i+2]));
             mTempPath.lineTo(x + slotWidth + slotWidth, mCanvasHeight);
             mTempPath.lineTo(x, mCanvasHeight);
             canvas.drawPath(mTempPath, mTerrainPaint);
+            mTempPath.rewind();
             x += (slotWidth + slotWidth);
         }
         Log.w(TAG, "finalX=" + x); 
@@ -215,7 +215,6 @@ public class ScorchedGraphics {
         final float k = t / 5;
         final float l = t / 6;
         final float n = t / 6;
-        //Path q = new Path();
         mTempPath.lineTo(x + n, y + d + e);
         mTempPath.lineTo(x, y + d + e + h);
         mTempPath.lineTo(x, y + d + e + h + j);
@@ -232,6 +231,7 @@ public class ScorchedGraphics {
 
         
         canvas.drawPath(mTempPath, thinPaint);
+        mTempPath.rewind();
         canvas.drawCircle(x+n, y+d+e+h+j, a, thinPaint);
         canvas.drawCircle(x+3*n, y+d+e+h+j, a, thinPaint);
         canvas.drawCircle(x+5*n, y+d+e+h+j, a, thinPaint);
@@ -242,7 +242,6 @@ public class ScorchedGraphics {
         Iterator<Weapon.Point> iter = weapon.getPoints();
         assert (iter.hasNext());
         Weapon.Point firstPoint = (Weapon.Point)iter.next();
-//        Path mTempPath = new Path();
         Paint paint = mPlayerThickPaint[2];//player.getId()];
         float x = gameXtoViewX(firstPoint.getX());
         float y = gameYtoViewY(firstPoint.getY());
@@ -256,11 +255,6 @@ public class ScorchedGraphics {
             canvas.drawCircle(x, y, 2, paint);
 //            Log.w(TAG, "x=" + x + ",y=" + y);
         }
-//        canvas.drawPath(mTempPath, paint);
-        
-//        Rect rect = new Rect();
-//        rect.set(0, 0, 200, 200);
-//        canvas.drawRect(rect, paint);
     }
 
     public void zoomOut() {

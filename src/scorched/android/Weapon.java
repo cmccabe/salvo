@@ -12,7 +12,7 @@ public class Weapon
 
     /** The maximum number of times we will recalculate trajectory before giving up
      * and triggering the explosion. */
-	final private int MAX_NUM_SAMPLES = 10000;
+    final private int MAX_NUM_SAMPLES = 10000;
     
     /** The minimum distance squared (in slots) we will accept between two points on 
      * our trajectory before we accept the need to keep draw both points */
@@ -30,8 +30,8 @@ public class Weapon
             return mY;
         }
         public String toStr() {
-        	String ret = "(x=" + mX + ",y=" + mY + ")";
-        	return ret;
+            String ret = "(x=" + mX + ",y=" + mY + ")";
+            return ret;
         }
         /*================= Operations =================*/
         public void setX(float x) {
@@ -70,13 +70,13 @@ public class Weapon
 
     /** Returns the distance squared between two points */
     float distanceSquared(float x1, float y1, float x2, float y2) {
-    	float xDelta = (x1 - x2);
-    	float yDelta = (y1 - y2);
-    	return (xDelta * xDelta) + (yDelta * yDelta);
+        float xDelta = (x1 - x2);
+        float yDelta = (y1 - y2);
+        return (xDelta * xDelta) + (yDelta * yDelta);
     }
     
     public boolean getNeedsRedraw() {
-    	return mNeedsRedraw;
+        return mNeedsRedraw;
     }
     
     /*================= Operations =================*/
@@ -94,7 +94,7 @@ public class Weapon
         float nextX = cur.getX() + mDeltaX;
         float nextY = cur.getY() + mDeltaY;
         if (distanceSquared(nextX, nextY, old.getX(), old.getY()) <
-        		MIN_UPDATE_DIST_SQUARED) {
+                MIN_UPDATE_DIST_SQUARED) {
             cur.setX(nextX);
             cur.setY(nextY);
             mPoints.push(cur);
@@ -106,7 +106,7 @@ public class Weapon
             mNeedsRedraw = true;
         }
         Log.w(TAG, "nextSample(): old:" + old.toStr() +
-        			", cur:" + cur.toStr() + ",nextX=" + nextX + ",nextY=" + nextY); 
+                    ", cur:" + cur.toStr() + ",nextX=" + nextX + ",nextY=" + nextY); 
     }
 
     /** If the projectile collided with the terrain, return the point
@@ -124,8 +124,8 @@ public class Weapon
     /*================= Lifecycle =================*/
     public Weapon(float x, float y, float deltaX, float deltaY) {
         Log.w(TAG, "Weapon: creating with x=" + x + ", y=" + y +
-        		   ", deltaX=" + deltaX + ", deltaY=" + deltaY);
-    	mDeltaX = deltaX;
+                   ", deltaX=" + deltaX + ", deltaY=" + deltaY);
+        mDeltaX = deltaX;
         mDeltaY = deltaY;
         mPoints = new Stack < Point >();
         mPoints.push(new Point(x, y));
