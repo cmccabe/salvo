@@ -76,6 +76,9 @@ public class Weapon
     /*================= Operations =================*/
     /** Move the projectile forward. */
     public void nextSample() {
+        // do gravity
+        mDeltaY -= ScorchedModel.GRAVITY;
+
         // TODO: add (horizontal) wind
 
         // The order of points is like this: [old, cur, next]

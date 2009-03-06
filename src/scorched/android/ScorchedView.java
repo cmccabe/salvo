@@ -244,7 +244,7 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
             while (true) {
                 runScreenRefresh(curPlayer, weapon);
                 synchronized (mUserInputSem) {
-                    mUserInputSem.wait(1);
+                    //mUserInputSem.wait(1);
                     weapon.nextSample();
                     Weapon.Point collisionPoint = weapon.testCollision();
                     if (collisionPoint != null) {
@@ -348,10 +348,10 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
                         mGraphics.zoomIn();
                         break;
                     case KeyEvent.KEYCODE_J:
-                        mGraphics.viewUp();
+                        mGraphics.viewDown();
                         break;
                     case KeyEvent.KEYCODE_K:
-                        mGraphics.viewDown();
+                        mGraphics.viewUp();
                         break;
                     case KeyEvent.KEYCODE_L:
                         mGraphics.viewRight();

@@ -35,19 +35,23 @@ public class ScorchedModel {
     private static final String TAG = "ScorchedModel";
 
     /** The highest X coordinate */
-    public static final int MAX_X = 40;
+    public static final int MAX_X = 100;
 
     /** The highest Y coordinate */
     public static final int MAX_Y = 10000;
 
     /** The highest terrain point */
-    public static final float MAX_ELEVATION = 10;
+    public static final float MAX_ELEVATION = 20;
     
     /** Player size */
-    public static final int PLAYER_SIZE = 3;
+    public static final int PLAYER_SIZE = 1;
 
     /** How long the player's turret is */
-    public static final int TURRET_LENGTH = 3;
+    public static final int TURRET_LENGTH = 1;
+
+    /** The force of gravity.
+      * As measured by change in downward force each sample */
+    public static final float GRAVITY = 0.001f;
 
     enum TerrainType {
         TRIANGULAR,
@@ -140,7 +144,7 @@ public class ScorchedModel {
 
             case HILLY:
                 mHeights = getRandomHeights();
-                mHeights = movingWindow(mHeights, MAX_X / 10);
+                mHeights = movingWindow(mHeights, 3);
                 break;
 
             case ROLLING:
@@ -200,7 +204,7 @@ public class ScorchedModel {
         // Because of how drawScreen works
         assert(MAX_X % 2 == 0);
 
-        initHeights(TerrainType.ROLLING);
+        initHeights(TerrainType.HILLY);
         mPlayers = players;
         for (int i = 0; i < mPlayers.length; i++) {
         	int id = mPlayers[i].getId();

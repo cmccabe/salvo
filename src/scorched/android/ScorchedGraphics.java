@@ -127,11 +127,11 @@ public class ScorchedGraphics {
             boundaryCheckDrawSlot(roundDownToMultipleOfTwo(maxX) + 2);
 
         float x = gameXtoViewX(firstSlot);
-        Log.w(TAG, "canvasWidth=" + mCanvasWidth + 
-    			",firstSlot=" + firstSlot + 
-    			",lastSlot=" + lastSlot +
-    			",slotWidth=" + slotWidth +
-    			",x="+x);
+        //Log.w(TAG, "canvasWidth=" + mCanvasWidth + 
+    	//		",firstSlot=" + firstSlot + 
+    	//		",lastSlot=" + lastSlot +
+    	//		",slotWidth=" + slotWidth +
+    	//		",x="+x);
         float h[] = mModel.getHeights();
         for (int i = firstSlot; i < lastSlot; i += 2) {
             Path p = new Path();
@@ -149,13 +149,6 @@ public class ScorchedGraphics {
         for (int i = 0; i < mModel.getNumberOfPlayers(); i++) {
             Player p = mModel.getPlayer(i);
             drawPlayer(canvas, p);
-        }
-        
-        try {
-        	Thread.sleep(1);
-        }
-        catch (InterruptedException e) {
-        	
         }
     }
 
@@ -259,7 +252,7 @@ public class ScorchedGraphics {
         float x = gameXtoViewX(firstPoint.getX());
         float y = gameYtoViewY(firstPoint.getY());
         canvas.drawCircle(x, y, 2, paint);
-        Log.w(TAG, "firstX=" + x + ",y=" + y);
+        //Log.w(TAG, "firstX=" + x + ",y=" + y);
         while (iter.hasNext()) {
             Weapon.Point point = (Weapon.Point)iter.next();
             x = gameXtoViewX(point.getX());
