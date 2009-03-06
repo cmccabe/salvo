@@ -57,6 +57,8 @@ public class Weapon
     /** Number of times nextSample() has been called */
     int mCurNumSamples;
 
+    boolean mNeedsRedraw;
+    
     /*================= Access =================*/
     public Iterator<Point> getPoints() {
         Iterator<Point> iter = mPoints.iterator();
@@ -67,10 +69,14 @@ public class Weapon
     }
 
     /** Returns the distance squared between two points */
-    float distance_squared(float x1, float y1, float x2, float y2) {
+    float distanceSquared(float x1, float y1, float x2, float y2) {
     	float xDelta = (x1 - x2);
     	float yDelta = (y1 - y2);
     	return (xDelta * xDelta) + (yDelta * yDelta);
+    }
+    
+    public boolean getNeedsRedraw() {
+    	return mNeedsRedraw;
     }
     
     /*================= Operations =================*/
@@ -87,15 +93,17 @@ public class Weapon
         Point old = mPoints.peek();
         float nextX = cur.getX() + mDeltaX;
         float nextY = cur.getY() + mDeltaY;
-        if (distance_squared(nextX, nextY, old.getX(), old.getY()) <
+        if (distanceSquared(nextX, nextY, old.getX(), old.getY()) <
         		MIN_UPDATE_DIST_SQUARED) {
             cur.setX(nextX);
             cur.setY(nextY);
             mPoints.push(cur);
+            mNeedsRedraw = false;
         }
         else {
             mPoints.push(cur);
             mPoints.push(new Point(nextX, nextY));
+            mNeedsRedraw = true;
         }
         Log.w(TAG, "nextSample(): old:" + old.toStr() +
         			", cur:" + cur.toStr() + ",nextX=" + nextX + ",nextY=" + nextY); 
@@ -123,5 +131,6 @@ public class Weapon
         mPoints.push(new Point(x, y));
         mPoints.push(new Point(x, y));
         mCurNumSamples = 0;
+        mNeedsRedraw = true;
     }
 }
