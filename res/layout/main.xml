@@ -1,44 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/OverallLayout"
+    android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent">
     
     <scorched.android.ScorchedView
-      android:id="@+id/scorched_layout"
-      android:layout_width="fill_parent"
-      android:layout_height="fill_parent"/>
-    
-    <RelativeLayout
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent" >
-        <TextView
-          android:id="@+id/text"
-		  android:text="@string/scorched_layout_text_text"
-		  android:visibility="visible"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:layout_centerInParent="true"
-          android:gravity="center_horizontal"
-          android:textColor="#88ffffff"
-          android:textSize="24sp"/>
-     </RelativeLayout>
-<LinearLayout android:layout_height="wrap_content" android:orientation="vertical" android:id="@+id/ControlsLayout" android:layout_width="fill_parent" android:gravity="bottom"><LinearLayout android:layout_height="wrap_content" android:id="@+id/PowerLayout" android:layout_width="fill_parent" android:gravity="bottom"><TextView android:layout_height="wrap_content" android:text="Power" android:id="@+id/PowerText" android:layout_width="wrap_content" android:textSize="5pt" android:layout_weight="1" android:gravity="right" android:paddingRight="3dp"></TextView><Button android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="−" android:id="@+id/PowerMinus" android:textSize="11pt" android:textStyle="bold"></Button>
-
-<TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/PowerNumber" android:text="000"></TextView><Button android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="+" android:id="@+id/PowerPlus" android:textSize="11pt" android:textStyle="bold"></Button>
-
-
+                  android:id="@+id/scorched_layout" 
+                  android:layout_width="fill_parent" 
+                  android:layout_height="wrap_content"
+                  android:layout_weight="1"/>
+    <TextView     android:text="Player 1" 
+                  android:id="@+id/PlayerLabel"
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:textColor="#ff0000"
+                  android:textStyle="bold"
+                  android:layout_gravity="center_horizontal"></TextView>
+    <TableLayout  android:id="@+id/ControlsLayout" 
+                  android:orientation="horizontal"
+                  android:layout_width="fill_parent"
+                  android:layout_height="wrap_content">
+        <TableRow>
+	        <TextView android:text="Power" 
+	                  android:id="@+id/PowerText" 
+	                  android:layout_column="1"
+	                  android:layout_gravity="center"
+	                  android:paddingRight="5dp">
+	                  </TextView>
+            <Button  android:text="-" android:id="@+id/PowerMinus"/>
+	        <scorched.android.Slider 
+	                  android:id="@+id/PowerSlider" 
+	                  android:layout_weight="1"
+	                  min="0"
+	                  max="999"/>
+	        <Button  android:text="+" android:id="@+id/PowerPlus"/>
+            <TextView android:text="000" 
+                      android:id="@+id/PowerValue" 
+                      android:layout_gravity="center"
+                      android:paddingLeft="5dp">
+                      </TextView>
+        </TableRow>
+        <TableRow>
+            <TextView android:text="Angle" 
+                      android:id="@+id/AngleText" 
+                      android:layout_column="1"
+                      android:layout_gravity="center"
+                      android:paddingRight="5dp">
+                      </TextView>
+            <Button  android:text="-" android:id="@+id/AngleMinus"/>
+            <scorched.android.Slider 
+                      android:id="@+id/AngleSlider" 
+                      android:layout_weight="1"
+                      min="0"
+                      max="180"/>
+            <Button  android:text="+" android:id="@+id/AnglePlus"/>
+            <TextView android:text="000" 
+                      android:id="@+id/AngleValue" 
+                      android:layout_gravity="center"
+                      android:paddingLeft="5dp">
+                      </TextView>
+        </TableRow>
+    </TableLayout>
+    <LinearLayout android:id="@+id/WeaponLayout"
+                  android:orientation="horizontal" 
+                  android:layout_height="wrap_content" 
+                  android:layout_width="fill_parent">
+        <Spinner android:layout_width="wrap_content" android:layout_weight="1" android:layout_height="wrap_content" android:id="@+id/WeaponSpinner"></Spinner>
+        <Button android:id="@+id/FireButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="15sp" android:text="FIRE!" android:textStyle="bold"></Button>
+    </LinearLayout>
 </LinearLayout>
-<LinearLayout android:layout_height="wrap_content" android:id="@+id/AngleLayout" android:layout_width="fill_parent"><TextView android:layout_height="wrap_content" android:text="Angle" android:id="@+id/AngleText" android:layout_width="wrap_content" android:layout_weight="1" android:textSize="5pt" android:gravity="right" android:paddingRight="3dp"></TextView><Button android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="−" android:id="@+id/AngleMinus" android:paddingLeft="5dp" android:paddingRight="5dp" android:textSize="11pt" android:textStyle="bold"></Button>
-
-<TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/AngleNumber" android:text="000"></TextView><Button android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="+" android:id="@+id/AnglePlus" android:textSize="11pt" android:textStyle="bold"></Button>
-
-
-</LinearLayout>
-
-
-<LinearLayout android:layout_height="wrap_content" android:layout_width="fill_parent" android:id="@+id/FireLayout"><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_weight="1" android:id="@+id/FirePadding"></TextView>
-<Button android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/FireButton" android:textSize="10pt" android:text="F I R E !" android:textStyle="bold" android:paddingLeft="19dp" android:paddingRight="19dp"></Button>
-</LinearLayout>
-</LinearLayout>
-</FrameLayout>

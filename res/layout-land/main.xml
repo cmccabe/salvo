@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/OverallLayout"
+    android:orientation="horizontal"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+    
+    <scorched.android.ScorchedView
+                  android:id="@+id/scorched_layout" 
+                  android:layout_width="wrap_content" 
+                  android:layout_height="fill_parent"
+                  android:layout_weight="100"/>
+<LinearLayout android:id="@+id/PanelLayout"
+    android:orientation="vertical"
+    android:layout_width="wrap_content"
+    android:layout_height="fill_parent">
+    <TextView     android:text="Player 1" 
+                  android:textSize="20sp"
+                  android:id="@+id/PlayerLabel"
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:textColor="#ff0000"
+                  android:textStyle="bold"
+                  android:layout_gravity="center_horizontal" android:layout_marginBottom="10dp"></TextView>
+    <TableLayout  android:id="@+id/ControlsLayout" 
+                  android:layout_width="wrap_content"
+                  android:layout_weight="0"
+                  android:layout_height="fill_parent">
+        <TableRow>
+            <TextView android:text="Power" 
+                      android:id="@+id/PowerText"
+                      android:textSize="18sp" 
+                      android:layout_column="1"
+                      android:layout_gravity="center_vertical"
+                      android:layout_weight="1"
+                      android:paddingRight="5dp">
+                      </TextView>
+            <Button  android:text="-" android:id="@+id/PowerMinus"/>
+            <TextView android:text="000" 
+                      android:id="@+id/PowerValue"
+                      android:textSize="18sp" 
+                      android:layout_gravity="center"/>
+            <Button  android:text="+" android:id="@+id/PowerPlus"/>
+        </TableRow>
+        <scorched.android.Slider 
+                  android:id="@+id/PowerSlider" 
+                  android:layout_weight="0"
+                  min="0"
+                  max="999"/>
+        <TableRow>
+            <TextView android:text="Angle" 
+                      android:id="@+id/AngleText" 
+                      android:textSize="18sp"
+                      android:layout_column="1"
+                      android:layout_weight="1"
+                      android:layout_gravity="center_vertical"
+                      android:paddingRight="5dp">
+                      </TextView>
+            <Button  android:text="-" android:id="@+id/AngleMinus"/>
+            <TextView android:text="000" 
+                      android:id="@+id/AngleValue" 
+                      android:textSize="18sp"
+                      android:layout_gravity="center"/>
+            <Button  android:text="+" android:id="@+id/AnglePlus"/>
+        </TableRow>
+        <scorched.android.Slider 
+                  android:id="@+id/AngleSlider" 
+                  android:layout_weight="0"
+                  min="0"
+                  max="180"/>
+    <LinearLayout android:id="@+id/WeaponLayout"
+                  android:orientation="horizontal" 
+                  android:layout_height="wrap_content" 
+                  android:layout_width="wrap_content">
+        <Spinner android:layout_width="wrap_content" 
+                 android:layout_weight="1" 
+                 android:layout_height="wrap_content" 
+                 android:id="@+id/WeaponSpinner"></Spinner>
+        <Button android:id="@+id/FireButton" 
+                android:layout_width="wrap_content" 
+                android:layout_height="wrap_content" 
+                android:textSize="15sp" 
+                android:text="FIRE!" 
+                android:textStyle="bold"></Button>
+    </LinearLayout>
+    </TableLayout>
+</LinearLayout>
+</LinearLayout>
