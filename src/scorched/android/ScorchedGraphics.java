@@ -48,6 +48,8 @@ public class ScorchedGraphics {
     private Paint mPlayerThinPaint[] = null;
     private Paint mPlayerThickPaint[] = null;
 
+    private Path mTempPath;
+
     /** true if the screen needs to be redrawn */
     private volatile boolean mNeedScreenRedraw;
 
@@ -134,13 +136,13 @@ public class ScorchedGraphics {
     	//		",x="+x);
         float h[] = mModel.getHeights();
         for (int i = firstSlot; i < lastSlot; i += 2) {
-            Path p = new Path();
-            p.moveTo(x, gameYtoViewY(h[i]));
-            p.quadTo(x + slotWidth, gameYtoViewY(h[i+1]),
+            mTempPath.moveTo(x, gameYtoViewY(h[i]));
+            mTempPath.quadTo(x + slotWidth, gameYtoViewY(h[i+1]),
                      x + slotWidth + slotWidth, gameYtoViewY(h[i+2]));
-            p.lineTo(x + slotWidth + slotWidth, mCanvasHeight);
-            p.lineTo(x, mCanvasHeight);
-            canvas.drawPath(p, mTerrainPaint);
+            mTempPath.lineTo(x + slotWidth + slotWidth, mCanvasHeight);
+            mTempPath.lineTo(x, mCanvasHeight);
+            canvas.drawPath(mTempPath, mTerrainPaint);
+            mTempPath.rewind();
             x += (slotWidth + slotWidth);
         }
         Log.w(TAG, "finalX=" + x); 
@@ -200,13 +202,12 @@ public class ScorchedGraphics {
         final float b = t / 7;
         final float d = t / 6;
         final float e = t / 5;
-        Path p = new Path();
-        p.moveTo(x + a, y + d);
-        p.lineTo(x + a + b, y);
-        p.lineTo(x + t - (a + b), y);
-        p.lineTo(x + t - (a), y + d);
-        p.lineTo(x + t - (a), y + d + e);
-        // canvas.drawPath(p, thinPaint);
+        mTempPath.moveTo(x + a, y + d);
+        mTempPath.lineTo(x + a + b, y);
+        mTempPath.lineTo(x + t - (a + b), y);
+        mTempPath.lineTo(x + t - (a), y + d);
+        mTempPath.lineTo(x + t - (a), y + d + e);
+        // canvas.drawPath(mTempPath, thinPaint);
 
         // draw bottom part
         final float h = t / 5;
@@ -214,31 +215,25 @@ public class ScorchedGraphics {
         final float k = t / 5;
         final float l = t / 6;
         final float n = t / 6;
-        //Path q = new Path();
-        p.lineTo(x + n, y + d + e);
-        p.lineTo(x, y + d + e + h);
-        p.lineTo(x, y + d + e + h + j);
-        //p.lineTo(x, y + d + e + h + j + k);
-        //p.lineTo(x + t, y + d + e + h + j + k);
-        p.lineTo(x + t, y + d + e + h + j);
-        p.lineTo(x + t, y + d + e + h);
-        p.lineTo(x + t - (n), y + d + e);
-        // p.lineTo(x + n, y + d + e);
+        mTempPath.lineTo(x + n, y + d + e);
+        mTempPath.lineTo(x, y + d + e + h);
+        mTempPath.lineTo(x, y + d + e + h + j);
+        //mTempPath.lineTo(x, y + d + e + h + j + k);
+        //mTempPath.lineTo(x + t, y + d + e + h + j + k);
+        mTempPath.lineTo(x + t, y + d + e + h + j);
+        mTempPath.lineTo(x + t, y + d + e + h);
+        mTempPath.lineTo(x + t - (n), y + d + e);
+        // mTempPath.lineTo(x + n, y + d + e);
         
         // finish top part
-        p.lineTo(x + a, y + d + e);
-        p.lineTo(x + a, y + d);
+        mTempPath.lineTo(x + a, y + d + e);
+        mTempPath.lineTo(x + a, y + d);
 
         
-        canvas.drawPath(p, thinPaint);
-        Paint circPaint = new Paint();
-        circPaint.setAntiAlias(true);
-        circPaint.setColor(Color.BLACK);
-        canvas.drawCircle(x+n, y+d+e+h+j, n, circPaint);
+        canvas.drawPath(mTempPath, thinPaint);
+        mTempPath.rewind();
         canvas.drawCircle(x+n, y+d+e+h+j, a, thinPaint);
-        canvas.drawCircle(x+3*n, y+d+e+h+j, n, circPaint);
         canvas.drawCircle(x+3*n, y+d+e+h+j, a, thinPaint);
-        canvas.drawCircle(x+5*n, y+d+e+h+j, n, circPaint);
         canvas.drawCircle(x+5*n, y+d+e+h+j, a, thinPaint);
     }
 
@@ -247,7 +242,6 @@ public class ScorchedGraphics {
         Iterator<Weapon.Point> iter = weapon.getPoints();
         assert (iter.hasNext());
         Weapon.Point firstPoint = (Weapon.Point)iter.next();
-//        Path p = new Path();
         Paint paint = mPlayerThickPaint[2];//player.getId()];
         float x = gameXtoViewX(firstPoint.getX());
         float y = gameYtoViewY(firstPoint.getY());
@@ -257,15 +251,10 @@ public class ScorchedGraphics {
             Weapon.Point point = (Weapon.Point)iter.next();
             x = gameXtoViewX(point.getX());
             y = gameYtoViewY(point.getY());
-//            p.lineTo(x, y);
+//            mTempPath.lineTo(x, y);
             canvas.drawCircle(x, y, 2, paint);
 //            Log.w(TAG, "x=" + x + ",y=" + y);
         }
-//        canvas.drawPath(p, paint);
-        
-//        Rect rect = new Rect();
-//        rect.set(0, 0, 200, 200);
-//        canvas.drawRect(rect, paint);
     }
 
     public void zoomOut() {
@@ -328,6 +317,7 @@ public class ScorchedGraphics {
             mPlayerThickPaint[i] = pthick;
         }
 
+        mTempPath = new Path();
         mScratchRect = new RectF(0, 0, 0, 0);
         //Resources res = context.getResources();
 
