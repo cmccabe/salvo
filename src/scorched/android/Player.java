@@ -102,25 +102,25 @@ public class Player {
      *  gun turret */
     private float getTurretX() {
     	return (float)mX + 
-    		((float)Math.cos(mAngle) * ScorchedModel.TURRET_LENGTH);
+    		((float)Math.cos(mAngle) * Model.TURRET_LENGTH);
     }
 
     /** Return a float representing the Y position of the end of the 
      *  gun turret */
     private float getTurretY() {
     	return (float)mY + 
-    		((float)ScorchedModel.PLAYER_SIZE / 2f) +
-    		((float)Math.sin(mAngle) * ScorchedModel.TURRET_LENGTH);
+    		((float)Model.PLAYER_SIZE / 2f) +
+    		((float)Math.sin(mAngle) * Model.TURRET_LENGTH);
     }
 
     /*================= Operations =================*/
     public void setX(int x) {
         mX = x;
         assert(x >= 1);
-        assert(x < (ScorchedModel.MAX_X - 1));
+        assert(x < (Model.MAX_X - 1));
     }
     
-    public void calcY(ScorchedModel model) {
+    public void calcY(Model model) {
         float h[] = model.getHeights();
         mY = avg4f(h[mX - 1], h[mX], h[mX + 1],
                                 min3f(h[mX - 1], h[mX], h[mX + 1]));

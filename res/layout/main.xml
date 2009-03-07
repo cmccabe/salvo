@@ -6,7 +6,7 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent">
     
-    <scorched.android.ScorchedView
+    <scorched.android.GameControlView
                   android:id="@+id/scorched_layout" 
                   android:layout_width="fill_parent" 
                   android:layout_height="wrap_content"

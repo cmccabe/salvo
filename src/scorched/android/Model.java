@@ -7,9 +7,8 @@ import android.os.Bundle;
 /**
  * Model for the Scorched Android game.
  * 
- * ScorchedModel contains all game state except for state relating 
+ * The Model owns all game state-- except for state relating 
  * to the user interface.
- * It owns all classes, like Player, that contain important game state.
  *
  *                 The Playing Field
  *  MAX_Y +----------------------------------+
@@ -30,9 +29,9 @@ import android.os.Bundle;
  *
  * Players are assumed to be square. The size of the player is PLAYER_SIZE.
  */
-public class ScorchedModel {
+public class Model {
     /*================= Constants =================*/
-    private static final String TAG = "ScorchedModel";
+    private static final String TAG = "Model";
 
     /** The highest X coordinate */
     public static final int MAX_X = 100;
@@ -193,7 +192,7 @@ public class ScorchedModel {
     }
 
     /*================= Lifecycle =================*/
-    public ScorchedModel(Player players[]) {
+    public Model(Player players[]) {
         // We have to have enough slots to be sure that no two
         // players will get the same slot
         if (players.length >= MAX_X) {

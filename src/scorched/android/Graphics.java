@@ -13,15 +13,13 @@ import android.graphics.Region;
 import android.util.Log;
 
 /**
- * Graphics object for the Scorched Android game
- * 
  * The graphics object does all the work of drawing stuff on the screen.
  * This class doesn't know anything about locking. It is up to the caller to
  * ensure that everything is protected properly.
  */
-public class ScorchedGraphics {
+public class Graphics {
     /*================= Constants =================*/
-    private final String TAG = "ScorchedGraphics";
+    private final String TAG = "Graphics";
         
     /*================= Members =================*/
     private RectF mScratchRect;
@@ -53,7 +51,7 @@ public class ScorchedGraphics {
     /** true if the screen needs to be redrawn */
     private volatile boolean mNeedScreenRedraw;
 
-    private ScorchedModel mModel;
+    private Model mModel;
 
     private Context mContext;
     
@@ -67,8 +65,8 @@ public class ScorchedGraphics {
     private static final int boundaryCheckDrawSlot(int slot) {
         if (slot < 0)
             return 0;
-        else if (slot > (ScorchedModel.MAX_X - 2))
-            return ScorchedModel.MAX_X - 2;
+        else if (slot > (Model.MAX_X - 2))
+            return Model.MAX_X - 2;
         else
             return slot;
     }
@@ -169,9 +167,9 @@ public class ScorchedGraphics {
                             float tx,
                             float ty) 
     {
-        final float ps = ScorchedModel.PLAYER_SIZE / mZoom;
-        final float tl = ScorchedModel.TURRET_LENGTH / mZoom;
-        final float t = ScorchedModel.PLAYER_SIZE / mZoom;
+        final float ps = Model.PLAYER_SIZE / mZoom;
+        final float tl = Model.TURRET_LENGTH / mZoom;
+        final float t = Model.PLAYER_SIZE / mZoom;
         float centerX = tx;
         float centerY = ty - (ps/2);
 
@@ -288,7 +286,7 @@ public class ScorchedGraphics {
     }
 
     /*================= Lifecycle =================*/
-    public ScorchedGraphics(Context context, ScorchedModel model) {
+    public Graphics(Context context, Model model) {
         mContext = context;
         mModel = model;
         

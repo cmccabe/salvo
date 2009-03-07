@@ -23,18 +23,14 @@ import android.widget.TextView;
 
 
 /**
- * Controller for the Scorched Android game
+ * Controller for the Scorched Android game.
  * 
- * ScorchedView gets input from the user, as well as events from other
+ * GameControlView gets input from the user, as well as events from other
  * parts of the system, and presents them to mGraphics and mModel.
- *
- * The nomenclature is unfortunate; despite its name, this is *not* a View
- * in the model-view-controller sense. In the MVC sense, the View would be
- * ScorchedGraphics.
  */
-class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
+class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
     /*================= Constants =================*/
-    private static final String TAG = "ScorchedView";
+    private static final String TAG = "GameControlView";
 
     private enum GameState {
         IDLE,
@@ -62,7 +58,7 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
         private boolean mPaused = false;
 
         /** Pointer to the view */
-        public ScorchedGraphics mGraphics = null;
+        public Graphics mGraphics = null;
 
         /** Handle to the surface manager object we interact with */
         private SurfaceHolder mSurfaceHolder;
@@ -74,7 +70,7 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
          *  used to e.g. fetch Drawables. */
         private Context mContext;
 
-        public ScorchedThread(ScorchedGraphics graphics,
+        public ScorchedThread(Graphics graphics,
                             SurfaceHolder surfaceHolder, 
                             Context context,
                             Handler handler) {
@@ -423,13 +419,13 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
     private boolean mSurfaceHasBeenCreated = false;
 
     /** Pointer to the model */
-    public ScorchedModel mModel = null;
+    public Model mModel = null;
 
     /** Pointer to the view */
-    public ScorchedGraphics mGraphics = null;
+    public Graphics mGraphics = null;
 
     /*================= Accessors =================*/
-    /** Fetches the animation thread for this ScorchedView. */
+    /** Fetches the animation thread for this GameControlView. */
     public ScorchedThread getThread() {
         return mThread;
     }
@@ -499,11 +495,11 @@ class ScorchedView extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     /*================= Lifecycle =================*/
-    public ScorchedView(Context context, AttributeSet attrs) {
+    public GameControlView(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
 
-    public void initialize(ScorchedModel model, ScorchedGraphics graphics)
+    public void initialize(Model model, Graphics graphics)
     {
         mModel = model;
         mGraphics = graphics;

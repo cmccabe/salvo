@@ -83,7 +83,7 @@ public class Weapon
     /** Move the projectile forward. */
     public void nextSample() {
         // do gravity
-        mDeltaY -= ScorchedModel.GRAVITY;
+        mDeltaY -= Model.GRAVITY;
 
         // TODO: add (horizontal) wind
 
