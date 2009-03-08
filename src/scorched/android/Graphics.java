@@ -21,6 +21,30 @@ public class Graphics {
     /*================= Constants =================*/
     private final String TAG = "Graphics";
         
+    /*================= Types =================*/
+    static public class ViewSettings implements Cloneable {
+        /*================= Members =================*/
+        /** The X-offset of the view window */
+        public float mViewX;
+
+        /** The Y-offset of the view window */
+        public float mViewY;
+
+        /** The zoom factor */
+        public float mZoom;
+
+        /*================= Lifecycle =================*/
+        public ViewSettings(float viewX, float viewY, float zoom) {
+            mViewX = viewX;
+            mViewY = viewY;
+            mZoom = zoom;
+        }
+
+        public ViewSettings clone() {
+            return new ViewSettings(mViewX, mViewY, mZoom);
+        }
+    }
+
     /*================= Members =================*/
     private RectF mScratchRect;
 
@@ -29,15 +53,6 @@ public class Graphics {
 
     /** Current width of the surface/canvas. */ 
     private int mCanvasWidth = 0;
-
-    /** The X-offset of the view window */
-    private float mViewX;
-
-    /** The Y-offset of the view window */
-    private float mViewY;
-
-    /** The zoom factor */
-    private float mZoom;
 
     /** Paint to draw the lines on screen. */
     private Paint mClear, mTerrainPaint;
@@ -55,6 +70,8 @@ public class Graphics {
 
     private Context mContext;
     
+    private ViewSettings mV;
+
     /*================= Static =================*/
     private static final int roundDownToMultipleOfTwo(float x) {
         int ret = (int)(x / 2);
@@ -89,16 +106,39 @@ public class Graphics {
     }
     
     /** Give the onscreen coordinate corresponding to x */
-    private float gameXtoViewX(float x) {
-        return (x - mViewX) / mZoom;
+    public float gameXtoOnscreenX(float x) {
+        return (x - mV.mViewX) / mV.mZoom;
     }
 
     /** Give the onscreen coordinate corresponding to y */
-    private float gameYtoViewY(float y) {
-        return mCanvasHeight - ((y - mViewY) / mZoom);
+    public float gameYtoOnscreenY(float y) {
+        return mCanvasHeight - ((y - mV.mViewY) / mV.mZoom);
+    }
+
+    /** Give the game coordinate corresponding to an onscreen x */
+    public float onscreenXtoGameX(float x, ViewSettings v) {
+        return (v.mZoom * x) + v.mViewX;
+    }
+
+    /** Give the game coordinate corresponding to an onscreen y */
+    public float onscreenYtoGameY(float y, ViewSettings v) {
+        return (v.mZoom * y) + v.mViewY;
+    }
+
+    public ViewSettings getViewSettings() {
+        return mV.clone();
     }
 
     /*================= Operations =================*/
+    public void scrollBy(float x, float y) {
+    	mNeedScreenRedraw = true;
+        Log.w(TAG, "mV.mViewX=" + mV.mViewX + ",mViewY=" + mV.mViewY + 
+    			",x=" + x + ",y=" + y);
+
+    	mV.mViewX += x;
+        mV.mViewY += y;
+    }
+
     public void setNeedScreenRedraw() {
         mNeedScreenRedraw = true;
     }
@@ -118,15 +158,15 @@ public class Graphics {
         canvas.drawRect(mScratchRect, mClear);
 
         // Draw the terrain
-        float maxX = mViewX + (mCanvasWidth * mZoom);
-        float maxY = mViewY + (mCanvasHeight * mZoom);
-        float slotWidth = 1.0f / mZoom;
+        float maxX = mV.mViewX + (mCanvasWidth * mV.mZoom);
+        float maxY = mV.mViewY + (mCanvasHeight * mV.mZoom);
+        float slotWidth = 1.0f / mV.mZoom;
         int firstSlot =
-            boundaryCheckDrawSlot(roundDownToMultipleOfTwo(mViewX));
+            boundaryCheckDrawSlot(roundDownToMultipleOfTwo(mV.mViewX));
         int lastSlot = 
             boundaryCheckDrawSlot(roundDownToMultipleOfTwo(maxX) + 2);
 
-        float x = gameXtoViewX(firstSlot);
+        float x = gameXtoOnscreenX(firstSlot);
         //Log.w(TAG, "canvasWidth=" + mCanvasWidth + 
     	//		",firstSlot=" + firstSlot + 
     	//		",lastSlot=" + lastSlot +
@@ -134,9 +174,9 @@ public class Graphics {
     	//		",x="+x);
         float h[] = mModel.getHeights();
         for (int i = firstSlot; i < lastSlot; i += 2) {
-            mTempPath.moveTo(x, gameYtoViewY(h[i]));
-            mTempPath.quadTo(x + slotWidth, gameYtoViewY(h[i+1]),
-                     x + slotWidth + slotWidth, gameYtoViewY(h[i+2]));
+            mTempPath.moveTo(x, gameYtoOnscreenY(h[i]));
+            mTempPath.quadTo(x + slotWidth, gameYtoOnscreenY(h[i+1]),
+                     x + slotWidth + slotWidth, gameYtoOnscreenY(h[i+2]));
             mTempPath.lineTo(x + slotWidth + slotWidth, mCanvasHeight);
             mTempPath.lineTo(x, mCanvasHeight);
             canvas.drawPath(mTempPath, mTerrainPaint);
@@ -156,8 +196,8 @@ public class Graphics {
         drawPlayerImpl(canvas,
                 mPlayerThinPaint[p.getId()], mPlayerThickPaint[p.getId()],
                 p.getAngle(),
-                gameXtoViewX(p.getX()),
-                gameYtoViewY(p.getY()));
+                gameXtoOnscreenX(p.getX()),
+                gameYtoOnscreenY(p.getY()));
     }
 
     /** Draws a single player */
@@ -167,9 +207,9 @@ public class Graphics {
                             float tx,
                             float ty) 
     {
-        final float ps = Model.PLAYER_SIZE / mZoom;
-        final float tl = Model.TURRET_LENGTH / mZoom;
-        final float t = Model.PLAYER_SIZE / mZoom;
+        final float ps = Model.PLAYER_SIZE / mV.mZoom;
+        final float tl = Model.TURRET_LENGTH / mV.mZoom;
+        final float t = Model.PLAYER_SIZE / mV.mZoom;
         float centerX = tx;
         float centerY = ty - (ps/2);
 
@@ -241,14 +281,14 @@ public class Graphics {
         assert (iter.hasNext());
         Weapon.Point firstPoint = (Weapon.Point)iter.next();
         Paint paint = mPlayerThickPaint[2];//player.getId()];
-        float x = gameXtoViewX(firstPoint.getX());
-        float y = gameYtoViewY(firstPoint.getY());
+        float x = gameXtoOnscreenX(firstPoint.getX());
+        float y = gameYtoOnscreenY(firstPoint.getY());
         canvas.drawCircle(x, y, 2, paint);
         //Log.w(TAG, "firstX=" + x + ",y=" + y);
         while (iter.hasNext()) {
             Weapon.Point point = (Weapon.Point)iter.next();
-            x = gameXtoViewX(point.getX());
-            y = gameYtoViewY(point.getY());
+            x = gameXtoOnscreenX(point.getX());
+            y = gameYtoOnscreenY(point.getY());
 //            mTempPath.lineTo(x, y);
             canvas.drawCircle(x, y, 2, paint);
 //            Log.w(TAG, "x=" + x + ",y=" + y);
@@ -256,32 +296,32 @@ public class Graphics {
     }
 
     public void zoomOut() {
-        mZoom = mZoom * 2f;
+        mV.mZoom = mV.mZoom * 1.5f;
         mNeedScreenRedraw = true;
     }
 
     public void zoomIn() {
-        mZoom = mZoom / 2f;
+        mV.mZoom = mV.mZoom / 1.5f;
         mNeedScreenRedraw = true;
     }
 
     public void viewLeft() {
-        mViewX -= 0.1;
+        mV.mViewX -= 0.1;
         mNeedScreenRedraw = true;
     }
 
     public void viewRight() {
-        mViewX += 0.1;
+        mV.mViewX += 0.1;
         mNeedScreenRedraw = true;
     }
 
     public void viewUp() {
-        mViewY += 0.1;
+        mV.mViewY += 0.1;
         mNeedScreenRedraw = true;
     }
 
     public void viewDown() {
-        mViewY -= 0.1;
+        mV.mViewY -= 0.1;
         mNeedScreenRedraw = true;
     }
 
@@ -321,9 +361,7 @@ public class Graphics {
 
         mNeedScreenRedraw = false;
 
-        // Set pan/zoom values
-        mViewX = 4;
-        mViewY = 0.5f;
-        mZoom = 0.020f;
+        // Set viewX, viewY, zoom
+        mV = new ViewSettings(4, 0.5f, 0.060f);
     }
 }

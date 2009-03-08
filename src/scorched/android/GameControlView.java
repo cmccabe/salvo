@@ -1,7 +1,5 @@
 package scorched.android;
 
-import java.sql.Time;
-
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -16,6 +14,7 @@ import android.os.Message;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -70,6 +69,16 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
          *  used to e.g. fetch Drawables. */
         private Context mContext;
 
+        /** The zoom, pan settings that were in effect when the user started
+         * pressing on the screen */ 
+        private Graphics.ViewSettings mTouchViewSettings;
+
+        /** Last X coordinate the user touched (in game coordinates) */
+        private float mTouchX;
+
+        /** Last Y coordinate the user touched (in game coordinates) */
+        private float mTouchY;
+        
         public ScorchedThread(Graphics graphics,
                             SurfaceHolder surfaceHolder, 
                             Context context,
@@ -81,6 +90,7 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
             mContext = context;
 
             mGameState = GameState.PLAYER_MOVE;
+            mTouchViewSettings = null;
         }
 
         /*================= Operations =================*/
@@ -406,8 +416,43 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
         boolean doKeyUp(int keyCode, KeyEvent msg) {
             return false;
         }
+
+        /** Handles a touchscreen event */
+        public boolean onTouchEvent(MotionEvent me) {
+            int action = me.getAction();
+            if ((action == MotionEvent.ACTION_DOWN) ||
+                (action == MotionEvent.ACTION_MOVE) ||
+                (action == MotionEvent.ACTION_UP)) 
+            {
+                if (mTouchViewSettings == null) {
+                    mTouchViewSettings = mGraphics.getViewSettings();
+                    mTouchX = mGraphics.
+                        onscreenXtoGameX(me.getX(), mTouchViewSettings);
+                    mTouchY = mGraphics.
+                        onscreenYtoGameY(me.getY(), mTouchViewSettings);
+                }
+                else {
+                    float x = mGraphics.
+                            onscreenXtoGameX(me.getX(), mTouchViewSettings);
+                    float y = mGraphics.
+                            onscreenYtoGameY(me.getY(), mTouchViewSettings);
+                    mGraphics.scrollBy(mTouchX - x, -(mTouchY - y));
+                    synchronized (mUserInputSem) {
+                        mUserInputSem.notify();
+                    }
+                    mTouchX = x;
+                    mTouchY = y;
+                }
+            }
+            // TODO: do edgeflags?
+
+            if (action == MotionEvent.ACTION_UP) {
+                mTouchViewSettings = null;
+            }
+            return true;
+        }
     }
-        
+
     /*================= Members =================*/
     /** The thread that draws the animation */
     private ScorchedThread mThread;
@@ -423,7 +468,7 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
 
     /** Pointer to the view */
     public Graphics mGraphics = null;
-
+    
     /*================= Accessors =================*/
     /** Fetches the animation thread for this GameControlView. */
     public ScorchedThread getThread() {
@@ -431,6 +476,10 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     /*================= User Input Operations =================*/
+    public boolean onTouchEvent(MotionEvent me) {
+    	return mThread.onTouchEvent(me);
+    }	
+        
     /** Standard override to get key-press events. */
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent msg) {
@@ -503,7 +552,7 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
     {
         mModel = model;
         mGraphics = graphics;
-
+        
         // register our interest in hearing about changes to our surface
         SurfaceHolder holder = getHolder();
         holder.addCallback(this);
