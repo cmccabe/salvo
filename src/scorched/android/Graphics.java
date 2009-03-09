@@ -132,9 +132,6 @@ public class Graphics {
     /*================= Operations =================*/
     public void scrollBy(float x, float y) {
     	mNeedScreenRedraw = true;
-        Log.w(TAG, "mV.mViewX=" + mV.mViewX + ",mViewY=" + mV.mViewY + 
-    			",x=" + x + ",y=" + y);
-
     	mV.mViewX += x;
         mV.mViewY += y;
     }
@@ -183,7 +180,6 @@ public class Graphics {
             mTempPath.rewind();
             x += (slotWidth + slotWidth);
         }
-        Log.w(TAG, "finalX=" + x); 
         		
         // Draw the players
         for (int i = 0; i < mModel.getNumberOfPlayers(); i++) {
