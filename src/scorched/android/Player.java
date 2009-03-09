@@ -38,22 +38,6 @@ public class Player {
     private int mPower;
     
     /*================= Static =================*/
-    private final float avg4f(float a, float b, float c, float d) {
-        return (a + b + c + d) / 4;
-    }
-    
-    private final float min3f(float f, float g, float h) {
-        if (f < g) {
-                if (h < f)
-                        return h;
-                else
-                        return f;
-        }
-        else if (h < g)
-                return h;
-        else
-                return g;
-    }
 
     /*================= Access =================*/
     public int getId() {
@@ -122,8 +106,7 @@ public class Player {
     
     public void calcY(Model model) {
         float h[] = model.getHeights();
-        mY = avg4f(h[mX - 1], h[mX], h[mX + 1],
-                                min3f(h[mX - 1], h[mX], h[mX + 1]));
+        mY = h[mX];
     }
 
     /** set turret power. */
