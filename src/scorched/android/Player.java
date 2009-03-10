@@ -4,8 +4,8 @@ public class Player {
     /*================= Constants =================*/
     private static final int MAX_LIFE = 1000;
 
-    private static final int MIN_POWER = 50;
-    private static final int MAX_POWER = 1000;
+    public static final int MIN_POWER = 50;
+    public static final int MAX_POWER = 1000;
     
     private static final float MIN_TURRET_ANGLE = 0;
     private static final float MAX_TURRET_ANGLE = 3.1415926535f;

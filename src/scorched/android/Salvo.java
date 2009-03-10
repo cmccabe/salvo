@@ -14,7 +14,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import scorched.android.Model;
-import scorched.android.Slider.OnPositionChangedListener;
+import scorched.android.SalvoSlider.Listener;
 import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 
@@ -40,7 +40,6 @@ public class Salvo extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Create Model
         //mModel.addPlayer(LocalHumanPlayer(0)) ... etc
         Player players[] = new Player[5];
         players[0] = new LocalHumanPlayer(0);
@@ -50,7 +49,6 @@ public class Salvo extends Activity {
         players[4] = new LocalHumanPlayer(4);
         mModel = new Model(players);
 
-        // Create View
         mGraphics = new Graphics(getBaseContext(), mModel);
 
         // Create Controller / Window object
@@ -58,110 +56,34 @@ public class Salvo extends Activity {
         Log.w(TAG, "setContentView");
         setContentView(R.layout.main);
         Log.w(TAG, "findViewById");
-        mGameControl = (GameControlView) findViewById(R.id.scorched_layout);
+        mGameControl = (GameControlView)findViewById(R.id.scorched_layout);
         mGameControl.initialize(mModel, mGraphics);
 
-        //Drawable redDrawable = 
-            //Resources.getSystem().getDrawable(R.drawable.color_red);
-        //TextView tv = (TextView)findViewByID(R.id.text);
-        //tv.setBackgroundColor(redDrawable);
-        Spinner spinner = (Spinner)findViewById(R.id.WeaponSpinner);
-        ArrayAdapter<String> adapterForSpinner = 
-            new ArrayAdapter<String>(this,
-                android.R.layout.simple_spinner_item);
-                                adapterForSpinner.setDropDownViewResource
-                (android.R.layout.simple_spinner_dropdown_item);
-                                spinner.setAdapter(adapterForSpinner);
-        adapterForSpinner.add("Mini Missile");
-        adapterForSpinner.add("Mega Missile");
-        adapterForSpinner.add("Flying Monkey");
-        final Slider powerSlider = (Slider)findViewById(R.id.PowerSlider);
-        powerSlider.max = 999;
-        final TextView powerValue = (TextView)findViewById(R.id.PowerValue);
-        powerSlider.setOnPositionChangedListener(
-            new OnPositionChangedListener() {
+        // Sliders
+        final SalvoSlider powerSlider = 
+            (SalvoSlider)findViewById(R.id.PowerSlider);
+        powerSlider.initialize(Player.MIN_POWER, Player.MAX_POWER,
+            new SalvoSlider.Listener() {
+				public void onPositionChange(int val) {
+                    mGameControl.onPowerChange(val);					
+				}
+            });
+        final SalvoSlider angleSlider = 
+            (SalvoSlider)findViewById(R.id.AngleSlider);
+        powerSlider.initialize(0, 180,
+            new SalvoSlider.Listener() {
+				public void onPositionChange(int val) {
+                    mGameControl.onAngleChange(val);
+				}
+            });
 
-            public void onPositionChangeCompleted() {
-                // TODO Auto-generated method stub
-                
-            }
-
-            public void onPositionChanged(Slider slider, int oldPosition,
-                    int newPosition) {
-                powerValue.setText(Integer.
-                    toString(newPosition+1000).substring(1));
-            }
-        });
-        Button powerMinus = (Button)findViewById(R.id.PowerMinus);
-        powerMinus.setOnClickListener(new OnClickListener() {
-
+        // Buttons
+        Button fireButton = (Button)findViewById(R.id.FireButton);
+        fireButton.setOnClickListener(new OnClickListener() {
             public void onClick(View arg0) {
-                if (powerSlider.pos > powerSlider.min) {
-                    powerSlider.setPosition(powerSlider.pos - 1);
-                    powerValue.setText(Integer.toString(powerSlider.pos+1000).
-                                        substring(1));
-                }
+                mGameControl.onFireButton();
             }
-            
         });
-        Button powerPlus = (Button)findViewById(R.id.PowerPlus);
-        powerPlus.setOnClickListener(new OnClickListener() {
-
-            public void onClick(View arg0) {
-                if (powerSlider.pos < powerSlider.max) {
-                    powerSlider.setPosition(powerSlider.pos + 1);
-                    powerValue.setText(Integer.toString(powerSlider.pos+1000).
-                                        substring(1));
-                }
-            }
-            
-        });
-        final Slider angleSlider = (Slider)findViewById(R.id.AngleSlider);
-        angleSlider.max = 180;
-        final TextView angleValue = (TextView)findViewById(R.id.AngleValue);
-        angleSlider.setOnPositionChangedListener(
-            new OnPositionChangedListener() {
-
-            public void onPositionChangeCompleted() {
-                // TODO Auto-generated method stub
-                
-            }
-
-            public void onPositionChanged(Slider slider, int oldPosition,
-                    int newPosition) {
-                angleValue.setText(Integer.toString(newPosition+1000).
-                                        substring(1));
-                
-            }
-            
-        });
-        Button angleMinus = (Button)findViewById(R.id.AngleMinus);
-        angleMinus.setOnClickListener(new OnClickListener() {
-
-            public void onClick(View arg0) {
-                if (angleSlider.pos > angleSlider.min)
-                {
-                    angleSlider.setPosition(angleSlider.pos - 1);
-                    angleValue.setText(Integer.toString(angleSlider.pos+1000).
-                                            substring(1));
-                }
-            }
-            
-        });
-        Button anglePlus = (Button)findViewById(R.id.AnglePlus);
-        anglePlus.setOnClickListener(new OnClickListener() {
-
-            public void onClick(View arg0) {
-                if (angleSlider.pos < angleSlider.max)
-                {
-                    angleSlider.setPosition(angleSlider.pos + 1);
-                    angleValue.setText(Integer.toString(angleSlider.pos+1000).
-                                            substring(1));
-                }
-            }
-            
-        });
-
     }
 
     /**

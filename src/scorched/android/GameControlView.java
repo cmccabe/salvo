@@ -132,12 +132,12 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
 
         /* Callback invoked when the surface dimensions change. */
         public void setSurfaceSize(int width, int height) {
-        	synchronized (mSurfaceHolder) {
+            synchronized (mSurfaceHolder) {
                 mGraphics.setSurfaceSize(width, height);
             }
-        	synchronized (mUserInputSem) {
-        		mUserInputSem.notify();
-        	}
+            synchronized (mUserInputSem) {
+                mUserInputSem.notify();
+            }
         }
 
         /*================= Main =================*/
@@ -254,13 +254,13 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
                     weapon.nextSample();
                     Weapon.Point collisionPoint = weapon.testCollision();
                     if (collisionPoint != null) {
-                    	mNextGameState = GameState.EXPLOSION;
+                        mNextGameState = GameState.EXPLOSION;
                     }
                     if (mNextGameState != GameState.BALLISTICS) {
                         return mNextGameState;
                     }
                     if (weapon.getNeedsRedraw()) {
-                    	mGraphics.setNeedScreenRedraw();
+                        mGraphics.setNeedScreenRedraw();
                     }
                 }
             }
@@ -378,7 +378,7 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
                         break;
                     default:
                         throw new RuntimeException("can't handle keycode " +
-                        		                   keyCode);
+                                                   keyCode);
                 }
                 mGraphics.setNeedScreenRedraw();
                 mUserInputSem.notify();
@@ -476,9 +476,30 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     /*================= User Input Operations =================*/
+    /** Called when the user moves the power slider
+     *  Note: must not block in GUI thread */
+    public void onPowerChange(int val) {
+        Log.w(TAG, "onPowerChange(" + val + ")");
+    }
+
+    /** Called when the user moves the angle slider
+     *  Note: must not block in GUI thread 
+     *  Note: angle is given in degrees and must be converted to radians. */
+    public void onAngleChange(int val) {
+        Log.w(TAG, "onAngleChange(" + val + ")");
+    }
+
+    /** Called when the user presses the fire button.
+     *  Note: must not block in GUI thread */
+    public void onFireButton() {
+        Log.w(TAG, "fire in the hole!");
+    }
+
+    /** Pan the game board */
+    @Override
     public boolean onTouchEvent(MotionEvent me) {
-    	return mThread.onTouchEvent(me);
-    }	
+        return mThread.onTouchEvent(me);
+    }   
         
     /** Standard override to get key-press events. */
     @Override
@@ -502,16 +523,14 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
             mThread.pause();
     }
 
-    /* Callback invoked when the surface dimensions change. */
+    /** Callback invoked when the surface dimensions change. */
     public void surfaceChanged(SurfaceHolder holder, int format, int width,
             int height) {
         mThread.setSurfaceSize(width, height);
     }
 
-    /*
-     * Callback invoked when the Surface has been created and is ready to be
-     * used.
-     */
+    /** Callback invoked when the Surface has been created and is 
+     * ready to be used. */
     public void surfaceCreated(SurfaceHolder holder) {
         synchronized (mSurfaceHasBeenCreatedSem) {
             // Wake up mThread.run() if it's waiting for the surface to have
@@ -522,12 +541,10 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
         Log.w(TAG, "surfaceCreated(): set mSurfaceHasBeenCreated");
     }
 
-    /*
-     * Callback invoked when the Surface has been destroyed and must 
+    /** Callback invoked when the Surface has been destroyed and must 
      * no longer be touched. 
      * WARNING: after this method returns, the Surface/Canvas must
-     * never be touched again!
-     */
+     * never be touched again! */
     public void surfaceDestroyed(SurfaceHolder holder) {
         // we have to tell thread to shut down & wait for it to finish, 
         // or else it might touch the Surface after we return and explode
@@ -546,10 +563,21 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
     /*================= Lifecycle =================*/
     public GameControlView(Context context, AttributeSet attrs) {
         super(context, attrs);
+
+        // Try to get hardware acceleration
+        /*try {
+            getHolder().setType(
+                android.view.SurfaceHolder.SURFACE_TYPE_HARDWARE);
+            Log.w(TAG, "GameControlView: activated hardware acceleration");
+        }
+        catch(Exception e2) {
+            getHolder().setType(
+                android.view.SurfaceHolder.SURFACE_TYPE_NORMAL);
+            Log.w(TAG, "GameControlView: no acceleration");
+        }*/
     }
 
-    public void initialize(Model model, Graphics graphics)
-    {
+    public void initialize(Model model, Graphics graphics) {
         mModel = model;
         mGraphics = graphics;
         
