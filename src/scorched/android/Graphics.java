@@ -23,6 +23,9 @@ public class Graphics {
         
     /*================= Types =================*/
     static public class ViewSettings implements Cloneable {
+    	/** The zoom factor (axes are each multiplied by this when we zoom in) */
+    	public static final float ZOOM_FACTOR = 1.125f;
+    	
         /*================= Members =================*/
         /** The X-offset of the view window */
         public float mViewX;
@@ -292,13 +295,40 @@ public class Graphics {
     }
 
     public void zoomOut() {
-        mV.mZoom = mV.mZoom * 1.5f;
+    	/* unoptimized calculation:
+        float oldCenterX = mV.mViewX + mCanvasWidth*mV.mZoom*0.5f;
+        float oldCenterY = mV.mViewY + mCanvasHeight*mV.mZoom*0.5f;
+        mV.mZoom = mV.mZoom * ViewSettings.ZOOM_FACTOR;
+        float newCenterX = mV.mViewX + mCanvasWidth*mV.mZoom*0.5f;
+        float newCenterY = mV.mViewY + mCanvasHeight*mV.mZoom*0.5f;
+        mV.mViewX += oldCenterX - newCenterX;
+        mV.mViewY += oldCenterY - newCenterY;
+        */
+    	
+    	// assume compiler combines final mults
+        mV.mViewX -= mCanvasWidth*mV.mZoom*(0.5f*(ViewSettings.ZOOM_FACTOR - 1.0f));
+        mV.mViewY -= mCanvasWidth*mV.mZoom*(0.5f*(ViewSettings.ZOOM_FACTOR - 1.0f));
+        mV.mZoom = mV.mZoom * ViewSettings.ZOOM_FACTOR;
+    	
         mNeedScreenRedraw = true;
     }
 
     public void zoomIn() {
-        mV.mZoom = mV.mZoom / 1.5f;
+    	/* unoptimized calculation:
+        float oldCenterX = mV.mViewX + mCanvasWidth*mV.mZoom*0.5f;
+        float oldCenterY = mV.mViewY + mCanvasHeight*mV.mZoom*0.5f;
+        mV.mZoom = mV.mZoom / ViewSettings.ZOOM_FACTOR;
+        float newCenterX = mV.mViewX + mCanvasWidth*mV.mZoom*0.5f;
+        float newCenterY = mV.mViewY + mCanvasHeight*mV.mZoom*0.5f;
+        mV.mViewX += oldCenterX - newCenterX;
+        mV.mViewY += oldCenterY - newCenterY;
         mNeedScreenRedraw = true;
+    	*/
+        mV.mZoom = mV.mZoom / ViewSettings.ZOOM_FACTOR; // assume compiler optimizes const div into mult
+        mV.mViewX += mCanvasWidth*mV.mZoom*(0.5f*(ViewSettings.ZOOM_FACTOR - 1.0f));
+        mV.mViewY += mCanvasWidth*mV.mZoom*(0.5f*(ViewSettings.ZOOM_FACTOR - 1.0f));
+        mNeedScreenRedraw = true;
+        
     }
 
     public void viewLeft() {

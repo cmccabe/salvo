@@ -12,6 +12,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.ZoomButton;
 
 import scorched.android.Model;
 import scorched.android.SalvoSlider.Listener;
@@ -83,6 +84,18 @@ public class Salvo extends Activity {
             public void onClick(View arg0) {
                 mGameControl.onFireButton();
             }
+        });
+        ZoomButton zoomIn = (ZoomButton)findViewById(R.id.ZoomIn);
+        zoomIn.setOnClickListener(new OnClickListener() {
+        	public void onClick(View arg0) {
+        		mGameControl.onZoomIn();
+        	}
+        });
+        ZoomButton zoomOut = (ZoomButton)findViewById(R.id.ZoomOut);
+        zoomOut.setOnClickListener(new OnClickListener() {
+        	public void onClick(View arg0) {
+        		mGameControl.onZoomOut();
+        	}
         });
     }
 

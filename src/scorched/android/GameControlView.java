@@ -413,8 +413,22 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
          * @param msg the original event object
          * @return true if the key was handled and consumed, or else false
          */
-        boolean doKeyUp(int keyCode, KeyEvent msg) {
+        private boolean doKeyUp(int keyCode, KeyEvent msg) {
             return false;
+        }
+        
+        public void onZoomIn() {
+        	mGraphics.zoomIn();
+            synchronized (mUserInputSem) {
+                mUserInputSem.notify();
+            }        	
+        }
+        
+        public void onZoomOut() {
+        	mGraphics.zoomOut();
+            synchronized (mUserInputSem) {
+                mUserInputSem.notify();
+            }        	
         }
 
         /** Handles a touchscreen event */
@@ -466,8 +480,6 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
     /** Pointer to the model */
     public Model mModel = null;
 
-    /** Pointer to the view */
-    public Graphics mGraphics = null;
     
     /*================= Accessors =================*/
     /** Fetches the animation thread for this GameControlView. */
@@ -494,7 +506,17 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
     public void onFireButton() {
         Log.w(TAG, "fire in the hole!");
     }
+    
+    /** Called when user presses zoom in */
+    public void onZoomIn() {
+    	mThread.onZoomIn();
+    }
 
+    /** Called when user presses zoom out */
+    public void onZoomOut() {
+    	mThread.onZoomOut();
+    }
+    
     /** Pan the game board */
     @Override
     public boolean onTouchEvent(MotionEvent me) {
@@ -579,14 +601,13 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
 
     public void initialize(Model model, Graphics graphics) {
         mModel = model;
-        mGraphics = graphics;
         
         // register our interest in hearing about changes to our surface
         SurfaceHolder holder = getHolder();
         holder.addCallback(this);
 
         // Create animation thread
-        mThread = new ScorchedThread(mGraphics, holder, getContext(), 
+        mThread = new ScorchedThread(graphics, holder, getContext(), 
             new Handler() {
                 @Override
                 public void handleMessage(Message m) {

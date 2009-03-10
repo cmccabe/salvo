@@ -5,13 +5,31 @@
     android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent">
-    
+    <FrameLayout android:layout_width="fill_parent" android:layout_height="fill_parent" android:layout_weight="1">
     <scorched.android.GameControlView
         android:id="@+id/scorched_layout" 
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:layout_weight="1"
     />
+            <LinearLayout android:id="@+id/ZoomLayout"
+                      android:orientation="vertical"
+                      android:layout_gravity="right"
+                      android:layout_width="wrap_content"
+                      android:layout_height="fill_parent">
+            <ZoomButton android:id="@+id/ZoomIn"
+                        android:background="@drawable/btn_plus_np"
+                        android:layout_gravity="right"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+            <ZoomButton android:id="@+id/ZoomOut"
+                        android:background="@drawable/btn_minus_np"
+                        android:layout_gravity="right"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+        </LinearLayout>
+
+    </FrameLayout>
     <LinearLayout
         android:id="@+id/TopSliderRow"
         android:layout_width="fill_parent"
