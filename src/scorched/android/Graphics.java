@@ -60,9 +60,14 @@ public class Graphics {
     /** Paint to draw the lines on screen. */
     private Paint mClear, mTerrainPaint;
 
-    /** Paint to draw the players */
-    private Paint mPlayerThinPaint[] = null;
-    private Paint mPlayerThickPaint[] = null;
+    /** Player colors */
+    int mPlayerColors[];
+
+    /** Thin paint to draw the players */
+    private Paint mPlayerThinPaint[];
+
+    /** Thick paint to draw the players */
+    private Paint mPlayerThickPaint[];
 
     private Path mTempPath;
 
@@ -92,15 +97,8 @@ public class Graphics {
     }
 
     /*================= Access =================*/
-    private int[] getPlayerColors() {
-        String playerColorStr[] = mContext.getResources().
-                    getStringArray(R.array.player_colors);
-        int playerColors[] = new int[playerColorStr.length];
-        for (int i = 0; i < playerColorStr.length; ++i) {
-            Log.w(TAG, "trying to parse color " + playerColorStr[i]);
-            playerColors[i] = Color.parseColor(playerColorStr[i]);
-        }
-        return playerColors;
+    public int getPlayerColor(int playerId) {
+        return mPlayerColors[playerId];
     }
 
 
@@ -194,7 +192,7 @@ public class Graphics {
     private void drawPlayer(Canvas canvas, Player p) {
         drawPlayerImpl(canvas,
                 mPlayerThinPaint[p.getId()], mPlayerThickPaint[p.getId()],
-                p.getAngle(),
+                p.getAngleRad(),
                 gameXtoOnscreenX(p.getX()),
                 gameYtoOnscreenY(p.getY()));
     }
@@ -365,18 +363,26 @@ public class Graphics {
         mTerrainPaint.setAntiAlias(false);
         mTerrainPaint.setARGB(255, 0, 255, 0);
 
-        int playerColors[] = getPlayerColors();
-        mPlayerThinPaint = new Paint[playerColors.length];
-        mPlayerThickPaint = new Paint[playerColors.length];
-        for (int i = 0; i < playerColors.length; ++i) {
+        // get player colors
+        String playerColorStr[] = mContext.getResources().
+                    getStringArray(R.array.player_colors);
+        mPlayerColors = new int[playerColorStr.length];
+        for (int i = 0; i < playerColorStr.length; ++i) {
+            mPlayerColors[i] = Color.parseColor(playerColorStr[i]);
+        }
+
+        // calculate player paints
+        mPlayerThinPaint = new Paint[mPlayerColors.length];
+        mPlayerThickPaint = new Paint[mPlayerColors.length];
+        for (int i = 0; i < mPlayerColors.length; ++i) {
             Paint pthin = new Paint();
             pthin.setAntiAlias(true);
-            pthin.setColor(playerColors[i]);
+            pthin.setColor(mPlayerColors[i]);
             mPlayerThinPaint[i] = pthin;
 
             Paint pthick = new Paint();
             pthick.setAntiAlias(true);
-            pthick.setColor(playerColors[i]);
+            pthick.setColor(mPlayerColors[i]);
             pthick.setStrokeWidth(3);
             mPlayerThickPaint[i] = pthick;
         }

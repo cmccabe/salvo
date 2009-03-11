@@ -62,16 +62,22 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
         /** Handle to the surface manager object we interact with */
         private SurfaceHolder mSurfaceHolder;
 
+        /** Handle to the application context;
+         *  used to (for example) fetch Drawables. */
+        private Context mContext;
+
         /** Message handler used by thread to interact with TextView */
         private Handler mHandler;
-
-        /** Handle to the application context
-         *  used to e.g. fetch Drawables. */
-        private Context mContext;
 
         /** The zoom, pan settings that were in effect when the user started
          * pressing on the screen */ 
         private Graphics.ViewSettings mTouchViewSettings;
+
+        /** The slider representing power */
+        private SalvoSlider mPowerSlider;
+
+        /** The slider representing angle */
+        private SalvoSlider mAngleSlider;
 
         /** Last X coordinate the user touched (in game coordinates) */
         private float mTouchX;
@@ -82,15 +88,17 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
         public ScorchedThread(Graphics graphics,
                             SurfaceHolder surfaceHolder, 
                             Context context,
-                            Handler handler) {
-            mGraphics = graphics;
-            // get handles to some important objects
-            mSurfaceHolder = surfaceHolder;
-            mHandler = handler;
-            mContext = context;
-
+                            Handler handler,
+                            SalvoSlider powerSlider,
+                            SalvoSlider angleSlider) {
             mGameState = GameState.PLAYER_MOVE;
+            mGraphics = graphics;
+            mSurfaceHolder = surfaceHolder;
+            mContext = context;
+            mHandler = handler;
             mTouchViewSettings = null;
+            mPowerSlider = powerSlider;
+            mAngleSlider = angleSlider;
         }
 
         /*================= Operations =================*/
@@ -192,18 +200,9 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
                         break;
     
                         case EXPLOSION: {
-                            Log.w(TAG, "entering EXPLOSION state");
-                            // The projectile is exploding onscreen
-                            Canvas canvas = mSurfaceHolder.lockCanvas(null);
-                            Paint p = new Paint();
-                            p.setAntiAlias(false);
-                            p.setARGB(128, 255, 0, 255);
-                            Rect rect = new Rect();
-                            rect.set(0, 0, 200, 200);
-                            canvas.drawRect(rect, p);
-                            //mGameState = runExplosion();
-                            mSurfaceHolder.unlockCanvasAndPost(canvas);
-                            Thread.sleep(10000);
+                            // The projectile is exploding
+                            Player curPlayer = mModel.getCurPlayer();
+                            mGameState = runExplosion(curPlayer);
                         }
                         break;
     
@@ -227,6 +226,16 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
             synchronized (mUserInputSem) {
                 mNextGameState = GameState.PLAYER_MOVE;
             }
+
+            int myColor = mGraphics.getPlayerColor(curPlayer.getId());
+            mPowerSlider.setState(SalvoSlider.SliderState.BAR, mPowerAdaptor,
+                        Player.MIN_POWER, Player.MAX_POWER,
+                        curPlayer.getPower(),
+                        myColor);
+            mAngleSlider.setState(SalvoSlider.SliderState.ANGLE,mAngleAdaptor,
+                        Player.MIN_TURRET_ANGLE, Player.MAX_TURRET_ANGLE,
+                        curPlayer.getAngleDeg(),
+                        myColor);
 
             while (true) {
                 runScreenRefresh(curPlayer, null);
@@ -264,6 +273,31 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
                     }
                 }
             }
+        }
+
+        private GameState runExplosion(Player curPlayer)
+            throws InterruptedException
+        {
+            synchronized (mUserInputSem) {
+                mNextGameState = GameState.EXPLOSION;
+            }
+            mPowerSlider.setState(SalvoSlider.SliderState.DISABLED,
+            						mPowerAdaptor, 0, 0, 0, 0);
+            mAngleSlider.setState(SalvoSlider.SliderState.DISABLED,
+            						mAngleAdaptor, 0, 0, 0, 0);
+            
+            Log.w(TAG, "entering EXPLOSION state");
+            // The projectile is exploding onscreen
+            Canvas canvas = mSurfaceHolder.lockCanvas(null);
+            Paint p = new Paint();
+            p.setAntiAlias(false);
+            p.setARGB(128, 255, 0, 255);
+            Rect rect = new Rect();
+            rect.set(0, 0, 200, 200);
+            canvas.drawRect(rect, p);
+            mSurfaceHolder.unlockCanvasAndPost(canvas);
+            Thread.sleep(10000);
+            return GameState.PLAYER_MOVE;
         }
 
         private void runScreenRefresh(Player player, Weapon weapon)
@@ -417,6 +451,14 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
             return false;
         }
         
+        /** Called when the user presses the fire button.
+         *  Note: must not block in GUI thread */
+        public void onFireButton() {
+            Log.w(TAG, "fire in the hole!");
+        }
+
+        /** Called when the user presses the zoom in button.
+         *  Note: must not block in GUI thread */
         public void onZoomIn() {
         	mGraphics.zoomIn();
             synchronized (mUserInputSem) {
@@ -424,11 +466,26 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
             }        	
         }
         
+        /** Called when the user presses the zoom out button.
+         *  Note: must not block in GUI thread */
         public void onZoomOut() {
         	mGraphics.zoomOut();
             synchronized (mUserInputSem) {
                 mUserInputSem.notify();
             }        	
+        }
+        
+        /** Called when the user moves the power slider
+         *  Note: must not block in GUI thread */
+        public void onPowerChange(int val) {
+            Log.w(TAG, "onPowerChange(" + val + ")");
+        }
+
+        /** Called when the user moves the angle slider
+         *  Note: must not block in GUI thread 
+         *  Note: angle is given in degrees and must be converted to radians. */
+        public void onAngleChange(int val) {
+            Log.w(TAG, "onAngleChange(" + val + ")");
         }
 
         /** Handles a touchscreen event */
@@ -480,6 +537,8 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
     /** Pointer to the model */
     public Model mModel = null;
 
+    SalvoSlider.Listener mPowerAdaptor;
+    SalvoSlider.Listener mAngleAdaptor;
     
     /*================= Accessors =================*/
     /** Fetches the animation thread for this GameControlView. */
@@ -488,35 +547,6 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     /*================= User Input Operations =================*/
-    /** Called when the user moves the power slider
-     *  Note: must not block in GUI thread */
-    public void onPowerChange(int val) {
-        Log.w(TAG, "onPowerChange(" + val + ")");
-    }
-
-    /** Called when the user moves the angle slider
-     *  Note: must not block in GUI thread 
-     *  Note: angle is given in degrees and must be converted to radians. */
-    public void onAngleChange(int val) {
-        Log.w(TAG, "onAngleChange(" + val + ")");
-    }
-
-    /** Called when the user presses the fire button.
-     *  Note: must not block in GUI thread */
-    public void onFireButton() {
-        Log.w(TAG, "fire in the hole!");
-    }
-    
-    /** Called when user presses zoom in */
-    public void onZoomIn() {
-    	mThread.onZoomIn();
-    }
-
-    /** Called when user presses zoom out */
-    public void onZoomOut() {
-    	mThread.onZoomOut();
-    }
-    
     /** Pan the game board */
     @Override
     public boolean onTouchEvent(MotionEvent me) {
@@ -599,14 +629,16 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
         }*/
     }
 
-    public void initialize(Model model, Graphics graphics) {
+    public void initialize(Model model, Graphics graphics, 
+                            SalvoSlider powerSlider, SalvoSlider angleSlider)
+    {
         mModel = model;
         
         // register our interest in hearing about changes to our surface
         SurfaceHolder holder = getHolder();
         holder.addCallback(this);
 
-        // Create animation thread
+        // Create game controller thread
         mThread = new ScorchedThread(graphics, holder, getContext(), 
             new Handler() {
                 @Override
@@ -614,8 +646,21 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
                     //mStatusText.setVisibility(m.getData().getInt("viz"));
                     //mStatusText.setText(m.getData().getString("text"));
                 }
-        });
-
+            },
+            powerSlider,
+            angleSlider);
+        
+        mPowerAdaptor = new SalvoSlider.Listener() {
+            public void onPositionChange(int val) {
+                mThread.onPowerChange(val);
+            }
+        };
+        mAngleAdaptor = new SalvoSlider.Listener() {
+            public void onPositionChange(int val) {
+                mThread.onAngleChange(val);
+            }
+        };
+        
         setFocusable(true); // make sure we get key events
         
         // Start the animation thread

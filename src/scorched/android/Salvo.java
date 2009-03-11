@@ -41,7 +41,6 @@ public class Salvo extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        //mModel.addPlayer(LocalHumanPlayer(0)) ... etc
         Player players[] = new Player[5];
         players[0] = new LocalHumanPlayer(0);
         players[1] = new ComputerPlayer(1);
@@ -49,53 +48,39 @@ public class Salvo extends Activity {
         players[3] = new ComputerPlayer(3);
         players[4] = new LocalHumanPlayer(4);
         mModel = new Model(players);
-
         mGraphics = new Graphics(getBaseContext(), mModel);
 
-        // Create Controller / Window object
+        ////////////////// setContentView
         requestWindowFeature(Window.FEATURE_NO_TITLE); // turn off title bar
         Log.w(TAG, "setContentView");
         setContentView(R.layout.main);
-        Log.w(TAG, "findViewById");
+        
+        ////////////////// Get pointers to stuff
         mGameControl = (GameControlView)findViewById(R.id.scorched_layout);
-        mGameControl.initialize(mModel, mGraphics);
-
-        // Sliders
         final SalvoSlider powerSlider = 
             (SalvoSlider)findViewById(R.id.PowerSlider);
-        powerSlider.initialize(Player.MIN_POWER, Player.MAX_POWER,
-            new SalvoSlider.Listener() {
-				public void onPositionChange(int val) {
-                    mGameControl.onPowerChange(val);					
-				}
-            });
         final SalvoSlider angleSlider = 
             (SalvoSlider)findViewById(R.id.AngleSlider);
-        angleSlider.initialize(0, 180,
-            new SalvoSlider.Listener() {
-				public void onPositionChange(int val) {
-                    mGameControl.onAngleChange(val);
-				}
-            });
-
-        // Buttons
-        Button fireButton = (Button)findViewById(R.id.FireButton);
+        final Button fireButton = (Button)findViewById(R.id.FireButton);
+        final ZoomButton zoomIn = (ZoomButton)findViewById(R.id.ZoomIn);
+        final ZoomButton zoomOut = (ZoomButton)findViewById(R.id.ZoomOut);
+        
+        ////////////////// Initialize stuff
+        mGameControl.initialize(mModel, mGraphics, powerSlider, angleSlider);
         fireButton.setOnClickListener(new OnClickListener() {
             public void onClick(View arg0) {
-                mGameControl.onFireButton();
+                mGameControl.getThread().onFireButton();
             }
         });
-        ZoomButton zoomIn = (ZoomButton)findViewById(R.id.ZoomIn);
         zoomIn.setOnClickListener(new OnClickListener() {
-        	public void onClick(View arg0) {
-        		mGameControl.onZoomIn();
-        	}
+            public void onClick(View arg0) {
+                mGameControl.getThread().onZoomIn();
+            }
         });
-        ZoomButton zoomOut = (ZoomButton)findViewById(R.id.ZoomOut);
         zoomOut.setOnClickListener(new OnClickListener() {
-        	public void onClick(View arg0) {
-        		mGameControl.onZoomOut();
-        	}
+            public void onClick(View arg0) {
+                mGameControl.getThread().onZoomOut();
+            }
         });
     }
 
