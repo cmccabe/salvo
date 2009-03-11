@@ -71,7 +71,7 @@ public class Salvo extends Activity {
             });
         final SalvoSlider angleSlider = 
             (SalvoSlider)findViewById(R.id.AngleSlider);
-        powerSlider.initialize(0, 180,
+        angleSlider.initialize(0, 180,
             new SalvoSlider.Listener() {
 				public void onPositionChange(int val) {
                     mGameControl.onAngleChange(val);
