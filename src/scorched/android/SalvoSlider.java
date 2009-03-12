@@ -23,9 +23,9 @@ import android.view.View;
 
 /**
  * A slider widget which the user can slide back and forth.
- * 
+ *
  * There are arrows on the ends for fine adjustments.
- * 
+ *
  * Most functions are synchronized on mState to prevent wackiness. The mState
  * mutex should generally be held a pretty short amount of time.
  */
@@ -77,7 +77,7 @@ public class SalvoSlider extends View {
     /** True if the slider's value increases left-to-right rather
      *  than left-to-right */
     private boolean mReversed;
-    
+
     /** Current slider value */
     private int mVal;
 
@@ -144,25 +144,25 @@ public class SalvoSlider extends View {
         mFontPaint = new Paint();
         mFontPaint.setColor(Color.WHITE);
         mFontPaint.setAntiAlias(true);
-        adjustTypefaceToFit(mFontPaint, 
+        adjustTypefaceToFit(mFontPaint,
             (mHeight * 4) / 5, Typeface.SANS_SERIF);
         mFontPaint.setTextAlign(Paint.Align.CENTER);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
-    	int x;
+        int x;
         synchronized (mState) {
             super.onDraw(canvas);
             switch (mState) {
             case DISABLED:
                 canvas.drawColor(Color.BLACK);
-            	break;
+                break;
 
             case BAR:
                 canvas.drawColor(Color.BLACK);
                 x = mLeftBound
-                        + (((mRightBound - mLeftBound) * mVal) / 
+                        + (((mRightBound - mLeftBound) * mVal) /
                             (mMax - mMin));
                 mTempRect.set(mLeftBound, 0, x, mHeight);
                 canvas.drawRect(mTempRect, mBarPaint);
@@ -191,9 +191,9 @@ public class SalvoSlider extends View {
             }
         }
     }
-    
+
     private void drawSliderText(Canvas canvas) {
-    	String str;
+        String str;
         if (mReversed) {
             str = "" + (mMax - mVal);
         }
@@ -204,18 +204,18 @@ public class SalvoSlider extends View {
     }
 
     private void adjustTypefaceToFit(Paint p, int height, Typeface tf) {
-    	p.setTypeface(tf);
-    	Paint.FontMetrics metrics = new Paint.FontMetrics();
-    	int size = 50;
+        p.setTypeface(tf);
+        Paint.FontMetrics metrics = new Paint.FontMetrics();
+        int size = 50;
         p.setTextSize(size);
         p.getFontMetrics(metrics);
         int fontHeight = (int)(metrics.top + metrics.bottom);
         if (Math.abs(fontHeight - height) > 5) {
             size = (size * height) / fontHeight;
-    	}
+        }
         p.setTextSize(size);
     }
-    
+
     private void drawEndButtons(Canvas canvas) {
         // Draw end buttons
         drawEndButton(canvas, 0, mLeftBound);
@@ -254,7 +254,7 @@ public class SalvoSlider extends View {
                 return true;
             }
             int action = me.getAction();
-            int x = (int)me.getX(); 
+            int x = (int)me.getX();
             if (x < mLeftBound) {
                 invalidate = downButton(action);
             }
@@ -327,8 +327,8 @@ public class SalvoSlider extends View {
             if (min < max) {
                 mMin = min;
                 mMax = max;
-            	mReversed = false;
-            	mVal = val;
+                mReversed = false;
+                mVal = val;
             }
             else {
                 mMin = max;

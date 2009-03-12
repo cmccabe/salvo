@@ -26,13 +26,13 @@ public class Salvo extends Activity {
     private GameControlView mGameControl;
     private Model mModel;
     private Graphics mGraphics;
-    
+
     /*================= Utility =================*/
 
     /*================= Operations =================*/
     /**
      * Invoked when the Activity is created.
-     * 
+     *
      * @param savedInstanceState a Bundle containing state saved from a previous
      *        execution, or null if this is a new execution
      */
@@ -53,17 +53,17 @@ public class Salvo extends Activity {
         requestWindowFeature(Window.FEATURE_NO_TITLE); // turn off title bar
         Log.w(TAG, "setContentView");
         setContentView(R.layout.main);
-        
+
         ////////////////// Get pointers to stuff
         mGameControl = (GameControlView)findViewById(R.id.scorched_layout);
-        final SalvoSlider powerSlider = 
+        final SalvoSlider powerSlider =
             (SalvoSlider)findViewById(R.id.PowerSlider);
-        final SalvoSlider angleSlider = 
+        final SalvoSlider angleSlider =
             (SalvoSlider)findViewById(R.id.AngleSlider);
         final Button fireButton = (Button)findViewById(R.id.FireButton);
         final ZoomButton zoomIn = (ZoomButton)findViewById(R.id.ZoomIn);
         final ZoomButton zoomOut = (ZoomButton)findViewById(R.id.ZoomOut);
-        
+
         ////////////////// Initialize stuff
         mGameControl.initialize(mModel, mGraphics, powerSlider, angleSlider);
         fireButton.setOnClickListener(new OnClickListener() {
@@ -95,7 +95,7 @@ public class Salvo extends Activity {
     /**
      * Notification that something is about to happen, to give the Activity a
      * chance to save state.
-     * 
+     *
      * @param outState a Bundle into which this Activity should save its state
      */
     @Override

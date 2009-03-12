@@ -6,7 +6,7 @@ public class Player {
 
     public static final int MIN_POWER = 50;
     public static final int MAX_POWER = 1000;
-    
+
     public static final int MIN_TURRET_ANGLE = 0;
     public static final int MAX_TURRET_ANGLE = 180;
 
@@ -22,7 +22,7 @@ public class Player {
     /** Current y-position of the bottom of the tank. */
     private float mY;
 
-    /** Current turret angle, in degrees. Turret angles are represented 
+    /** Current turret angle, in degrees. Turret angles are represented
      * like this:
      *            90
      *       135  |   45
@@ -36,10 +36,10 @@ public class Player {
      * for doing math */
     private float mAngleRad;
 
-    /** The power that we're firing with. Measured on the same 
-     * scale as life. */ 
+    /** The power that we're firing with. Measured on the same
+     * scale as life. */
     private int mPower;
-    
+
     /*================= Static =================*/
 
     /*================= Access =================*/
@@ -60,11 +60,11 @@ public class Player {
     public int getAngleDeg() {
         return mAngleDeg;
     }
-    
+
     public float getAngleRad() {
         return mAngleRad;
     }
-    
+
     public int getPower() {
         return mPower;
     }
@@ -88,20 +88,20 @@ public class Player {
         dy = (dy * mPower) / 10000.0f;
         return new Weapon(getTurretX(), getTurretY(), dx, dy);
     }
-    
-    /** Return a float representing the X position of the end of the 
+
+    /** Return a float representing the X position of the end of the
      *  gun turret */
     private float getTurretX() {
-    	return (float)mX + 
-    		((float)Math.cos(mAngleRad) * Model.TURRET_LENGTH);
+        return (float)mX +
+            ((float)Math.cos(mAngleRad) * Model.TURRET_LENGTH);
     }
 
-    /** Return a float representing the Y position of the end of the 
+    /** Return a float representing the Y position of the end of the
      *  gun turret */
     private float getTurretY() {
-    	return (float)mY + 
-    		((float)Model.PLAYER_SIZE / 2f) +
-    		((float)Math.sin(mAngleRad) * Model.TURRET_LENGTH);
+        return (float)mY +
+            ((float)Model.PLAYER_SIZE / 2f) +
+            ((float)Math.sin(mAngleRad) * Model.TURRET_LENGTH);
     }
 
     /*================= Operations =================*/
@@ -110,7 +110,7 @@ public class Player {
         assert(x >= 1);
         assert(x < (Model.MAX_X - 1));
     }
-    
+
     public void calcY(Model model) {
         float h[] = model.getHeights();
         mY = h[mX];
@@ -131,17 +131,17 @@ public class Player {
             angleDeg = MIN_TURRET_ANGLE;
         }
         mAngleDeg = angleDeg;
-    	mAngleRad = (float)Math.toRadians(angleDeg);
+        mAngleRad = (float)Math.toRadians(angleDeg);
     }
 
     /** Move turret left by one degree */
     public void turretLeft() {
-    	setAngleDeg(mAngleDeg + 1);
+        setAngleDeg(mAngleDeg + 1);
     }
 
     /** Move turret right by one degree */
     public void turretRight() {
-    	setAngleDeg(mAngleDeg - 1);
+        setAngleDeg(mAngleDeg - 1);
     }
 
     public void powerUp() {
