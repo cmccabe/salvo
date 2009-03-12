@@ -24,7 +24,7 @@ public class Graphics {
     /*================= Types =================*/
     static public class ViewSettings implements Cloneable {
     	/** The zoom factor (axes are each multiplied by this when we zoom in) */
-    	public static final float ZOOM_FACTOR = 1.125f;
+    	public static final float ZOOM_FACTOR = 2f;
     	
         /*================= Members =================*/
         /** The X-offset of the view window */
@@ -304,8 +304,10 @@ public class Graphics {
         */
     	
     	// assume compiler combines final mults
-        mV.mViewX -= mCanvasWidth*mV.mZoom*(0.5f*(ViewSettings.ZOOM_FACTOR - 1.0f));
-        mV.mViewY -= mCanvasWidth*mV.mZoom*(0.5f*(ViewSettings.ZOOM_FACTOR - 1.0f));
+        mV.mViewX -= mCanvasWidth*mV.mZoom*
+        		(0.5f*(ViewSettings.ZOOM_FACTOR - 1.0f));
+        mV.mViewY -= mCanvasWidth*mV.mZoom*
+        		(0.5f*(ViewSettings.ZOOM_FACTOR - 1.0f));
         mV.mZoom = mV.mZoom * ViewSettings.ZOOM_FACTOR;
     	
         mNeedScreenRedraw = true;
@@ -322,9 +324,12 @@ public class Graphics {
         mV.mViewY += oldCenterY - newCenterY;
         mNeedScreenRedraw = true;
     	*/
-        mV.mZoom = mV.mZoom / ViewSettings.ZOOM_FACTOR; // assume compiler optimizes const div into mult
-        mV.mViewX += mCanvasWidth*mV.mZoom*(0.5f*(ViewSettings.ZOOM_FACTOR - 1.0f));
-        mV.mViewY += mCanvasWidth*mV.mZoom*(0.5f*(ViewSettings.ZOOM_FACTOR - 1.0f));
+        mV.mZoom = mV.mZoom / ViewSettings.ZOOM_FACTOR;
+        	// assume compiler optimizes const div into mult
+        mV.mViewX += mCanvasWidth*mV.mZoom*
+        		(0.5f*(ViewSettings.ZOOM_FACTOR - 1.0f));
+        mV.mViewY += mCanvasWidth*mV.mZoom*
+        		(0.5f*(ViewSettings.ZOOM_FACTOR - 1.0f));
         mNeedScreenRedraw = true;
         
     }
