@@ -9,7 +9,6 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.graphics.Region;
 import android.util.Log;
 
 /**
@@ -167,7 +166,6 @@ public class Graphics {
 
         // Draw the terrain
         float maxX = mV.mViewX + (mCanvasWidth / mV.mZoom);
-        float maxY = mV.mViewY + (mCanvasHeight / mV.mZoom);
         float slotWidth = mV.mZoom;
         int firstSlot =
             boundaryCheckDrawSlot(roundDownToMultipleOfTwo(mV.mViewX));
@@ -254,8 +252,8 @@ public class Graphics {
         // draw bottom part
         final float h = t / 5;
         final float j = t / 5;
-        final float k = t / 5;
-        final float l = t / 6;
+        //final float k = t / 5;
+        //final float l = t / 6;
         final float n = t / 6;
         mTempPath.lineTo(x + n, y + d + e);
         mTempPath.lineTo(x, y + d + e + h);

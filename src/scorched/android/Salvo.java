@@ -1,21 +1,14 @@
 package scorched.android;
 
 import android.app.Activity;
-import android.content.res.Resources;
-import android.graphics.Color;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.ZoomButton;
 
 import scorched.android.Model;
-import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 
 public class Salvo extends Activity {
