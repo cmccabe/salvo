@@ -233,7 +233,7 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
                         curPlayer.getPower(),
                         myColor);
             mAngleSlider.setState(SalvoSlider.SliderState.ANGLE,mAngleAdaptor,
-                        Player.MIN_TURRET_ANGLE, Player.MAX_TURRET_ANGLE,
+                        Player.MAX_TURRET_ANGLE, Player.MIN_TURRET_ANGLE,
                         curPlayer.getAngleDeg(),
                         myColor);
 

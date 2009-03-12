@@ -69,11 +69,15 @@ public class SalvoSlider extends View {
     private Listener mListener;
 
     /** Minimum slider value */
-    public int mMin;
+    private int mMin;
 
     /** Maximum slider value. */
-    public int mMax;
+    private int mMax;
 
+    /** True if the slider's value increases left-to-right rather
+     *  than left-to-right */
+    private boolean mReversed;
+    
     /** Current slider value */
     private int mVal;
 
@@ -109,7 +113,7 @@ public class SalvoSlider extends View {
     /** Gradient paint for the bottom of buttons */
     private Paint mButtonBottomPaint;
 
-    // //// Temporaries
+    /////// Temporaries
     private Paint mTempPaint;
 
     private Rect mTempRect;
@@ -159,7 +163,7 @@ public class SalvoSlider extends View {
                 canvas.drawColor(Color.BLACK);
                 x = mLeftBound
                         + (((mRightBound - mLeftBound) * mVal) / 
-                            Math.abs(mMax - mMin));
+                            (mMax - mMin));
                 mTempRect.set(mLeftBound, 0, x, mHeight);
                 canvas.drawRect(mTempRect, mBarPaint);
                 drawEndButtons(canvas);
@@ -172,7 +176,7 @@ public class SalvoSlider extends View {
                 int totalWidth = mRightBound - mLeftBound;
                 int w = totalWidth / 6;
                 x = mLeftBound
-                        + ((totalWidth * mVal) / Math.abs(mMax - mMin));
+                        + ((totalWidth * mVal) / (mMax - mMin));
                 mTempPath.moveTo(x, 0);
                 mTempPath.lineTo(x - w, mHeight);
                 mTempPath.lineTo(x + w, mHeight);
@@ -187,17 +191,16 @@ public class SalvoSlider extends View {
             }
         }
     }
-
-    private static final String DISP = "HI THERE ALL I AM DRAWING TEXT";
     
     private void drawSliderText(Canvas canvas) {
-    	String str = "" + mVal;
+    	String str;
+        if (mReversed) {
+            str = "" + (mMax - mVal);
+        }
+        else {
+            str = "" + mVal;
+        }
         canvas.drawText(str, mWidth / 2, (mHeight * 4) / 5, mFontPaint);
-//        mTempPath.moveTo(0, 0);
-//        mTempPath.lineTo(200,0);
-//        Log.w(TAG, "drawing text on screen: \"" + DISP + "\"");
-//        canvas.drawTextOnPath(DISP, mTempPath, 0, 30, mTempPaint); //mLeftBound, 0, mTempPaint);
-//        mTempPath.reset();
     }
 
     private void adjustTypefaceToFit(Paint p, int height, Typeface tf) {
@@ -254,8 +257,9 @@ public class SalvoSlider extends View {
              * MotionEvent.ACTION_DOWN) || (action == MotionEvent.ACTION_MOVE)
              * || (action == MotionEvent.ACTION_UP)) { int newVal = me.getX(); }
              */
-            return true;
         }
+        invalidate();
+        return true;
     }
 
     /**
@@ -272,9 +276,18 @@ public class SalvoSlider extends View {
 
             // user input stuff
             assert (mListener != null);
-            mMin = min;
-            mMax = max;
-            mVal = val;
+            if (min < max) {
+                mMin = min;
+                mMax = max;
+            	mReversed = false;
+            	mVal = val;
+            }
+            else {
+                mMin = max;
+                mMax = min;
+                mReversed = true;
+                mVal = mMax - val;
+            }
 
             // configuration
             mColor = color;
