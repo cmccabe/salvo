@@ -108,22 +108,32 @@ public class Graphics {
 
     /** Give the onscreen coordinate corresponding to x */
     public float gameXtoOnscreenX(float x) {
-        return (x - mV.mViewX) / mV.mZoom;
+        return (x - mV.mViewX) * mV.mZoom;
     }
 
     /** Give the onscreen coordinate corresponding to y */
     public float gameYtoOnscreenY(float y) {
-        return mCanvasHeight - ((y - mV.mViewY) / mV.mZoom);
+        return mCanvasHeight - ((y - mV.mViewY) * mV.mZoom);
     }
 
     /** Give the game coordinate corresponding to an onscreen x */
     public float onscreenXtoGameX(float x, ViewSettings v) {
-        return (v.mZoom * x) + v.mViewX;
+        return (x / v.mZoom) + v.mViewX;
     }
 
     /** Give the game coordinate corresponding to an onscreen y */
     public float onscreenYtoGameY(float y, ViewSettings v) {
-        return (v.mZoom * y) + v.mViewY;
+        return (y / v.mZoom) + v.mViewY;
+    }
+
+    /** Get the X game coordinate of the ccenter of the viewport */
+    private float getGameCenterX() {
+        return mV.mViewX + (mCanvasWidth / (2 * mV.mZoom));
+    }
+
+    /** Get the Y game coordinate of the ccenter of the viewport */
+    private float getGameCenterY() {
+        return mV.mViewY + (mCanvasHeight / (2 * mV.mZoom));
     }
 
     public ViewSettings getViewSettings() {
@@ -156,9 +166,9 @@ public class Graphics {
         canvas.drawRect(mScratchRect, mClear);
 
         // Draw the terrain
-        float maxX = mV.mViewX + (mCanvasWidth * mV.mZoom);
-        float maxY = mV.mViewY + (mCanvasHeight * mV.mZoom);
-        float slotWidth = 1.0f / mV.mZoom;
+        float maxX = mV.mViewX + (mCanvasWidth / mV.mZoom);
+        float maxY = mV.mViewY + (mCanvasHeight / mV.mZoom);
+        float slotWidth = mV.mZoom;
         int firstSlot =
             boundaryCheckDrawSlot(roundDownToMultipleOfTwo(mV.mViewX));
         int lastSlot =
@@ -201,9 +211,9 @@ public class Graphics {
                             float tx,
                             float ty)
     {
-        final float ps = Model.PLAYER_SIZE / mV.mZoom;
-        final float tl = Model.TURRET_LENGTH / mV.mZoom;
-        final float t = Model.PLAYER_SIZE / mV.mZoom;
+        final float ps = Model.PLAYER_SIZE * mV.mZoom;
+        final float tl = Model.TURRET_LENGTH * mV.mZoom;
+        final float t = Model.PLAYER_SIZE * mV.mZoom;
         float centerX = tx;
         float centerY = ty - (ps/2);
 
@@ -290,45 +300,27 @@ public class Graphics {
     }
 
     public void zoomOut() {
-        /* unoptimized calculation:
-        float oldCenterX = mV.mViewX + mCanvasWidth*mV.mZoom*0.5f;
-        float oldCenterY = mV.mViewY + mCanvasHeight*mV.mZoom*0.5f;
-        mV.mZoom = mV.mZoom * ViewSettings.ZOOM_FACTOR;
-        float newCenterX = mV.mViewX + mCanvasWidth*mV.mZoom*0.5f;
-        float newCenterY = mV.mViewY + mCanvasHeight*mV.mZoom*0.5f;
+        float oldCenterX = getGameCenterX();
+        float oldCenterY = getGameCenterY();
+        mV.mZoom = mV.mZoom / ViewSettings.ZOOM_FACTOR;
+        float newCenterX = getGameCenterX();
+        float newCenterY = getGameCenterY();
         mV.mViewX += oldCenterX - newCenterX;
         mV.mViewY += oldCenterY - newCenterY;
-        */
-
-        // assume compiler combines final mults
-        mV.mViewX -= mCanvasWidth*mV.mZoom*
-                (0.5f*(ViewSettings.ZOOM_FACTOR - 1.0f));
-        mV.mViewY -= mCanvasWidth*mV.mZoom*
-                (0.5f*(ViewSettings.ZOOM_FACTOR - 1.0f));
-        mV.mZoom = mV.mZoom * ViewSettings.ZOOM_FACTOR;
 
         mNeedScreenRedraw = true;
     }
 
     public void zoomIn() {
-        /* unoptimized calculation:
-        float oldCenterX = mV.mViewX + mCanvasWidth*mV.mZoom*0.5f;
-        float oldCenterY = mV.mViewY + mCanvasHeight*mV.mZoom*0.5f;
-        mV.mZoom = mV.mZoom / ViewSettings.ZOOM_FACTOR;
-        float newCenterX = mV.mViewX + mCanvasWidth*mV.mZoom*0.5f;
-        float newCenterY = mV.mViewY + mCanvasHeight*mV.mZoom*0.5f;
+        float oldCenterX = getGameCenterX();
+        float oldCenterY = getGameCenterY();
+        mV.mZoom = mV.mZoom * ViewSettings.ZOOM_FACTOR;
+        float newCenterX = getGameCenterX();
+        float newCenterY = getGameCenterY();
         mV.mViewX += oldCenterX - newCenterX;
         mV.mViewY += oldCenterY - newCenterY;
-        mNeedScreenRedraw = true;
-        */
-        mV.mZoom = mV.mZoom / ViewSettings.ZOOM_FACTOR;
-            // assume compiler optimizes const div into mult
-        mV.mViewX += mCanvasWidth*mV.mZoom*
-                (0.5f*(ViewSettings.ZOOM_FACTOR - 1.0f));
-        mV.mViewY += mCanvasWidth*mV.mZoom*
-                (0.5f*(ViewSettings.ZOOM_FACTOR - 1.0f));
-        mNeedScreenRedraw = true;
 
+        mNeedScreenRedraw = true;
     }
 
     public void viewLeft() {
@@ -396,6 +388,6 @@ public class Graphics {
         mNeedScreenRedraw = false;
 
         // Set viewX, viewY, zoom
-        mV = new ViewSettings(4, 0.5f, 0.060f);
+        mV = new ViewSettings(4, 0.5f, 15f);
     }
 }
