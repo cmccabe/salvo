@@ -5,7 +5,7 @@ import java.util.Stack;
 
 import android.util.Log;
 
-public class Weapon 
+public class Weapon
 {
     /*================= Constants =================*/
     final private String TAG = "Weapon";
@@ -13,8 +13,8 @@ public class Weapon
     /** The maximum number of times we will recalculate trajectory before giving up
      * and triggering the explosion. */
     final private int MAX_NUM_SAMPLES = 10000;
-    
-    /** The minimum distance squared (in slots) we will accept between two points on 
+
+    /** The minimum distance squared (in slots) we will accept between two points on
      * our trajectory before we accept the need to keep draw both points */
     final private float MIN_UPDATE_DIST_SQUARED = (float)0.1;
 
@@ -58,7 +58,7 @@ public class Weapon
     int mCurNumSamples;
 
     boolean mNeedsRedraw;
-    
+
     /*================= Access =================*/
     public Iterator<Point> getPoints() {
         Iterator<Point> iter = mPoints.iterator();
@@ -76,9 +76,9 @@ public class Weapon
     }
 
     public boolean getNeedsRedraw() {
-    	return mNeedsRedraw;
+        return mNeedsRedraw;
     }
-    
+
     /*================= Operations =================*/
     /** Move the projectile forward. */
     public void nextSample() {
@@ -106,7 +106,7 @@ public class Weapon
             mNeedsRedraw = true;
         }
         Log.w(TAG, "nextSample(): old:" + old.toStr() +
-                    ", cur:" + cur.toStr() + ",nextX=" + nextX + ",nextY=" + nextY); 
+                    ", cur:" + cur.toStr() + ",nextX=" + nextX + ",nextY=" + nextY);
     }
 
     /** If the projectile collided with the terrain, return the point

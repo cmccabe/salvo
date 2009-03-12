@@ -6,10 +6,9 @@ public class Player {
 
     public static final int MIN_POWER = 50;
     public static final int MAX_POWER = 1000;
-    
-    private static final float MIN_TURRET_ANGLE = 0;
-    private static final float MAX_TURRET_ANGLE = 3.1415926535f;
-    private static final float ANGLE_STEP = 0.031415926535f;
+
+    public static final int MIN_TURRET_ANGLE = 0;
+    public static final int MAX_TURRET_ANGLE = 180;
 
     /*================= Members =================*/
     private int mId;
@@ -23,20 +22,24 @@ public class Player {
     /** Current y-position of the bottom of the tank. */
     private float mY;
 
-    /** Current turret angle, in radians. Turret angles are represented 
+    /** Current turret angle, in degrees. Turret angles are represented
      * like this:
-     *           pi/2
-     *     3pi/4  |   pi/4
+     *            90
+     *       135  |   45
      *         \  |  /
      *          \ | /
-     *    pi =========== 0
+     *   180 =========== 0
      */
-    private float mAngle;
+    private int mAngleDeg;
 
-    /** The power that we're firing with. Measured on the same 
-     * scale as life. */ 
+    /** Current turret angle in radians. You always need the angle in radians
+     * for doing math */
+    private float mAngleRad;
+
+    /** The power that we're firing with. Measured on the same
+     * scale as life. */
     private int mPower;
-    
+
     /*================= Static =================*/
 
     /*================= Access =================*/
@@ -54,11 +57,15 @@ public class Player {
         return mY;
     }
 
-    public float getAngle() {
-        return mAngle;
+    public int getAngleDeg() {
+        return mAngleDeg;
     }
 
-    public float getPower() {
+    public float getAngleRad() {
+        return mAngleRad;
+    }
+
+    public int getPower() {
         return mPower;
     }
 
@@ -75,26 +82,26 @@ public class Player {
         // have selected.
         // It might be even better to cache the Weapon instance in Player
         // to avoid making another allocation.
-        float dx = (float)Math.cos(mAngle);
+        float dx = (float)Math.cos(mAngleRad);
         dx = (dx * mPower) / 10000.0f;
-        float dy = (float)Math.sin(mAngle);
+        float dy = (float)Math.sin(mAngleRad);
         dy = (dy * mPower) / 10000.0f;
         return new Weapon(getTurretX(), getTurretY(), dx, dy);
     }
-    
-    /** Return a float representing the X position of the end of the 
+
+    /** Return a float representing the X position of the end of the
      *  gun turret */
     private float getTurretX() {
-    	return (float)mX + 
-    		((float)Math.cos(mAngle) * Model.TURRET_LENGTH);
+        return (float)mX +
+            ((float)Math.cos(mAngleRad) * Model.TURRET_LENGTH);
     }
 
-    /** Return a float representing the Y position of the end of the 
+    /** Return a float representing the Y position of the end of the
      *  gun turret */
     private float getTurretY() {
-    	return (float)mY + 
-    		((float)Model.PLAYER_SIZE / 2f) +
-    		((float)Math.sin(mAngle) * Model.TURRET_LENGTH);
+        return (float)mY +
+            ((float)Model.PLAYER_SIZE / 2f) +
+            ((float)Math.sin(mAngleRad) * Model.TURRET_LENGTH);
     }
 
     /*================= Operations =================*/
@@ -103,7 +110,7 @@ public class Player {
         assert(x >= 1);
         assert(x < (Model.MAX_X - 1));
     }
-    
+
     public void calcY(Model model) {
         float h[] = model.getHeights();
         mY = h[mX];
@@ -116,27 +123,25 @@ public class Player {
 
     /** set turret angle.
      *  'val' is scaled to 0...1000 and must be normalized */
-    public void setAngle(int val) {
-        float angle = 1000 - val;
-        angle *= MAX_TURRET_ANGLE;
-        angle /= 1000f;
-        mAngle = angle;
+    public void setAngleDeg(int angleDeg) {
+        if (angleDeg > MAX_TURRET_ANGLE) {
+            angleDeg = MAX_TURRET_ANGLE;
+        }
+        if (angleDeg < MIN_TURRET_ANGLE) {
+            angleDeg = MIN_TURRET_ANGLE;
+        }
+        mAngleDeg = angleDeg;
+        mAngleRad = (float)Math.toRadians(angleDeg);
     }
 
     /** Move turret left by one degree */
     public void turretLeft() {
-        mAngle += ANGLE_STEP;
-        if (mAngle > MAX_TURRET_ANGLE) {
-            mAngle = MAX_TURRET_ANGLE;
-        }
+        setAngleDeg(mAngleDeg + 1);
     }
 
     /** Move turret right by one degree */
     public void turretRight() {
-        mAngle -= ANGLE_STEP;
-        if (mAngle < MIN_TURRET_ANGLE) {
-            mAngle = MIN_TURRET_ANGLE;
-        }
+        setAngleDeg(mAngleDeg - 1);
     }
 
     public void powerUp() {
@@ -157,7 +162,7 @@ public class Player {
     public Player(int id) {
         mId = id;
         mLife = MAX_LIFE;
-        mAngle = MAX_TURRET_ANGLE / 4;
-        mPower = MAX_POWER / 2;
+        setAngleDeg(MAX_TURRET_ANGLE / 4);
+        mPower = (3 * MAX_POWER) / 4;
     }
 }

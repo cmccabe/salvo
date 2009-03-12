@@ -1,13 +1,14 @@
 package scorched.android;
 
+import java.util.HashMap;
 import java.util.Random;
 
 import android.os.Bundle;
 
 /**
  * Model for the Scorched Android game.
- * 
- * The Model owns all game state-- except for state relating 
+ *
+ * The Model owns all game state-- except for state relating
  * to the user interface.
  *
  *                 The Playing Field
@@ -41,7 +42,7 @@ public class Model {
 
     /** The highest terrain point */
     public static final float MAX_ELEVATION = 20;
-    
+
     /** Player size */
     public static final int PLAYER_SIZE = 1;
 
@@ -60,18 +61,21 @@ public class Model {
         HILLY,
         ROLLING,
     };
-        
+
     /*================= Data =================*/
     /** A source of random numbers TODO: seed with current time */
-    public static Random mRandom = new Random();
+    public Random mRandom = new Random();
 
     /** The height field determines what the playing field looks like. */
     private float mHeights[] = null;
 
     /** The players */
-    private static Player mPlayers[] = null;
+    private Player mPlayers[] = null;
 
     private int mCurPlayerId;
+
+    /** Maps slots to players */
+    private HashMap<Integer, Player> mSlotToPlayer;
 
     /*================= Access =================*/
     public float[] getHeights() {
@@ -111,6 +115,11 @@ public class Model {
             else
                 player++;
         }
+    }
+
+    /** Returns the player in this slot, or null if there is nobody there. */
+    public Player slotToPlayer(int slot) {
+        return mSlotToPlayer.get(slot);
     }
 
     /*================= Height field stuff =================*/
@@ -163,7 +172,7 @@ public class Model {
 
     private float[] movingWindow(float[] input, int windowSize) {
         float[] h = new float[MAX_X];
-        
+
         for (int i = 0; i < MAX_X; i++) {
             float acc = 0;
             for (int j = 0; j < windowSize; ++j) {
@@ -196,7 +205,7 @@ public class Model {
         // We have to have enough slots to be sure that no two
         // players will get the same slot
         if (players.length >= MAX_X) {
-            assert(false); 
+            assert(false);
         }
 
         // We must have MAX_X mod 2 == 0
@@ -206,11 +215,16 @@ public class Model {
         initHeights(TerrainType.HILLY);
         mPlayers = players;
         for (int i = 0; i < mPlayers.length; i++) {
-        	int id = mPlayers[i].getId();
-        	assert (id == i);
+            int id = mPlayers[i].getId();
+            assert (id == i);
             mPlayers[i].setX(playerIdToSlot(id));
             mPlayers[i].calcY(this);
         }
         mCurPlayerId = 0;
+
+        mSlotToPlayer = new HashMap<Integer, Player>();
+        for (int i = 0; i < mPlayers.length; i++) {
+            mSlotToPlayer.put(mPlayers[i].getX(), mPlayers[i]);
+        }
     }
 }

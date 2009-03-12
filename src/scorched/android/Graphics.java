@@ -20,12 +20,12 @@ import android.util.Log;
 public class Graphics {
     /*================= Constants =================*/
     private final String TAG = "Graphics";
-        
+
     /*================= Types =================*/
     static public class ViewSettings implements Cloneable {
-    	/** The zoom factor (axes are each multiplied by this when we zoom in) */
-    	public static final float ZOOM_FACTOR = 1.125f;
-    	
+        /** The zoom factor (axes are each multiplied by this when we zoom in) */
+        public static final float ZOOM_FACTOR = 2f;
+
         /*================= Members =================*/
         /** The X-offset of the view window */
         public float mViewX;
@@ -54,15 +54,20 @@ public class Graphics {
     /** Current height of the surface/canvas. */
     private int mCanvasHeight = 0;
 
-    /** Current width of the surface/canvas. */ 
+    /** Current width of the surface/canvas. */
     private int mCanvasWidth = 0;
 
     /** Paint to draw the lines on screen. */
     private Paint mClear, mTerrainPaint;
 
-    /** Paint to draw the players */
-    private Paint mPlayerThinPaint[] = null;
-    private Paint mPlayerThickPaint[] = null;
+    /** Player colors */
+    int mPlayerColors[];
+
+    /** Thin paint to draw the players */
+    private Paint mPlayerThinPaint[];
+
+    /** Thick paint to draw the players */
+    private Paint mPlayerThickPaint[];
 
     private Path mTempPath;
 
@@ -72,7 +77,7 @@ public class Graphics {
     private Model mModel;
 
     private Context mContext;
-    
+
     private ViewSettings mV;
 
     /*================= Static =================*/
@@ -92,40 +97,43 @@ public class Graphics {
     }
 
     /*================= Access =================*/
-    private int[] getPlayerColors() {
-        String playerColorStr[] = mContext.getResources().
-                    getStringArray(R.array.player_colors);
-        int playerColors[] = new int[playerColorStr.length];
-        for (int i = 0; i < playerColorStr.length; ++i) {
-            Log.w(TAG, "trying to parse color " + playerColorStr[i]);
-            playerColors[i] = Color.parseColor(playerColorStr[i]);
-        }
-        return playerColors;
+    public int getPlayerColor(int playerId) {
+        return mPlayerColors[playerId];
     }
 
 
     public boolean needScreenUpdate() {
         return mNeedScreenRedraw;
     }
-    
+
     /** Give the onscreen coordinate corresponding to x */
     public float gameXtoOnscreenX(float x) {
-        return (x - mV.mViewX) / mV.mZoom;
+        return (x - mV.mViewX) * mV.mZoom;
     }
 
     /** Give the onscreen coordinate corresponding to y */
     public float gameYtoOnscreenY(float y) {
-        return mCanvasHeight - ((y - mV.mViewY) / mV.mZoom);
+        return mCanvasHeight - ((y - mV.mViewY) * mV.mZoom);
     }
 
     /** Give the game coordinate corresponding to an onscreen x */
     public float onscreenXtoGameX(float x, ViewSettings v) {
-        return (v.mZoom * x) + v.mViewX;
+        return (x / v.mZoom) + v.mViewX;
     }
 
     /** Give the game coordinate corresponding to an onscreen y */
     public float onscreenYtoGameY(float y, ViewSettings v) {
-        return (v.mZoom * y) + v.mViewY;
+        return (y / v.mZoom) + v.mViewY;
+    }
+
+    /** Get the X game coordinate of the ccenter of the viewport */
+    private float getGameCenterX() {
+        return mV.mViewX + (mCanvasWidth / (2 * mV.mZoom));
+    }
+
+    /** Get the Y game coordinate of the ccenter of the viewport */
+    private float getGameCenterY() {
+        return mV.mViewY + (mCanvasHeight / (2 * mV.mZoom));
     }
 
     public ViewSettings getViewSettings() {
@@ -134,8 +142,8 @@ public class Graphics {
 
     /*================= Operations =================*/
     public void scrollBy(float x, float y) {
-    	mNeedScreenRedraw = true;
-    	mV.mViewX += x;
+        mNeedScreenRedraw = true;
+        mV.mViewX += x;
         mV.mViewY += y;
     }
 
@@ -152,26 +160,20 @@ public class Graphics {
     /** Draws the playing field */
     public void drawScreen(Canvas canvas) {
         mNeedScreenRedraw = false;
-        
+
         // Clear canvas
         mScratchRect.set(0, 0, mCanvasWidth, mCanvasHeight);
         canvas.drawRect(mScratchRect, mClear);
 
         // Draw the terrain
-        float maxX = mV.mViewX + (mCanvasWidth * mV.mZoom);
-        float maxY = mV.mViewY + (mCanvasHeight * mV.mZoom);
-        float slotWidth = 1.0f / mV.mZoom;
+        float maxX = mV.mViewX + (mCanvasWidth / mV.mZoom);
+        float maxY = mV.mViewY + (mCanvasHeight / mV.mZoom);
+        float slotWidth = mV.mZoom;
         int firstSlot =
             boundaryCheckDrawSlot(roundDownToMultipleOfTwo(mV.mViewX));
-        int lastSlot = 
+        int lastSlot =
             boundaryCheckDrawSlot(roundDownToMultipleOfTwo(maxX) + 2);
-
         float x = gameXtoOnscreenX(firstSlot);
-        //Log.w(TAG, "canvasWidth=" + mCanvasWidth + 
-    	//		",firstSlot=" + firstSlot + 
-    	//		",lastSlot=" + lastSlot +
-    	//		",slotWidth=" + slotWidth +
-    	//		",x="+x);
         float h[] = mModel.getHeights();
         for (int i = firstSlot; i < lastSlot; i += 2) {
             mTempPath.moveTo(x, gameYtoOnscreenY(h[i]));
@@ -181,43 +183,46 @@ public class Graphics {
             mTempPath.lineTo(x, mCanvasHeight);
             canvas.drawPath(mTempPath, mTerrainPaint);
             mTempPath.rewind();
+
+            Player p1 = mModel.slotToPlayer(i);
+            if (p1 != null) {
+                drawPlayer(canvas, p1);
+            }
+            Player p2 = mModel.slotToPlayer(i+1);
+            if (p2 != null ) {
+                drawPlayer(canvas, p2);
+            }
             x += (slotWidth + slotWidth);
-        }
-        		
-        // Draw the players
-        for (int i = 0; i < mModel.getNumberOfPlayers(); i++) {
-            Player p = mModel.getPlayer(i);
-            drawPlayer(canvas, p);
         }
     }
 
     private void drawPlayer(Canvas canvas, Player p) {
         drawPlayerImpl(canvas,
                 mPlayerThinPaint[p.getId()], mPlayerThickPaint[p.getId()],
-                p.getAngle(),
+                p.getAngleRad(),
                 gameXtoOnscreenX(p.getX()),
                 gameYtoOnscreenY(p.getY()));
     }
 
     /** Draws a single player */
-    private void drawPlayerImpl(Canvas canvas, 
-                            Paint thinPaint, Paint thickPaint, 
+    private void drawPlayerImpl(Canvas canvas,
+                            Paint thinPaint, Paint thickPaint,
                             float turretAngle,
                             float tx,
-                            float ty) 
+                            float ty)
     {
-        final float ps = Model.PLAYER_SIZE / mV.mZoom;
-        final float tl = Model.TURRET_LENGTH / mV.mZoom;
-        final float t = Model.PLAYER_SIZE / mV.mZoom;
+        final float ps = Model.PLAYER_SIZE * mV.mZoom;
+        final float tl = Model.TURRET_LENGTH * mV.mZoom;
+        final float t = Model.PLAYER_SIZE * mV.mZoom;
         float centerX = tx;
         float centerY = ty - (ps/2);
 
         // draw turret
-        canvas.drawLine(centerX, centerY, 
+        canvas.drawLine(centerX, centerY,
                 centerX + (tl * (float)Math.cos(turretAngle)),
                 centerY - (tl * (float)Math.sin(turretAngle)),
                 thickPaint);
-        
+
 /*        // draw dome
         Rect oldClip = canvas.getClipBounds();
         canvas.clipRect(centerX - (ps/2),
@@ -231,7 +236,7 @@ public class Graphics {
         mScratchRect.bottom = centerY + (ps/2) + ps;
         canvas.drawOval(mScratchRect, thinPaint);
         canvas.clipRect(oldClip);*/
-                
+
         // draw top part
         float x = tx - (ps / 2);
         float y = ty - ps;
@@ -261,12 +266,12 @@ public class Graphics {
         mTempPath.lineTo(x + t, y + d + e + h);
         mTempPath.lineTo(x + t - (n), y + d + e);
         // mTempPath.lineTo(x + n, y + d + e);
-        
+
         // finish top part
         mTempPath.lineTo(x + a, y + d + e);
         mTempPath.lineTo(x + a, y + d);
 
-        
+
         canvas.drawPath(mTempPath, thinPaint);
         mTempPath.rewind();
         canvas.drawCircle(x+n, y+d+e+h+j, a, thinPaint);
@@ -295,40 +300,27 @@ public class Graphics {
     }
 
     public void zoomOut() {
-    	/* unoptimized calculation:
-        float oldCenterX = mV.mViewX + mCanvasWidth*mV.mZoom*0.5f;
-        float oldCenterY = mV.mViewY + mCanvasHeight*mV.mZoom*0.5f;
-        mV.mZoom = mV.mZoom * ViewSettings.ZOOM_FACTOR;
-        float newCenterX = mV.mViewX + mCanvasWidth*mV.mZoom*0.5f;
-        float newCenterY = mV.mViewY + mCanvasHeight*mV.mZoom*0.5f;
+        float oldCenterX = getGameCenterX();
+        float oldCenterY = getGameCenterY();
+        mV.mZoom = mV.mZoom / ViewSettings.ZOOM_FACTOR;
+        float newCenterX = getGameCenterX();
+        float newCenterY = getGameCenterY();
         mV.mViewX += oldCenterX - newCenterX;
         mV.mViewY += oldCenterY - newCenterY;
-        */
-    	
-    	// assume compiler combines final mults
-        mV.mViewX -= mCanvasWidth*mV.mZoom*(0.5f*(ViewSettings.ZOOM_FACTOR - 1.0f));
-        mV.mViewY -= mCanvasWidth*mV.mZoom*(0.5f*(ViewSettings.ZOOM_FACTOR - 1.0f));
-        mV.mZoom = mV.mZoom * ViewSettings.ZOOM_FACTOR;
-    	
+
         mNeedScreenRedraw = true;
     }
 
     public void zoomIn() {
-    	/* unoptimized calculation:
-        float oldCenterX = mV.mViewX + mCanvasWidth*mV.mZoom*0.5f;
-        float oldCenterY = mV.mViewY + mCanvasHeight*mV.mZoom*0.5f;
-        mV.mZoom = mV.mZoom / ViewSettings.ZOOM_FACTOR;
-        float newCenterX = mV.mViewX + mCanvasWidth*mV.mZoom*0.5f;
-        float newCenterY = mV.mViewY + mCanvasHeight*mV.mZoom*0.5f;
+        float oldCenterX = getGameCenterX();
+        float oldCenterY = getGameCenterY();
+        mV.mZoom = mV.mZoom * ViewSettings.ZOOM_FACTOR;
+        float newCenterX = getGameCenterX();
+        float newCenterY = getGameCenterY();
         mV.mViewX += oldCenterX - newCenterX;
         mV.mViewY += oldCenterY - newCenterY;
+
         mNeedScreenRedraw = true;
-    	*/
-        mV.mZoom = mV.mZoom / ViewSettings.ZOOM_FACTOR; // assume compiler optimizes const div into mult
-        mV.mViewX += mCanvasWidth*mV.mZoom*(0.5f*(ViewSettings.ZOOM_FACTOR - 1.0f));
-        mV.mViewY += mCanvasWidth*mV.mZoom*(0.5f*(ViewSettings.ZOOM_FACTOR - 1.0f));
-        mNeedScreenRedraw = true;
-        
     }
 
     public void viewLeft() {
@@ -355,7 +347,7 @@ public class Graphics {
     public Graphics(Context context, Model model) {
         mContext = context;
         mModel = model;
-        
+
         // Load Paints
         mClear = new Paint();
         mClear.setAntiAlias(false);
@@ -365,18 +357,26 @@ public class Graphics {
         mTerrainPaint.setAntiAlias(false);
         mTerrainPaint.setARGB(255, 0, 255, 0);
 
-        int playerColors[] = getPlayerColors();
-        mPlayerThinPaint = new Paint[playerColors.length];
-        mPlayerThickPaint = new Paint[playerColors.length];
-        for (int i = 0; i < playerColors.length; ++i) {
+        // get player colors
+        String playerColorStr[] = mContext.getResources().
+                    getStringArray(R.array.player_colors);
+        mPlayerColors = new int[playerColorStr.length];
+        for (int i = 0; i < playerColorStr.length; ++i) {
+            mPlayerColors[i] = Color.parseColor(playerColorStr[i]);
+        }
+
+        // calculate player paints
+        mPlayerThinPaint = new Paint[mPlayerColors.length];
+        mPlayerThickPaint = new Paint[mPlayerColors.length];
+        for (int i = 0; i < mPlayerColors.length; ++i) {
             Paint pthin = new Paint();
             pthin.setAntiAlias(true);
-            pthin.setColor(playerColors[i]);
+            pthin.setColor(mPlayerColors[i]);
             mPlayerThinPaint[i] = pthin;
 
             Paint pthick = new Paint();
             pthick.setAntiAlias(true);
-            pthick.setColor(playerColors[i]);
+            pthick.setColor(mPlayerColors[i]);
             pthick.setStrokeWidth(3);
             mPlayerThickPaint[i] = pthick;
         }
@@ -388,6 +388,6 @@ public class Graphics {
         mNeedScreenRedraw = false;
 
         // Set viewX, viewY, zoom
-        mV = new ViewSettings(4, 0.5f, 0.060f);
+        mV = new ViewSettings(4, 0.5f, 15f);
     }
 }

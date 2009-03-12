@@ -13,7 +13,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -23,7 +22,7 @@ import android.widget.TextView;
 
 /**
  * Controller for the Scorched Android game.
- * 
+ *
  * GameControlView gets input from the user, as well as events from other
  * parts of the system, and presents them to mGraphics and mModel.
  */
@@ -62,66 +61,46 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
         /** Handle to the surface manager object we interact with */
         private SurfaceHolder mSurfaceHolder;
 
+        /** Handle to the application context;
+         *  used to (for example) fetch Drawables. */
+        private Context mContext;
+
         /** Message handler used by thread to interact with TextView */
         private Handler mHandler;
 
-        /** Handle to the application context
-         *  used to e.g. fetch Drawables. */
-        private Context mContext;
-
         /** The zoom, pan settings that were in effect when the user started
-         * pressing on the screen */ 
+         * pressing on the screen */
         private Graphics.ViewSettings mTouchViewSettings;
+
+        /** The slider representing power */
+        private SalvoSlider mPowerSlider;
+
+        /** The slider representing angle */
+        private SalvoSlider mAngleSlider;
 
         /** Last X coordinate the user touched (in game coordinates) */
         private float mTouchX;
 
         /** Last Y coordinate the user touched (in game coordinates) */
         private float mTouchY;
-        
-        public ScorchedThread(Graphics graphics,
-                            SurfaceHolder surfaceHolder, 
-                            Context context,
-                            Handler handler) {
-            mGraphics = graphics;
-            // get handles to some important objects
-            mSurfaceHolder = surfaceHolder;
-            mHandler = handler;
-            mContext = context;
 
+        public ScorchedThread(Graphics graphics,
+                            SurfaceHolder surfaceHolder,
+                            Context context,
+                            Handler handler,
+                            SalvoSlider powerSlider,
+                            SalvoSlider angleSlider) {
             mGameState = GameState.PLAYER_MOVE;
+            mGraphics = graphics;
+            mSurfaceHolder = surfaceHolder;
+            mContext = context;
+            mHandler = handler;
             mTouchViewSettings = null;
+            mPowerSlider = powerSlider;
+            mAngleSlider = angleSlider;
         }
 
         /*================= Operations =================*/
-        /**
-         * Starts the game, setting parameters for the current difficulty.
-         */
-        public void doStart() {
-            synchronized (mSurfaceHolder) {
-                mPaused = false;
-            }
-        }
-
-        /**
-         * Pauses the physics update and animation.
-         */
-        public void pause() {
-            synchronized (mSurfaceHolder) {
-                mPaused = true;
-            }
-        }
-
-        /**
-         * Resumes from a pause.
-         */
-        public void unpause() {
-            // Move the real time clock up to now
-            synchronized (mSurfaceHolder) {
-                mPaused = false;
-            }
-        }
-
         /** Shut down the thread */
         public void suicide() {
             mGameState = GameState.QUIT;
@@ -132,10 +111,8 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
 
         /* Callback invoked when the surface dimensions change. */
         public void setSurfaceSize(int width, int height) {
-            synchronized (mSurfaceHolder) {
-                mGraphics.setSurfaceSize(width, height);
-            }
             synchronized (mUserInputSem) {
+                mGraphics.setSurfaceSize(width, height);
                 mUserInputSem.notify();
             }
         }
@@ -161,7 +138,7 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
             Log.w(TAG, "run(): surface has been created.");
 
             // main loop
-            try 
+            try
             {
                 mGameState = GameState.PLAYER_MOVE;
                 while (true) {
@@ -170,10 +147,10 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
                             // Should not get here
                             throw new RuntimeException(
                                 "Got mGameState = IDLE in main loop");
-    
+
                         case PLAYER_MOVE: {
-                            // The player is moving around his 
-                            // turret, etc. 
+                            // The player is moving around his
+                            // turret, etc.
                             Player curPlayer = mModel.getCurPlayer();
                             if (curPlayer.isHuman()) {
                                 mGameState = runHumanMove(curPlayer);
@@ -183,30 +160,21 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
                             }
                         }
                         break;
-    
+
                         case BALLISTICS: {
                             // The projectile is moving through the sky
                             Player curPlayer = mModel.getCurPlayer();
                             mGameState = runBallistics(curPlayer);
                         }
                         break;
-    
+
                         case EXPLOSION: {
-                            Log.w(TAG, "entering EXPLOSION state");
-                            // The projectile is exploding onscreen
-                            Canvas canvas = mSurfaceHolder.lockCanvas(null);
-                            Paint p = new Paint();
-                            p.setAntiAlias(false);
-                            p.setARGB(128, 255, 0, 255);
-                            Rect rect = new Rect();
-                            rect.set(0, 0, 200, 200);
-                            canvas.drawRect(rect, p);
-                            //mGameState = runExplosion();
-                            mSurfaceHolder.unlockCanvasAndPost(canvas);
-                            Thread.sleep(10000);
+                            // The projectile is exploding
+                            Player curPlayer = mModel.getCurPlayer();
+                            mGameState = runExplosion(curPlayer);
                         }
                         break;
-    
+
                         case QUIT:
                             // The user has requested QUIT
                             return;
@@ -221,16 +189,26 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
         }
 
         /** Implements a human move */
-        private GameState runHumanMove(Player curPlayer) 
+        private GameState runHumanMove(Player curPlayer)
             throws InterruptedException
         {
             synchronized (mUserInputSem) {
                 mNextGameState = GameState.PLAYER_MOVE;
             }
 
+            int myColor = mGraphics.getPlayerColor(curPlayer.getId());
+            mPowerSlider.setState(SalvoSlider.SliderState.BAR, mPowerAdaptor,
+                        Player.MIN_POWER, Player.MAX_POWER,
+                        curPlayer.getPower(),
+                        myColor);
+            mAngleSlider.setState(SalvoSlider.SliderState.ANGLE,mAngleAdaptor,
+                        Player.MAX_TURRET_ANGLE, Player.MIN_TURRET_ANGLE,
+                        curPlayer.getAngleDeg(),
+                        myColor);
+
             while (true) {
-                runScreenRefresh(curPlayer, null);
                 synchronized (mUserInputSem) {
+                    runScreenRefresh(curPlayer, null);
                     mUserInputSem.wait();
                     if (mNextGameState != GameState.PLAYER_MOVE) {
                         return mNextGameState;
@@ -266,6 +244,31 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
             }
         }
 
+        private GameState runExplosion(Player curPlayer)
+            throws InterruptedException
+        {
+            synchronized (mUserInputSem) {
+                mNextGameState = GameState.EXPLOSION;
+            }
+            mPowerSlider.setState(SalvoSlider.SliderState.DISABLED,
+                                    mPowerAdaptor, 0, 0, 0, 0);
+            mAngleSlider.setState(SalvoSlider.SliderState.DISABLED,
+                                    mAngleAdaptor, 0, 0, 0, 0);
+
+            Log.w(TAG, "entering EXPLOSION state");
+            // The projectile is exploding onscreen
+            Canvas canvas = mSurfaceHolder.lockCanvas(null);
+            Paint p = new Paint();
+            p.setAntiAlias(false);
+            p.setARGB(128, 255, 0, 255);
+            Rect rect = new Rect();
+            rect.set(0, 0, 200, 200);
+            canvas.drawRect(rect, p);
+            mSurfaceHolder.unlockCanvasAndPost(canvas);
+            Thread.sleep(10000);
+            return GameState.PLAYER_MOVE;
+        }
+
         private void runScreenRefresh(Player player, Weapon weapon)
         {
             // redraw canvas if necessary
@@ -291,7 +294,7 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
         /**
          * Dump game state to the provided Bundle. Typically called when the
          * Activity is being suspended.
-         * 
+         *
          * @return Bundle with this view's state
          */
         public Bundle saveState(Bundle map) {
@@ -305,7 +308,7 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
          * Restores game state from the indicated Bundle. Typically called
          * when the Activity is being restored after having been previously
          * destroyed.
-         * 
+         *
          * @param savedState Bundle containing the game state
          */
         public synchronized void restoreState(Bundle map) {
@@ -315,153 +318,96 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
             }
         }
 
-        /**
-         * Handles a key-down event.
-         * 
-         * @param keyCode the key that was pressed
-         * @param msg the original event object
-         * @return true
-         */
-        boolean doKeyDown(int keyCode, KeyEvent msg) {
-            if (mGameState != GameState.PLAYER_MOVE) {
-                Log.w(TAG, "doKeyDown: ignoring");
-                return false;
-            }
-
-            if (!isKnownKey(keyCode)) {
-                return false;
-            }
-
-            Log.w(TAG, "doKeyDown");
-
-            synchronized (mUserInputSem) {
-                Player p = mModel.getCurPlayer();
-                switch (keyCode) {
-                    case KeyEvent.KEYCODE_DPAD_UP:
-                        p.powerUp();
-                        break;
-                    case KeyEvent.KEYCODE_DPAD_DOWN:
-                        p.powerDown();
-                        break;
-                    case KeyEvent.KEYCODE_DPAD_LEFT:
-                        p.turretLeft();
-                        break;
-                    case KeyEvent.KEYCODE_DPAD_RIGHT:
-                        p.turretRight();
-                        break;
-                    case KeyEvent.KEYCODE_H:
-                        mGraphics.viewLeft();
-                        break;
-                    case KeyEvent.KEYCODE_I:
-                        mGraphics.zoomIn();
-                        break;
-                    case KeyEvent.KEYCODE_J:
-                        mGraphics.viewDown();
-                        break;
-                    case KeyEvent.KEYCODE_K:
-                        mGraphics.viewUp();
-                        break;
-                    case KeyEvent.KEYCODE_L:
-                        mGraphics.viewRight();
-                        break;
-                    case KeyEvent.KEYCODE_Q:
-                        // quit.
-                        mNextGameState = GameState.QUIT;
-                        break;
-                    case KeyEvent.KEYCODE_SPACE:
-                        // launch!
-                        mNextGameState = GameState.BALLISTICS; 
-                            //GameState.EXPLOSION;
-                        break;
-                    case KeyEvent.KEYCODE_U:
-                        mGraphics.zoomOut();
-                        break;
-                    default:
-                        throw new RuntimeException("can't handle keycode " +
-                                                   keyCode);
+        /** Called when the user presses the fire button.
+         *  Note: must not block in GUI thread */
+        public void onFireButton() {
+            if (mGameState == GameState.PLAYER_MOVE) {
+                synchronized (mUserInputSem) {
+                    mNextGameState = GameState.BALLISTICS;
                 }
-                mGraphics.setNeedScreenRedraw();
-                mUserInputSem.notify();
-            }
-            return true;
-        }
-
-        private boolean isKnownKey(int keyCode) {
-            switch (keyCode) {
-                case KeyEvent.KEYCODE_DPAD_DOWN:
-                case KeyEvent.KEYCODE_DPAD_LEFT:
-                case KeyEvent.KEYCODE_DPAD_RIGHT:
-                case KeyEvent.KEYCODE_DPAD_UP:
-                case KeyEvent.KEYCODE_H:
-                case KeyEvent.KEYCODE_I:
-                case KeyEvent.KEYCODE_J:
-                case KeyEvent.KEYCODE_K:
-                case KeyEvent.KEYCODE_L:
-                case KeyEvent.KEYCODE_Q:
-                case KeyEvent.KEYCODE_SPACE:
-                case KeyEvent.KEYCODE_U:
-                    return true;
-                default:
-                    return false;
             }
         }
 
-        /**
-         * Handles a key-up event.
-         * 
-         * @param keyCode the key that was released
-         * @param msg the original event object
-         * @return true if the key was handled and consumed, or else false
-         */
-        private boolean doKeyUp(int keyCode, KeyEvent msg) {
-            return false;
-        }
-        
+        /** Called when the user presses the zoom in button.
+         *  Note: must not block in GUI thread */
         public void onZoomIn() {
-        	mGraphics.zoomIn();
             synchronized (mUserInputSem) {
+                mGraphics.zoomIn();
                 mUserInputSem.notify();
-            }        	
+            }
         }
-        
+
+        /** Called when the user presses the zoom out button.
+         *  Note: must not block in GUI thread */
         public void onZoomOut() {
-        	mGraphics.zoomOut();
             synchronized (mUserInputSem) {
+                mGraphics.zoomOut();
                 mUserInputSem.notify();
-            }        	
+            }
+        }
+
+        /** Called (from the GUI thread) when the user moves the power
+         * slider */
+        public void onPowerChange(int val) {
+            if (mGameState == GameState.PLAYER_MOVE) {
+                synchronized (mUserInputSem) {
+                    Player curPlayer = mModel.getCurPlayer();
+                    curPlayer.setPower(val);
+                    mGraphics.setNeedScreenRedraw();
+                    mUserInputSem.notify();
+                }
+            }
+        }
+
+        /** Called when the user moves the angle slider
+         *  Note: must not block in GUI thread
+         *  Note: angle is given in degrees and must be converted to radians. */
+        public void onAngleChange(int val) {
+            if (mGameState == GameState.PLAYER_MOVE) {
+                synchronized (mUserInputSem) {
+                    Player curPlayer = mModel.getCurPlayer();
+                    curPlayer.setAngleDeg(val);
+                    mGraphics.setNeedScreenRedraw();
+                    mUserInputSem.notify();
+                }
+            }
         }
 
         /** Handles a touchscreen event */
         public boolean onTouchEvent(MotionEvent me) {
             int action = me.getAction();
-            if ((action == MotionEvent.ACTION_DOWN) ||
-                (action == MotionEvent.ACTION_MOVE) ||
-                (action == MotionEvent.ACTION_UP)) 
-            {
-                if (mTouchViewSettings == null) {
-                    mTouchViewSettings = mGraphics.getViewSettings();
-                    mTouchX = mGraphics.
-                        onscreenXtoGameX(me.getX(), mTouchViewSettings);
-                    mTouchY = mGraphics.
-                        onscreenYtoGameY(me.getY(), mTouchViewSettings);
-                }
-                else {
-                    float x = mGraphics.
-                            onscreenXtoGameX(me.getX(), mTouchViewSettings);
-                    float y = mGraphics.
-                            onscreenYtoGameY(me.getY(), mTouchViewSettings);
-                    mGraphics.scrollBy(mTouchX - x, -(mTouchY - y));
-                    synchronized (mUserInputSem) {
-                        mUserInputSem.notify();
+            boolean notify = false;
+            synchronized (mUserInputSem) {
+                if ((action == MotionEvent.ACTION_DOWN) ||
+                    (action == MotionEvent.ACTION_MOVE) ||
+                    (action == MotionEvent.ACTION_UP))
+                {
+                    if (mTouchViewSettings == null) {
+                        mTouchViewSettings = mGraphics.getViewSettings();
+                        mTouchX = mGraphics.onscreenXtoGameX(me.getX(),
+                                    mTouchViewSettings);
+                        mTouchY = mGraphics.onscreenYtoGameY(me.getY(),
+                                    mTouchViewSettings);
                     }
-                    mTouchX = x;
-                    mTouchY = y;
+                    else {
+                        float x = mGraphics.onscreenXtoGameX
+                            (me.getX(), mTouchViewSettings);
+                        float y = mGraphics.onscreenYtoGameY
+                            (me.getY(), mTouchViewSettings);
+                        mGraphics.scrollBy(mTouchX - x, -(mTouchY - y));
+                        notify = true;
+                        mTouchX = x;
+                        mTouchY = y;
+                    }
                 }
-            }
-            // TODO: do edgeflags?
+                // TODO: do edgeflags?
 
-            if (action == MotionEvent.ACTION_UP) {
-                mTouchViewSettings = null;
+                if (action == MotionEvent.ACTION_UP) {
+                    mTouchViewSettings = null;
+                }
+                if (notify == true) {
+                    mUserInputSem.notify();
+                }
             }
             return true;
         }
@@ -473,14 +419,16 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
 
     private Object mSurfaceHasBeenCreatedSem = new Object();
 
-    /** True only once the Surface has been created and is ready to 
+    /** True only once the Surface has been created and is ready to
      * be used */
     private boolean mSurfaceHasBeenCreated = false;
 
     /** Pointer to the model */
     public Model mModel = null;
 
-    
+    SalvoSlider.Listener mPowerAdaptor;
+    SalvoSlider.Listener mAngleAdaptor;
+
     /*================= Accessors =================*/
     /** Fetches the animation thread for this GameControlView. */
     public ScorchedThread getThread() {
@@ -488,51 +436,10 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     /*================= User Input Operations =================*/
-    /** Called when the user moves the power slider
-     *  Note: must not block in GUI thread */
-    public void onPowerChange(int val) {
-        Log.w(TAG, "onPowerChange(" + val + ")");
-    }
-
-    /** Called when the user moves the angle slider
-     *  Note: must not block in GUI thread 
-     *  Note: angle is given in degrees and must be converted to radians. */
-    public void onAngleChange(int val) {
-        Log.w(TAG, "onAngleChange(" + val + ")");
-    }
-
-    /** Called when the user presses the fire button.
-     *  Note: must not block in GUI thread */
-    public void onFireButton() {
-        Log.w(TAG, "fire in the hole!");
-    }
-    
-    /** Called when user presses zoom in */
-    public void onZoomIn() {
-    	mThread.onZoomIn();
-    }
-
-    /** Called when user presses zoom out */
-    public void onZoomOut() {
-    	mThread.onZoomOut();
-    }
-    
     /** Pan the game board */
     @Override
     public boolean onTouchEvent(MotionEvent me) {
         return mThread.onTouchEvent(me);
-    }   
-        
-    /** Standard override to get key-press events. */
-    @Override
-    public boolean onKeyDown(int keyCode, KeyEvent msg) {
-        return mThread.doKeyDown(keyCode, msg);
-    }
-
-    /** Standard override to get key-up (released) events. */
-    @Override
-    public boolean onKeyUp(int keyCode, KeyEvent msg) {
-        return mThread.doKeyUp(keyCode, msg);
     }
 
     /**
@@ -541,8 +448,8 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
      */
     @Override
     public void onWindowFocusChanged(boolean hasWindowFocus) {
-        if (!hasWindowFocus)
-            mThread.pause();
+        //if (!hasWindowFocus)
+            //mThread.pause();
     }
 
     /** Callback invoked when the surface dimensions change. */
@@ -551,7 +458,7 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
         mThread.setSurfaceSize(width, height);
     }
 
-    /** Callback invoked when the Surface has been created and is 
+    /** Callback invoked when the Surface has been created and is
      * ready to be used. */
     public void surfaceCreated(SurfaceHolder holder) {
         synchronized (mSurfaceHasBeenCreatedSem) {
@@ -563,12 +470,12 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
         Log.w(TAG, "surfaceCreated(): set mSurfaceHasBeenCreated");
     }
 
-    /** Callback invoked when the Surface has been destroyed and must 
-     * no longer be touched. 
+    /** Callback invoked when the Surface has been destroyed and must
+     * no longer be touched.
      * WARNING: after this method returns, the Surface/Canvas must
      * never be touched again! */
     public void surfaceDestroyed(SurfaceHolder holder) {
-        // we have to tell thread to shut down & wait for it to finish, 
+        // we have to tell thread to shut down & wait for it to finish,
         // or else it might touch the Surface after we return and explode
         mThread.suicide();
 
@@ -599,25 +506,39 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
         }*/
     }
 
-    public void initialize(Model model, Graphics graphics) {
+    public void initialize(Model model, Graphics graphics,
+                            SalvoSlider powerSlider, SalvoSlider angleSlider)
+    {
         mModel = model;
-        
+
         // register our interest in hearing about changes to our surface
         SurfaceHolder holder = getHolder();
         holder.addCallback(this);
 
-        // Create animation thread
-        mThread = new ScorchedThread(graphics, holder, getContext(), 
+        // Create game controller thread
+        mThread = new ScorchedThread(graphics, holder, getContext(),
             new Handler() {
                 @Override
                 public void handleMessage(Message m) {
                     //mStatusText.setVisibility(m.getData().getInt("viz"));
                     //mStatusText.setText(m.getData().getString("text"));
                 }
-        });
+            },
+            powerSlider,
+            angleSlider);
 
-        setFocusable(true); // make sure we get key events
-        
+        mPowerAdaptor = new SalvoSlider.Listener() {
+            public void onPositionChange(int val) {
+                mThread.onPowerChange(val);
+            }
+        };
+        mAngleAdaptor = new SalvoSlider.Listener() {
+            public void onPositionChange(int val) {
+                mThread.onAngleChange(val);
+            }
+        };
+        setFocusable(false); // make sure we get key events
+
         // Start the animation thread
         mThread.start();
     }
