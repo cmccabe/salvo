@@ -248,18 +248,66 @@ public class SalvoSlider extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent me) {
+        boolean invalidate = false;
         synchronized (mState) {
             if (mState == SliderState.DISABLED) {
                 return true;
             }
-            /*
-             * int action = me.getAction(); if ((action ==
-             * MotionEvent.ACTION_DOWN) || (action == MotionEvent.ACTION_MOVE)
-             * || (action == MotionEvent.ACTION_UP)) { int newVal = me.getX(); }
-             */
+            int action = me.getAction();
+            int x = (int)me.getX(); 
+            if (x < mLeftBound) {
+                invalidate = downButton(action);
+            }
+            else if (x > mRightBound) {
+                invalidate = upButton(action);
+            }
+            else {
+                int off = x - mLeftBound;
+                int newVal = mMin +
+                    (off * (mMax - mMin)) /
+                        (mRightBound - mLeftBound);
+                if (newVal != mVal) {
+                    updateVal(newVal);
+                    invalidate = true;
+                }
+            }
         }
-        invalidate();
+        if (invalidate) {
+            invalidate();
+        }
         return true;
+    }
+
+    private boolean downButton(int action) {
+        if (action == MotionEvent.ACTION_DOWN) {
+            updateVal(mVal - 1);
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    private boolean upButton(int action) {
+        if (action == MotionEvent.ACTION_DOWN) {
+            updateVal(mVal + 1);
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    private void updateVal(int val) {
+        assert Thread.holdsLock(mState);
+        if (val < mMin) {
+            val = mMin;
+        }
+        else if (val > mMax) {
+            val = mMax;
+        }
+        mVal = val;
+        mListener.onPositionChange(mReversed ? (mMax - mVal) : mVal);
     }
 
     /**

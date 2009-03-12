@@ -15,7 +15,6 @@ import android.widget.TextView;
 import android.widget.ZoomButton;
 
 import scorched.android.Model;
-import scorched.android.SalvoSlider.Listener;
 import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 

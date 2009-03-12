@@ -282,9 +282,9 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
                 mNextGameState = GameState.EXPLOSION;
             }
             mPowerSlider.setState(SalvoSlider.SliderState.DISABLED,
-            						mPowerAdaptor, 0, 0, 0, 0);
+                                    mPowerAdaptor, 0, 0, 0, 0);
             mAngleSlider.setState(SalvoSlider.SliderState.DISABLED,
-            						mAngleAdaptor, 0, 0, 0, 0);
+                                    mAngleAdaptor, 0, 0, 0, 0);
             
             Log.w(TAG, "entering EXPLOSION state");
             // The projectile is exploding onscreen
@@ -460,32 +460,48 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
         /** Called when the user presses the zoom in button.
          *  Note: must not block in GUI thread */
         public void onZoomIn() {
-        	mGraphics.zoomIn();
+            mGraphics.zoomIn();
             synchronized (mUserInputSem) {
                 mUserInputSem.notify();
-            }        	
+            }           
         }
         
         /** Called when the user presses the zoom out button.
          *  Note: must not block in GUI thread */
         public void onZoomOut() {
-        	mGraphics.zoomOut();
+            mGraphics.zoomOut();
             synchronized (mUserInputSem) {
                 mUserInputSem.notify();
-            }        	
+            }           
         }
         
         /** Called when the user moves the power slider
          *  Note: must not block in GUI thread */
         public void onPowerChange(int val) {
-            Log.w(TAG, "onPowerChange(" + val + ")");
+            if (mGameState == GameState.PLAYER_MOVE) {
+                Player curPlayer = mModel.getCurPlayer();
+                curPlayer.setPower(val);
+                
+                mGraphics.setNeedScreenRedraw();
+                synchronized (mUserInputSem) {
+                    mUserInputSem.notify();
+                }
+            }
         }
 
         /** Called when the user moves the angle slider
          *  Note: must not block in GUI thread 
          *  Note: angle is given in degrees and must be converted to radians. */
         public void onAngleChange(int val) {
-            Log.w(TAG, "onAngleChange(" + val + ")");
+            if (mGameState == GameState.PLAYER_MOVE) {
+                Player curPlayer = mModel.getCurPlayer();
+                curPlayer.setAngleDeg(val);
+                
+                mGraphics.setNeedScreenRedraw();
+                synchronized (mUserInputSem) {
+                    mUserInputSem.notify();
+                }
+            }
         }
 
         /** Handles a touchscreen event */
