@@ -163,13 +163,7 @@ public class Graphics {
             boundaryCheckDrawSlot(roundDownToMultipleOfTwo(mV.mViewX));
         int lastSlot =
             boundaryCheckDrawSlot(roundDownToMultipleOfTwo(maxX) + 2);
-
         float x = gameXtoOnscreenX(firstSlot);
-        //Log.w(TAG, "canvasWidth=" + mCanvasWidth +
-        //        ",firstSlot=" + firstSlot +
-        //        ",lastSlot=" + lastSlot +
-        //        ",slotWidth=" + slotWidth +
-        //        ",x="+x);
         float h[] = mModel.getHeights();
         for (int i = firstSlot; i < lastSlot; i += 2) {
             mTempPath.moveTo(x, gameYtoOnscreenY(h[i]));
@@ -179,13 +173,16 @@ public class Graphics {
             mTempPath.lineTo(x, mCanvasHeight);
             canvas.drawPath(mTempPath, mTerrainPaint);
             mTempPath.rewind();
-            x += (slotWidth + slotWidth);
-        }
 
-        // Draw the players
-        for (int i = 0; i < mModel.getNumberOfPlayers(); i++) {
-            Player p = mModel.getPlayer(i);
-            drawPlayer(canvas, p);
+            Player p1 = mModel.slotToPlayer(i);
+            if (p1 != null) {
+                drawPlayer(canvas, p1);
+            }
+            Player p2 = mModel.slotToPlayer(i+1);
+            if (p2 != null ) {
+                drawPlayer(canvas, p2);
+            }
+            x += (slotWidth + slotWidth);
         }
     }
 

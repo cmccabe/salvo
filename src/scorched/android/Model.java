@@ -1,5 +1,6 @@
 package scorched.android;
 
+import java.util.HashMap;
 import java.util.Random;
 
 import android.os.Bundle;
@@ -63,15 +64,18 @@ public class Model {
 
     /*================= Data =================*/
     /** A source of random numbers TODO: seed with current time */
-    public static Random mRandom = new Random();
+    public Random mRandom = new Random();
 
     /** The height field determines what the playing field looks like. */
     private float mHeights[] = null;
 
     /** The players */
-    private static Player mPlayers[] = null;
+    private Player mPlayers[] = null;
 
     private int mCurPlayerId;
+
+    /** Maps slots to players */
+    private HashMap<Integer, Player> mSlotToPlayer;
 
     /*================= Access =================*/
     public float[] getHeights() {
@@ -111,6 +115,11 @@ public class Model {
             else
                 player++;
         }
+    }
+
+    /** Returns the player in this slot, or null if there is nobody there. */
+    public Player slotToPlayer(int slot) {
+        return mSlotToPlayer.get(slot);
     }
 
     /*================= Height field stuff =================*/
@@ -212,5 +221,10 @@ public class Model {
             mPlayers[i].calcY(this);
         }
         mCurPlayerId = 0;
+
+        mSlotToPlayer = new HashMap<Integer, Player>();
+        for (int i = 0; i < mPlayers.length; i++) {
+            mSlotToPlayer.put(mPlayers[i].getX(), mPlayers[i]);
+        }
     }
 }
