@@ -1,24 +1,17 @@
 package scorched.android;
 
-import java.util.Map;
-
 import android.content.Context;
-import android.content.res.Resources;
-import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.graphics.RadialGradient;
 import android.graphics.Rect;
 import android.graphics.Shader;
 import android.graphics.Typeface;
-import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
-import android.view.SurfaceHolder;
 import android.view.View;
 
 /**
@@ -106,12 +99,6 @@ public class SalvoSlider extends View {
 
     /** Paint for text that's drawn on bars */
     private Paint mFontPaint;
-
-    /** Gradient paint for the top of buttons */
-    private Paint mButtonTopPaint;
-
-    /** Gradient paint for the bottom of buttons */
-    private Paint mButtonBottomPaint;
 
     /////// Temporaries
     private Paint mTempPaint;
