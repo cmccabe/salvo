@@ -13,6 +13,7 @@ import android.graphics.Path;
 import android.graphics.RadialGradient;
 import android.graphics.Rect;
 import android.graphics.Shader;
+import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -99,6 +100,9 @@ public class SalvoSlider extends View {
     /** Gradient paint for bar */
     private Paint mBarPaint;
 
+    /** Paint for text that's drawn on bars */
+    private Paint mFontPaint;
+
     /** Gradient paint for the top of buttons */
     private Paint mButtonTopPaint;
 
@@ -132,48 +136,83 @@ public class SalvoSlider extends View {
                 colors, null, Shader.TileMode.REPEAT);
         mBarPaint = new Paint();
         mBarPaint.setShader(barShader);
+
+        mFontPaint = new Paint();
+        mFontPaint.setColor(Color.WHITE);
+        mFontPaint.setAntiAlias(true);
+        adjustTypefaceToFit(mFontPaint, 
+            (mHeight * 4) / 5, Typeface.SANS_SERIF);
+        mFontPaint.setTextAlign(Paint.Align.CENTER);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
+    	int x;
         synchronized (mState) {
             super.onDraw(canvas);
             switch (mState) {
             case DISABLED:
-                mTempPaint.setColor(Color.BLACK);
-                mTempRect.set(0, 0, mWidth, mHeight);
-                canvas.drawRect(mTempRect, mTempPaint);
-                break;
+                canvas.drawColor(Color.BLACK);
+            	break;
 
             case BAR:
-                drawEndButtons(canvas);
-
-                int x = mLeftBound
-                        + (((mRightBound - mLeftBound) * mVal) / Math.abs(mMax
-                                - mMin));
+                canvas.drawColor(Color.BLACK);
+                x = mLeftBound
+                        + (((mRightBound - mLeftBound) * mVal) / 
+                            Math.abs(mMax - mMin));
                 mTempRect.set(mLeftBound, 0, x, mHeight);
                 canvas.drawRect(mTempRect, mBarPaint);
-                mTempPaint.setColor(Color.BLACK);
-                mTempRect.set(mLeftBound, mHeight + 1, x, mRightBound);
-                canvas.drawRect(mTempRect, mTempPaint);
+                drawEndButtons(canvas);
+                drawSliderText(canvas);
                 break;
 
-            // public void drawText(String text,
-            // float x,
-            // float y,
-            // Paint paint)
-
             case ANGLE:
-                drawEndButtons(canvas);
+                canvas.drawColor(Color.BLACK);
 
-                mTempPaint.setColor(Color.BLUE);
-                mTempRect.set(mLeftBound, 0, mRightBound, mHeight);
-                canvas.drawRect(mTempRect, mTempPaint);
+                int totalWidth = mRightBound - mLeftBound;
+                int w = totalWidth / 6;
+                x = mLeftBound
+                        + ((totalWidth * mVal) / Math.abs(mMax - mMin));
+                mTempPath.moveTo(x, 0);
+                mTempPath.lineTo(x - w, mHeight);
+                mTempPath.lineTo(x + w, mHeight);
+                mTempPaint.setColor(Color.argb(255, 236, 189, 62));
+                mTempPaint.setAntiAlias(true);
+                mTempPaint.setStrokeWidth(1);
+                canvas.drawPath(mTempPath, mTempPaint);
+                mTempPath.rewind();
+                drawEndButtons(canvas);
+                drawSliderText(canvas);
                 break;
             }
         }
     }
 
+    private static final String DISP = "HI THERE ALL I AM DRAWING TEXT";
+    
+    private void drawSliderText(Canvas canvas) {
+    	String str = "" + mVal;
+        canvas.drawText(str, mWidth / 2, (mHeight * 4) / 5, mFontPaint);
+//        mTempPath.moveTo(0, 0);
+//        mTempPath.lineTo(200,0);
+//        Log.w(TAG, "drawing text on screen: \"" + DISP + "\"");
+//        canvas.drawTextOnPath(DISP, mTempPath, 0, 30, mTempPaint); //mLeftBound, 0, mTempPaint);
+//        mTempPath.reset();
+    }
+
+    private void adjustTypefaceToFit(Paint p, int height, Typeface tf) {
+    	p.setTypeface(tf);
+    	Paint.FontMetrics metrics = new Paint.FontMetrics();
+    	int size = 50;
+        p.setTextSize(size);
+        p.getFontMetrics(metrics);
+        int fontHeight = (int)(metrics.top + metrics.bottom);
+        if (Math.abs(fontHeight - height) > 5) {
+            size = (size * height) / fontHeight;
+    	}
+        p.setTextSize(size);
+    }
+    
     private void drawEndButtons(Canvas canvas) {
         // Draw end buttons
         drawEndButton(canvas, 0, mLeftBound);
@@ -182,21 +221,24 @@ public class SalvoSlider extends View {
 
     private void drawEndButton(Canvas canvas, int xLeft, int xRight) {
         mTempPaint.setColor(Color.BLACK);
+        mTempPaint.setAntiAlias(false);
         mTempRect.set(xLeft, 0, xRight, mHeight);
         canvas.drawRect(mTempRect, mTempPaint);
 
         mTempPaint.setARGB(255, 236, 189, 62);
+        mTempPaint.setAntiAlias(false);
         mTempPaint.setStrokeWidth(mHeight / 20);
         canvas.drawLine(xLeft, 0, xRight, 0, mTempPaint);
         canvas.drawLine(xLeft, mHeight, xRight, mHeight, mTempPaint);
         canvas.drawLine(xLeft, 0, xLeft, mHeight, mTempPaint);
         canvas.drawLine(xRight, 0, xRight, mHeight, mTempPaint);
+        mTempPaint.setStrokeWidth(1);
 
         int w = xRight - xLeft;
         mTempPath.moveTo(xLeft + (w / 5), mHeight / 2);
         mTempPath.lineTo(xLeft + ((4 * w) / 5), mHeight / 5);
         mTempPath.lineTo(xLeft + ((4 * w) / 5), (mHeight * 4) / 5);
-        mTempPaint.setStrokeWidth(1);
+        mTempPaint.setAntiAlias(true);
         canvas.drawPath(mTempPath, mTempPaint);
         mTempPath.rewind();
     }
