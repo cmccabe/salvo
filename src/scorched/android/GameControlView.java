@@ -13,7 +13,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -102,34 +101,6 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
         }
 
         /*================= Operations =================*/
-        /**
-         * Starts the game, setting parameters for the current difficulty.
-         */
-        public void doStart() {
-            synchronized (mSurfaceHolder) {
-                mPaused = false;
-            }
-        }
-
-        /**
-         * Pauses the physics update and animation.
-         */
-        public void pause() {
-            synchronized (mSurfaceHolder) {
-                mPaused = true;
-            }
-        }
-
-        /**
-         * Resumes from a pause.
-         */
-        public void unpause() {
-            // Move the real time clock up to now
-            synchronized (mSurfaceHolder) {
-                mPaused = false;
-            }
-        }
-
         /** Shut down the thread */
         public void suicide() {
             mGameState = GameState.QUIT;
@@ -140,10 +111,8 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
 
         /* Callback invoked when the surface dimensions change. */
         public void setSurfaceSize(int width, int height) {
-            synchronized (mSurfaceHolder) {
-                mGraphics.setSurfaceSize(width, height);
-            }
             synchronized (mUserInputSem) {
+                mGraphics.setSurfaceSize(width, height);
                 mUserInputSem.notify();
             }
         }
@@ -238,8 +207,8 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
                         myColor);
 
             while (true) {
-                runScreenRefresh(curPlayer, null);
                 synchronized (mUserInputSem) {
+                    runScreenRefresh(curPlayer, null);
                     mUserInputSem.wait();
                     if (mNextGameState != GameState.PLAYER_MOVE) {
                         return mNextGameState;
@@ -349,119 +318,21 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
             }
         }
 
-        /**
-         * Handles a key-down event.
-         *
-         * @param keyCode the key that was pressed
-         * @param msg the original event object
-         * @return true
-         */
-        boolean doKeyDown(int keyCode, KeyEvent msg) {
-            if (mGameState != GameState.PLAYER_MOVE) {
-                Log.w(TAG, "doKeyDown: ignoring");
-                return false;
-            }
-
-            if (!isKnownKey(keyCode)) {
-                return false;
-            }
-
-            Log.w(TAG, "doKeyDown");
-
-            synchronized (mUserInputSem) {
-                Player p = mModel.getCurPlayer();
-                switch (keyCode) {
-                    case KeyEvent.KEYCODE_DPAD_UP:
-                        p.powerUp();
-                        break;
-                    case KeyEvent.KEYCODE_DPAD_DOWN:
-                        p.powerDown();
-                        break;
-                    case KeyEvent.KEYCODE_DPAD_LEFT:
-                        p.turretLeft();
-                        break;
-                    case KeyEvent.KEYCODE_DPAD_RIGHT:
-                        p.turretRight();
-                        break;
-                    case KeyEvent.KEYCODE_H:
-                        mGraphics.viewLeft();
-                        break;
-                    case KeyEvent.KEYCODE_I:
-                        mGraphics.zoomIn();
-                        break;
-                    case KeyEvent.KEYCODE_J:
-                        mGraphics.viewDown();
-                        break;
-                    case KeyEvent.KEYCODE_K:
-                        mGraphics.viewUp();
-                        break;
-                    case KeyEvent.KEYCODE_L:
-                        mGraphics.viewRight();
-                        break;
-                    case KeyEvent.KEYCODE_Q:
-                        // quit.
-                        mNextGameState = GameState.QUIT;
-                        break;
-                    case KeyEvent.KEYCODE_SPACE:
-                        // launch!
-                        mNextGameState = GameState.BALLISTICS;
-                            //GameState.EXPLOSION;
-                        break;
-                    case KeyEvent.KEYCODE_U:
-                        mGraphics.zoomOut();
-                        break;
-                    default:
-                        throw new RuntimeException("can't handle keycode " +
-                                                   keyCode);
-                }
-                mGraphics.setNeedScreenRedraw();
-                mUserInputSem.notify();
-            }
-            return true;
-        }
-
-        private boolean isKnownKey(int keyCode) {
-            switch (keyCode) {
-                case KeyEvent.KEYCODE_DPAD_DOWN:
-                case KeyEvent.KEYCODE_DPAD_LEFT:
-                case KeyEvent.KEYCODE_DPAD_RIGHT:
-                case KeyEvent.KEYCODE_DPAD_UP:
-                case KeyEvent.KEYCODE_H:
-                case KeyEvent.KEYCODE_I:
-                case KeyEvent.KEYCODE_J:
-                case KeyEvent.KEYCODE_K:
-                case KeyEvent.KEYCODE_L:
-                case KeyEvent.KEYCODE_Q:
-                case KeyEvent.KEYCODE_SPACE:
-                case KeyEvent.KEYCODE_U:
-                    return true;
-                default:
-                    return false;
-            }
-        }
-
-        /**
-         * Handles a key-up event.
-         *
-         * @param keyCode the key that was released
-         * @param msg the original event object
-         * @return true if the key was handled and consumed, or else false
-         */
-        private boolean doKeyUp(int keyCode, KeyEvent msg) {
-            return false;
-        }
-
         /** Called when the user presses the fire button.
          *  Note: must not block in GUI thread */
         public void onFireButton() {
-            Log.w(TAG, "fire in the hole!");
+            if (mGameState == GameState.PLAYER_MOVE) {
+                synchronized (mUserInputSem) {
+                    mNextGameState = GameState.BALLISTICS;
+                }
+            }
         }
 
         /** Called when the user presses the zoom in button.
          *  Note: must not block in GUI thread */
         public void onZoomIn() {
-            mGraphics.zoomIn();
             synchronized (mUserInputSem) {
+                mGraphics.zoomIn();
                 mUserInputSem.notify();
             }
         }
@@ -469,21 +340,20 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
         /** Called when the user presses the zoom out button.
          *  Note: must not block in GUI thread */
         public void onZoomOut() {
-            mGraphics.zoomOut();
             synchronized (mUserInputSem) {
+                mGraphics.zoomOut();
                 mUserInputSem.notify();
             }
         }
 
-        /** Called when the user moves the power slider
-         *  Note: must not block in GUI thread */
+        /** Called (from the GUI thread) when the user moves the power
+         * slider */
         public void onPowerChange(int val) {
             if (mGameState == GameState.PLAYER_MOVE) {
-                Player curPlayer = mModel.getCurPlayer();
-                curPlayer.setPower(val);
-
-                mGraphics.setNeedScreenRedraw();
                 synchronized (mUserInputSem) {
+                    Player curPlayer = mModel.getCurPlayer();
+                    curPlayer.setPower(val);
+                    mGraphics.setNeedScreenRedraw();
                     mUserInputSem.notify();
                 }
             }
@@ -494,11 +364,10 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
          *  Note: angle is given in degrees and must be converted to radians. */
         public void onAngleChange(int val) {
             if (mGameState == GameState.PLAYER_MOVE) {
-                Player curPlayer = mModel.getCurPlayer();
-                curPlayer.setAngleDeg(val);
-
-                mGraphics.setNeedScreenRedraw();
                 synchronized (mUserInputSem) {
+                    Player curPlayer = mModel.getCurPlayer();
+                    curPlayer.setAngleDeg(val);
+                    mGraphics.setNeedScreenRedraw();
                     mUserInputSem.notify();
                 }
             }
@@ -507,34 +376,38 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
         /** Handles a touchscreen event */
         public boolean onTouchEvent(MotionEvent me) {
             int action = me.getAction();
-            if ((action == MotionEvent.ACTION_DOWN) ||
-                (action == MotionEvent.ACTION_MOVE) ||
-                (action == MotionEvent.ACTION_UP))
-            {
-                if (mTouchViewSettings == null) {
-                    mTouchViewSettings = mGraphics.getViewSettings();
-                    mTouchX = mGraphics.
-                        onscreenXtoGameX(me.getX(), mTouchViewSettings);
-                    mTouchY = mGraphics.
-                        onscreenYtoGameY(me.getY(), mTouchViewSettings);
-                }
-                else {
-                    float x = mGraphics.
-                            onscreenXtoGameX(me.getX(), mTouchViewSettings);
-                    float y = mGraphics.
-                            onscreenYtoGameY(me.getY(), mTouchViewSettings);
-                    mGraphics.scrollBy(mTouchX - x, -(mTouchY - y));
-                    synchronized (mUserInputSem) {
-                        mUserInputSem.notify();
+            boolean notify = false;
+            synchronized (mUserInputSem) {
+                if ((action == MotionEvent.ACTION_DOWN) ||
+                    (action == MotionEvent.ACTION_MOVE) ||
+                    (action == MotionEvent.ACTION_UP))
+                {
+                    if (mTouchViewSettings == null) {
+                        mTouchViewSettings = mGraphics.getViewSettings();
+                        mTouchX = mGraphics.onscreenXtoGameX(me.getX(),
+                                    mTouchViewSettings);
+                        mTouchY = mGraphics.onscreenYtoGameY(me.getY(),
+                                    mTouchViewSettings);
                     }
-                    mTouchX = x;
-                    mTouchY = y;
+                    else {
+                        float x = mGraphics.onscreenXtoGameX
+                            (me.getX(), mTouchViewSettings);
+                        float y = mGraphics.onscreenYtoGameY
+                            (me.getY(), mTouchViewSettings);
+                        mGraphics.scrollBy(mTouchX - x, -(mTouchY - y));
+                        notify = true;
+                        mTouchX = x;
+                        mTouchY = y;
+                    }
                 }
-            }
-            // TODO: do edgeflags?
+                // TODO: do edgeflags?
 
-            if (action == MotionEvent.ACTION_UP) {
-                mTouchViewSettings = null;
+                if (action == MotionEvent.ACTION_UP) {
+                    mTouchViewSettings = null;
+                }
+                if (notify == true) {
+                    mUserInputSem.notify();
+                }
             }
             return true;
         }
@@ -569,26 +442,14 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
         return mThread.onTouchEvent(me);
     }
 
-    /** Standard override to get key-press events. */
-    @Override
-    public boolean onKeyDown(int keyCode, KeyEvent msg) {
-        return mThread.doKeyDown(keyCode, msg);
-    }
-
-    /** Standard override to get key-up (released) events. */
-    @Override
-    public boolean onKeyUp(int keyCode, KeyEvent msg) {
-        return mThread.doKeyUp(keyCode, msg);
-    }
-
     /**
      * Standard window-focus override. Notice focus lost so we can pause on
      * focus lost. e.g. user switches to take a call.
      */
     @Override
     public void onWindowFocusChanged(boolean hasWindowFocus) {
-        if (!hasWindowFocus)
-            mThread.pause();
+        //if (!hasWindowFocus)
+            //mThread.pause();
     }
 
     /** Callback invoked when the surface dimensions change. */
@@ -676,8 +537,7 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
                 mThread.onAngleChange(val);
             }
         };
-
-        setFocusable(true); // make sure we get key events
+        setFocusable(false); // make sure we get key events
 
         // Start the animation thread
         mThread.start();

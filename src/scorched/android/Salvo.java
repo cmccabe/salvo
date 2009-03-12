@@ -88,8 +88,8 @@ public class Salvo extends Activity {
      */
     @Override
     protected void onPause() {
-        super.onPause();
-        mGameControl.getThread().pause(); // pause game when Activity pauses
+        //super.onPause();
+        //mGameControl.getThread().pause(); // pause game when Activity pauses
     }
 
     /**
