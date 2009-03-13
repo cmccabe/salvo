@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ZoomButton;
@@ -33,11 +34,11 @@ public class Salvo extends Activity {
         super.onCreate(savedInstanceState);
 
         ////////////////// setContentView
-        Log.w(TAG, "setContentView");
         setContentView(R.layout.title);
 
         ////////////////// Get pointers to stuff
-        final ImageView myImage = (ImageView)findViewById(R.id.title_picture);
+        final ImageView myImage = 
+            (ImageView)findViewById(R.id.title_picture);
         final Button newGame = (Button)findViewById(R.id.new_game);
         final Button about = (Button)findViewById(R.id.about);
         final Button buyGame = (Button)findViewById(R.id.buy_game);
@@ -47,16 +48,16 @@ public class Salvo extends Activity {
         final Activity titleActivity = this;
         newGame.setOnClickListener(new OnClickListener() {
         	public void onClick(View arg0) {
-            	Intent setupIntent =
-            		new Intent().setClass(titleActivity, GameSetupActivity.class);
-            	    startActivity(setupIntent); 
+            	Intent setupIntent = new Intent().
+                    setClass(titleActivity, GameSetupActivity.class);
+                startActivity(setupIntent); 
             }
         });
     }
 
     @Override
     protected void onPause() {
-    	super.onPause();
+        super.onPause();
     }
 
     @Override

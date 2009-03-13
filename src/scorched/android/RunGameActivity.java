@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ZoomButton;
 
@@ -43,7 +44,9 @@ public class RunGameActivity extends Activity {
         mGraphics = new Graphics(getBaseContext(), mModel);
 
         ////////////////// setContentView
-        requestWindowFeature(Window.FEATURE_NO_TITLE); // turn off title bar
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
         Log.w(TAG, "setContentView");
         setContentView(R.layout.game);
 
