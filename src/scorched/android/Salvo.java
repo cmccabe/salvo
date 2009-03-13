@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ZoomButton;
 
@@ -44,6 +45,8 @@ public class Salvo extends Activity {
 
         ////////////////// setContentView
         requestWindowFeature(Window.FEATURE_NO_TITLE); // turn off title bar
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
         Log.w(TAG, "setContentView");
         setContentView(R.layout.main);
 
@@ -81,7 +84,9 @@ public class Salvo extends Activity {
      */
     @Override
     protected void onPause() {
-        //super.onPause();
+        // If we comment out the following line, we get this error:
+        // android.app.SuperNotCalledException: Activity {scorched.android/scorched.android.Salvo} did not call through to super.onPause()
+        super.onPause();
         //mGameControl.getThread().pause(); // pause game when Activity pauses
     }
 
