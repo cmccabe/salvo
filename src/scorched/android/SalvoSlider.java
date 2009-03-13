@@ -193,7 +193,7 @@ public class SalvoSlider extends View {
     private void adjustTypefaceToFit(Paint p, int height, Typeface tf) {
         p.setTypeface(tf);
         Paint.FontMetrics metrics = new Paint.FontMetrics();
-        int size = 50;
+        int size = 40;
         p.setTextSize(size);
         p.getFontMetrics(metrics);
         int fontHeight = (int)(metrics.top + metrics.bottom);

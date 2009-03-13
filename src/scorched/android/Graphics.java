@@ -22,7 +22,8 @@ public class Graphics {
 
     /*================= Types =================*/
     static public class ViewSettings implements Cloneable {
-        /** The zoom factor (axes are each multiplied by this when we zoom in) */
+        /** The zoom factor (axes are each multiplied by this when we 
+         *  zoom in) */
         public static final float ZOOM_FACTOR = 2f;
 
         /*================= Members =================*/
@@ -134,15 +135,46 @@ public class Graphics {
         return mV.mViewY + (mCanvasHeight / (2 * mV.mZoom));
     }
 
+    /** Get the X game coordinate of the right edge of the viewport */
+    private float getGameRightEdge() {
+        return mV.mViewX + (mCanvasWidth / mV.mZoom);
+    }
+
+    /** Get the Y game coordinate of the top edge of the viewport */
+    private float getGameTopEdge() {
+        return mV.mViewY + (mCanvasHeight /  mV.mZoom);
+    }
+
     public ViewSettings getViewSettings() {
         return mV.clone();
     }
 
     /*================= Operations =================*/
     public void scrollBy(float x, float y) {
-        mRedrawAll = true;
-        mV.mViewX += x;
-        mV.mViewY += y;
+        // Make sure we don't scroll off the edge
+        float newX = mV.mViewX + x;
+        float newY = mV.mViewY + y;
+        float newRight = getGameRightEdge() + x;
+        float newTop = getGameTopEdge() + y;
+        float MaxX = Model.MAX_X - 2;
+        if (newRight > MaxX)
+            newX = MaxX - (mCanvasWidth / mV.mZoom);
+        float MaxY = Model.MAX_ELEVATION + 
+            2*(Model.PLAYER_SIZE + Model.TURRET_LENGTH);
+        if (newTop > MaxY)
+            newY = MaxY - (mCanvasHeight / mV.mZoom);
+
+        // We never want to scroll the game below the bottom edge, so 
+        // after doing the above check, we do the below check
+        if (newX < 0f)
+            newX = 0f;
+        if (newY < 0f)
+            newY = 0f;
+        if (newX != mV.mViewX || newY != mV.mViewY) {
+            mRedrawAll = true;
+            mV.mViewX = newX;
+            mV.mViewY = newY;
+        }
     }
 
     public void setNeedScreenRedraw() {
@@ -153,6 +185,8 @@ public class Graphics {
         mCanvasWidth = width;
         mCanvasHeight = height;
         mRedrawAll = true;
+        // TODO Properly center, reposition canvas to be in bounds, 
+        // possibly zoom in
     }
 
     /** Draws the playing field */
@@ -302,28 +336,31 @@ public class Graphics {
         }
     }
 
-    public void zoomOut() {
+    private void applyZoom(float newZoom) {
         float oldCenterX = getGameCenterX();
         float oldCenterY = getGameCenterY();
-        mV.mZoom = mV.mZoom / ViewSettings.ZOOM_FACTOR;
+        mV.mZoom = newZoom;
         float newCenterX = getGameCenterX();
         float newCenterY = getGameCenterY();
-        mV.mViewX += oldCenterX - newCenterX;
-        mV.mViewY += oldCenterY - newCenterY;
 
         mRedrawAll = true;
+        scrollBy(oldCenterX - newCenterX, oldCenterY - newCenterY);
+    }
+
+    public void zoomOut() {
+        // Determine if new zoom level makes things too tiny
+        // For now this is: if the X zoom shows more than the entire field
+        float newZoom = mV.mZoom / ViewSettings.ZOOM_FACTOR;
+        if (mCanvasWidth / newZoom > Model.MAX_X - 2) return;
+        applyZoom(newZoom);
     }
 
     public void zoomIn() {
-        float oldCenterX = getGameCenterX();
-        float oldCenterY = getGameCenterY();
-        mV.mZoom = mV.mZoom * ViewSettings.ZOOM_FACTOR;
-        float newCenterX = getGameCenterX();
-        float newCenterY = getGameCenterY();
-        mV.mViewX += oldCenterX - newCenterX;
-        mV.mViewY += oldCenterY - newCenterY;
-
-        mRedrawAll = true;
+        // Make sure we don't zoom in too far
+        // For now this is: if the X shows less than the size of a tank
+        float newZoom = mV.mZoom * ViewSettings.ZOOM_FACTOR;
+        if (mCanvasWidth / newZoom < Model.PLAYER_SIZE) return;
+        applyZoom(newZoom);
     }
 
     /*================= Lifecycle =================*/
