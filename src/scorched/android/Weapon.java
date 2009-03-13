@@ -10,8 +10,8 @@ public class Weapon
     /*================= Constants =================*/
     final private String TAG = "Weapon";
 
-    /** The maximum number of times we will recalculate trajectory before giving up
-     * and triggering the explosion. */
+    /** The maximum number of times we will recalculate trajectory before
+     *  giving up and triggering the explosion. */
     final private int MAX_NUM_SAMPLES = 10000;
 
     /** The minimum distance squared (in slots) we will accept between two points on

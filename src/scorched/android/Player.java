@@ -10,6 +10,8 @@ public class Player {
     public static final int MIN_TURRET_ANGLE = 0;
     public static final int MAX_TURRET_ANGLE = 180;
 
+    public static final int INVALID_PLAYER_ID = -1;
+
     /*================= Members =================*/
     private int mId;
 

@@ -70,8 +70,8 @@ public class Graphics {
 
     private Path mTempPath;
 
-    /** true if the screen needs to be redrawn */
-    private volatile boolean mNeedScreenRedraw;
+    /** true if we need to redraw the whole screen */
+    private boolean mRedrawAll;
 
     private Model mModel;
 
@@ -100,9 +100,8 @@ public class Graphics {
         return mPlayerColors[playerId];
     }
 
-
-    public boolean needScreenUpdate() {
-        return mNeedScreenRedraw;
+    public boolean needToRedrawAll() {
+        return mRedrawAll;
     }
 
     /** Give the onscreen coordinate corresponding to x */
@@ -141,24 +140,24 @@ public class Graphics {
 
     /*================= Operations =================*/
     public void scrollBy(float x, float y) {
-        mNeedScreenRedraw = true;
+        mRedrawAll = true;
         mV.mViewX += x;
         mV.mViewY += y;
     }
 
     public void setNeedScreenRedraw() {
-        mNeedScreenRedraw = true;
+        mRedrawAll = true;
     }
 
     public void setSurfaceSize(int width, int height) {
         mCanvasWidth = width;
         mCanvasHeight = height;
-        mNeedScreenRedraw = true;
+        mRedrawAll = true;
     }
 
     /** Draws the playing field */
     public void drawScreen(Canvas canvas) {
-        mNeedScreenRedraw = false;
+        mRedrawAll = false;
 
         // Clear canvas
         mScratchRect.set(0, 0, mCanvasWidth, mCanvasHeight);
@@ -277,23 +276,29 @@ public class Graphics {
         canvas.drawCircle(x+5*n, y+d+e+h+j, a, thinPaint);
     }
 
-    public void drawWeapon(Canvas canvas, Weapon weapon, Player player)
-    {
-        Iterator<Weapon.Point> iter = weapon.getPoints();
-        assert (iter.hasNext());
-        Weapon.Point firstPoint = (Weapon.Point)iter.next();
-        Paint paint = mPlayerThickPaint[2];//player.getId()];
-        float x = gameXtoOnscreenX(firstPoint.getX());
-        float y = gameYtoOnscreenY(firstPoint.getY());
-        canvas.drawCircle(x, y, 2, paint);
-        //Log.w(TAG, "firstX=" + x + ",y=" + y);
-        while (iter.hasNext()) {
-            Weapon.Point point = (Weapon.Point)iter.next();
-            x = gameXtoOnscreenX(point.getX());
-            y = gameYtoOnscreenY(point.getY());
-//            mTempPath.lineTo(x, y);
-            canvas.drawCircle(x, y, 2, paint);
-//            Log.w(TAG, "x=" + x + ",y=" + y);
+    public void drawTrajectory(Canvas canvas, Player player, boolean all,
+                                float x[], float y[], short numSamples) {
+        Paint paint = mPlayerThickPaint[player.getId()];
+        int start;
+        if (all)
+            start = 0;
+        else {
+            start = numSamples - 2;
+            if (start < 0)
+                return;
+        }
+
+        float prevX = gameXtoOnscreenX(x[start]);
+        float prevY = gameYtoOnscreenY(y[start]);
+        for (i = start + 1; i < numSamples; ++i) {
+            mTempPath.moveTo(prevX, prevY);
+            float curX = gameXtoOnscreenX(x[i]);
+            float curY = gameYtoOnscreenY(y[i]);
+            mTempPath.lineTo(curX, curY);
+            canvas.drawPath(mTempPath, paint);
+            mTempPath.rewind();
+            prevX = curX;
+            prevY = curY;
         }
     }
 
@@ -306,7 +311,7 @@ public class Graphics {
         mV.mViewX += oldCenterX - newCenterX;
         mV.mViewY += oldCenterY - newCenterY;
 
-        mNeedScreenRedraw = true;
+        mRedrawAll = true;
     }
 
     public void zoomIn() {
@@ -318,27 +323,7 @@ public class Graphics {
         mV.mViewX += oldCenterX - newCenterX;
         mV.mViewY += oldCenterY - newCenterY;
 
-        mNeedScreenRedraw = true;
-    }
-
-    public void viewLeft() {
-        mV.mViewX -= 0.1;
-        mNeedScreenRedraw = true;
-    }
-
-    public void viewRight() {
-        mV.mViewX += 0.1;
-        mNeedScreenRedraw = true;
-    }
-
-    public void viewUp() {
-        mV.mViewY += 0.1;
-        mNeedScreenRedraw = true;
-    }
-
-    public void viewDown() {
-        mV.mViewY -= 0.1;
-        mNeedScreenRedraw = true;
+        mRedrawAll = true;
     }
 
     /*================= Lifecycle =================*/
@@ -383,7 +368,7 @@ public class Graphics {
         mScratchRect = new RectF(0, 0, 0, 0);
         //Resources res = context.getResources();
 
-        mNeedScreenRedraw = false;
+        mRedrawAll = false;
 
         // Set viewX, viewY, zoom
         mV = new ViewSettings(4, 0.5f, 15f);

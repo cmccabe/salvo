@@ -26,8 +26,8 @@ public class Salvo extends Activity {
     /**
      * Invoked when the Activity is created.
      *
-     * @param savedInstanceState a Bundle containing state saved from a previous
-     *        execution, or null if this is a new execution
+     * @param savedInstanceState a Bundle containing state saved from a 
+     *        previous execution, or null if this is a new execution
      */
     @Override
     public void onCreate(Bundle savedInstanceState) {

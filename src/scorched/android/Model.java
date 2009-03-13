@@ -63,7 +63,7 @@ public class Model {
     };
 
     /*================= Data =================*/
-    /** A source of random numbers TODO: seed with current time */
+    /** A source of random numbers. TODO: seed with current time */
     public Random mRandom = new Random();
 
     /** The height field determines what the playing field looks like. */
@@ -98,22 +98,36 @@ public class Model {
         return mCurPlayerId;
     }
 
-    /** Advances to the next player's turn, if there are any players left.
-     * Returns false if the round is over, true otherwise */
-    public boolean nextPlayer() {
+    /** Sets mCurPlayerId to the next valid player id-- or to 
+     * INVALID_PLAYER_ID if there are none. */
+    public void nextPlayer() {
         int oldPlayer = mCurPlayerId;
         int player = mCurPlayerId + 1;
+
         while (true) {
-            if (player > mPlayers.length)
-                player = 0;
-            if (player == oldPlayer)
-                return false;
+            if (player > mPlayers.length) {
+                if (oldPlayer == Player.INVALID_PLAYER_ID) {
+                    // We searched the whole array and didn't find any valid
+                    // players.
+                    mCurPlayerId = Player.INVALID_PLAYER_ID;
+                    return;
+                }
+                else {
+                    player = 0;
+                }
+            }
+            if (player == oldPlayer) {
+                // We're back at the player we started at.
+                // I guess he's the only valid one.
+                return;
+            }
             if (mPlayers[player].isAlive()) {
                 mCurPlayerId = player;
-                return true;
+                return;
             }
-            else
+            else {
                 player++;
+            }
         }
     }
 
@@ -220,7 +234,7 @@ public class Model {
             mPlayers[i].setX(playerIdToSlot(id));
             mPlayers[i].calcY(this);
         }
-        mCurPlayerId = 0;
+        mCurPlayerId = Player.INVALID_PLAYER_ID;
 
         mSlotToPlayer = new HashMap<Integer, Player>();
         for (int i = 0; i < mPlayers.length; i++) {

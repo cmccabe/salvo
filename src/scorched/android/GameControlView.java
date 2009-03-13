@@ -24,8 +24,8 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
     /*================= Constants =================*/
     private static final String TAG = "GameControlView";
 
-    private enum GameState {
-        IDLE,
+    public enum GameState {
+        INIT_MOVE,
         PLAYER_MOVE,
         BALLISTICS,
         EXPLOSION,
@@ -114,8 +114,6 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
         /*================= Main =================*/
         @Override
         public void run() {
-            mGameState = GameState.IDLE;
-
             Log.w(TAG, "run(): waiting for surface to be created.");
             synchronized (mSurfaceHasBeenCreatedSem) {
                 while (!mSurfaceHasBeenCreated) {
@@ -125,151 +123,62 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
                     catch (InterruptedException e) {
                         Log.w(TAG, "interrupted waiting for " +
                                         "mSurfaceHasBeenCreatedSem");
-                        mGameState = GameState.QUIT;
+                        mGameState = GameState.s;
                     }
                 }
             }
             Log.w(TAG, "run(): surface has been created.");
 
             // main loop
-            try
-            {
-                mGameState = GameState.PLAYER_MOVE;
-                while (true) {
-                    switch (mGameState) {
-                        case IDLE:
-                            // Should not get here
-                            throw new RuntimeException(
-                                "Got mGameState = IDLE in main loop");
+            mGameState = GameState.sInitMoveState;
+            while (true) {
+                mGameState.onEnter(mPowerSlider, mAngleSlider);
+                GameState next = mGameState.execute();
+                if (next != null) {
+                    boolean endRound = 
+                        mGameState.onExit(mPowerSlider, mAngleSlider);
+                }
 
-                        case PLAYER_MOVE: {
-                            // The player is moving around his
-                            // turret, etc.
-                            Player curPlayer = mModel.getCurPlayer();
-                            if (curPlayer.isHuman()) {
-                                mGameState = runHumanMove(curPlayer);
-                            }
-                            else {
-                                throw new RuntimeException("unimplemented");
-                            }
+                mGameState = mGameState.execute(mModel, mGraphics, 
+                                    mPowerSlider, mAngleSlider);
+
+                // redraw canvas if necessary
+                Canvas canvas = null;
+                try {
+                    if (mGraphics.needScreenUpdate()) {
+                        canvas = mSurfaceHolder.lockCanvas(null);
+                        mGameState
+                        mGraphics.drawScreen(canvas);
+                        if (weapon != null) {
+                            mGraphics.drawWeapon(canvas, weapon, player);
                         }
-                        break;
-
-                        case BALLISTICS: {
-                            // The projectile is moving through the sky
-                            Player curPlayer = mModel.getCurPlayer();
-                            mGameState = runBallistics(curPlayer);
-                        }
-                        break;
-
-                        case EXPLOSION: {
-                            // The projectile is exploding
-                            Player curPlayer = mModel.getCurPlayer();
-                            mGameState = runExplosion(curPlayer);
-                        }
-                        break;
-
-                        case QUIT:
-                            // The user has requested QUIT
-                            return;
                     }
                 }
+                finally {
+                    if (canvas != null) {
+                        // Don't leave the Surface in an inconsistent state
+                        mSurfaceHolder.unlockCanvasAndPost(canvas);
+                    }
+                }
+        }
+                //if (mGameState.exitLoop()) {
+                //     ... do stuff ...
+                //}
             }
             catch (InterruptedException e) {
                 Log.w(TAG, "interrupted: quitting.");
-                mGameState = GameState.QUIT;
+                mGameState = GameStateStrategy.sQuitState;
                 return;
             }
         }
 
-        /** Implements a human move */
-        private GameState runHumanMove(Player curPlayer)
-            throws InterruptedException
-        {
-            synchronized (mUserInputSem) {
-                mNextGameState = GameState.PLAYER_MOVE;
-            }
-
-            int myColor = mGraphics.getPlayerColor(curPlayer.getId());
-            mPowerSlider.setState(SalvoSlider.SliderState.BAR, mPowerAdaptor,
-                        Player.MIN_POWER, Player.MAX_POWER,
-                        curPlayer.getPower(),
-                        myColor);
-            mAngleSlider.setState(SalvoSlider.SliderState.ANGLE,mAngleAdaptor,
-                        Player.MAX_TURRET_ANGLE, Player.MIN_TURRET_ANGLE,
-                        curPlayer.getAngleDeg(),
-                        myColor);
-
-            while (true) {
-                synchronized (mUserInputSem) {
-                    runScreenRefresh(curPlayer, null);
-                    mUserInputSem.wait();
-                    if (mNextGameState != GameState.PLAYER_MOVE) {
-                        return mNextGameState;
-                    }
-                }
-            }
-        }
-
-        private GameState runBallistics(Player curPlayer)
-            throws InterruptedException
-        {
-            synchronized (mUserInputSem) {
-                mNextGameState = GameState.BALLISTICS;
-            }
-
-            Weapon weapon = curPlayer.getWeapon();
-            while (true) {
-                runScreenRefresh(curPlayer, weapon);
-                synchronized (mUserInputSem) {
-                    //mUserInputSem.wait(1);
-                    weapon.nextSample();
-                    Weapon.Point collisionPoint = weapon.testCollision();
-                    if (collisionPoint != null) {
-                        mNextGameState = GameState.EXPLOSION;
-                    }
-                    if (mNextGameState != GameState.BALLISTICS) {
-                        return mNextGameState;
-                    }
-                    if (weapon.getNeedsRedraw()) {
-                        mGraphics.setNeedScreenRedraw();
-                    }
-                }
-            }
-        }
-
-        private GameState runExplosion(Player curPlayer)
-            throws InterruptedException
-        {
-            synchronized (mUserInputSem) {
-                mNextGameState = GameState.EXPLOSION;
-            }
-            mPowerSlider.setState(SalvoSlider.SliderState.DISABLED,
-                                    mPowerAdaptor, 0, 0, 0, 0);
-            mAngleSlider.setState(SalvoSlider.SliderState.DISABLED,
-                                    mAngleAdaptor, 0, 0, 0, 0);
-
-            Log.w(TAG, "entering EXPLOSION state");
-            // The projectile is exploding onscreen
-            Canvas canvas = mSurfaceHolder.lockCanvas(null);
-            Paint p = new Paint();
-            p.setAntiAlias(false);
-            p.setARGB(128, 255, 0, 255);
-            Rect rect = new Rect();
-            rect.set(0, 0, 200, 200);
-            canvas.drawRect(rect, p);
-            mSurfaceHolder.unlockCanvasAndPost(canvas);
-            Thread.sleep(10000);
-            return GameState.PLAYER_MOVE;
-        }
-
-        private void runScreenRefresh(Player player, Weapon weapon)
-        {
+        private void redraw(Player player, Weapon weapon) {
             // redraw canvas if necessary
             Canvas canvas = null;
             try {
                 if (mGraphics.needScreenUpdate()) {
                     canvas = mSurfaceHolder.lockCanvas(null);
+                    mGameState
                     mGraphics.drawScreen(canvas);
                     if (weapon != null) {
                         mGraphics.drawWeapon(canvas, weapon, player);
@@ -315,10 +224,8 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
         /** Called when the user presses the fire button.
          *  Note: must not block in GUI thread */
         public void onFireButton() {
-            if (mGameState == GameState.PLAYER_MOVE) {
-                synchronized (mUserInputSem) {
-                    mNextGameState = GameState.BALLISTICS;
-                }
+            synchronized (mUserInputSem) {
+                mGameState.fireButton();
             }
         }
 
