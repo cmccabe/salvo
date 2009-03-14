@@ -79,7 +79,13 @@ public class Weapon
         return mNeedsRedraw;
     }
 
+
     /*================= Operations =================*/
+    /** Calculate the trajectory of this weapon */
+    public void calculateTrajectory(Model model, float x[], float y[]) {
+        
+    }
+
     /** Move the projectile forward. */
     public void nextSample() {
         // do gravity

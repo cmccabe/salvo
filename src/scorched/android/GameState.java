@@ -379,6 +379,7 @@ public interface GameState {
                             Graphics graphics) {
             mNumSamples = 0;
             mCurSample = 0;
+            w.calculateTrajectory(model, mX, mY);
         }
 
         public GameState main(Model model) {
