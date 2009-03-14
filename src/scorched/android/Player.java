@@ -75,8 +75,8 @@ public class Player {
         return mLife > 0;
     }
 
-    public boolean isHuman() {
-        return true;
+    public GameState getGameState() {
+        return GameState.sHumanMoveState;
     }
 
     public Weapon getWeapon() {

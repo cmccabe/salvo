@@ -64,7 +64,7 @@ public class RunGameActivity extends Activity {
         mGameControl.initialize(mModel, mGraphics, powerSlider, angleSlider);
         fireButton.setOnClickListener(new OnClickListener() {
             public void onClick(View arg0) {
-                mGameControl.getThread().onFireButton();
+                mGameControl.getThread().onButton(GameState.GameButton.FIRE);
             }
         });
         zoomIn.setOnClickListener(new OnClickListener() {

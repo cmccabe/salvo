@@ -24,14 +24,6 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
     /*================= Constants =================*/
     private static final String TAG = "GameControlView";
 
-    public enum GameState {
-        INIT_MOVE,
-        PLAYER_MOVE,
-        BALLISTICS,
-        EXPLOSION,
-        QUIT,
-    };
-
     /*================= Types =================*/
 
     /*================= ScorchedThread =================*/
@@ -39,12 +31,11 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
         /** The semaphore representing user input during a player's turn */
         private Object mUserInputSem = new Object();
 
-        /** The game state we should transition to next. Protected by
-          * mUserInputSem */
-        private GameState mNextGameState;
-
         /** Represents the current controller state */
-        volatile private GameState mGameState;
+        private GameState mGameState;
+
+        /** True if the game is running */
+        private boolean mRun = true;
 
         /** Indicate whether or not the game is paused */
         private boolean mPaused = false;
@@ -84,7 +75,7 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
                             Handler handler,
                             SalvoSlider powerSlider,
                             SalvoSlider angleSlider) {
-            mGameState = GameState.PLAYER_MOVE;
+            mGameState = null;
             mGraphics = graphics;
             mSurfaceHolder = surfaceHolder;
             mContext = context;
@@ -97,7 +88,9 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
         /*================= Operations =================*/
         /** Shut down the thread */
         public void suicide() {
-            mGameState = GameState.QUIT;
+            synchronized (mUserInputSem) {
+                mRun = false;
+            }
 
             // interrupt anybody in wait()
             this.interrupt();
@@ -115,6 +108,7 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
         @Override
         public void run() {
             Log.w(TAG, "run(): waiting for surface to be created.");
+            mRun = true;
             synchronized (mSurfaceHasBeenCreatedSem) {
                 while (!mSurfaceHasBeenCreated) {
                     try {
@@ -123,72 +117,62 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
                     catch (InterruptedException e) {
                         Log.w(TAG, "interrupted waiting for " +
                                         "mSurfaceHasBeenCreatedSem");
-                        mGameState = GameState.s;
+                        mRun = false;
                     }
                 }
             }
             Log.w(TAG, "run(): surface has been created.");
 
             // main loop
-            mGameState = GameState.sInitMoveState;
-            while (true) {
-                mGameState.onEnter(mPowerSlider, mAngleSlider);
-                GameState next = mGameState.execute();
-                if (next != null) {
-                    boolean endRound = 
-                        mGameState.onExit(mPowerSlider, mAngleSlider);
-                }
-
-                mGameState = mGameState.execute(mModel, mGraphics, 
-                                    mPowerSlider, mAngleSlider);
-
-                // redraw canvas if necessary
-                Canvas canvas = null;
-                try {
-                    if (mGraphics.needScreenUpdate()) {
-                        canvas = mSurfaceHolder.lockCanvas(null);
-                        mGameState
-                        mGraphics.drawScreen(canvas);
-                        if (weapon != null) {
-                            mGraphics.drawWeapon(canvas, weapon, player);
+            Log.w(TAG, "run(): entering main loop.");
+            synchronized (mUserInputSem) {
+                mGameState = GameState.sTurnStartState;
+                while (true) {
+                    mGameState.onEnter(mModel,
+                                    mPowerSlider, mAngleSlider,
+                                    mPowerAdaptor, mAngleAdaptor,
+                                    mGraphics);
+                    GameState next = null;
+                    while (true) {
+                        next = mGameState.main(mModel);
+                        if (next != null)
+                            break;
+                        // redraw whatever needs to be redrawn
+                        if (mGameState.needRedraw(mGraphics)) {
+                            Canvas canvas = null;
+                            try {
+                                canvas = mSurfaceHolder.lockCanvas(null);
+                                mGameState.redraw(canvas, mModel, mGraphics);
+                            }
+                            finally {
+                                if (canvas != null) {
+                                    // Don't leave the Surface in an 
+                                    // inconsistent state
+                                    mSurfaceHolder.
+                                        unlockCanvasAndPost(canvas);
+                                }
+                            }
+                        }
+                        try {
+                            if (!mRun) {
+                                Log.w(TAG, "mRun == false. quitting.");
+                                return;
+                            }
+                            mUserInputSem.wait(mGameState.
+                                getBlockingDelay());
+                        }
+                        catch (InterruptedException e) {
+                            if (!mRun) {
+                                Log.w(TAG, "interrupted: quitting.");
+                                return;
+                            }
                         }
                     }
-                }
-                finally {
-                    if (canvas != null) {
-                        // Don't leave the Surface in an inconsistent state
-                        mSurfaceHolder.unlockCanvasAndPost(canvas);
-                    }
-                }
-        }
-                //if (mGameState.exitLoop()) {
-                //     ... do stuff ...
-                //}
-            }
-            catch (InterruptedException e) {
-                Log.w(TAG, "interrupted: quitting.");
-                mGameState = GameStateStrategy.sQuitState;
-                return;
-            }
-        }
-
-        private void redraw(Player player, Weapon weapon) {
-            // redraw canvas if necessary
-            Canvas canvas = null;
-            try {
-                if (mGraphics.needScreenUpdate()) {
-                    canvas = mSurfaceHolder.lockCanvas(null);
-                    mGameState
-                    mGraphics.drawScreen(canvas);
-                    if (weapon != null) {
-                        mGraphics.drawWeapon(canvas, weapon, player);
-                    }
-                }
-            }
-            finally {
-                if (canvas != null) {
-                    // Don't leave the Surface in an inconsistent state
-                    mSurfaceHolder.unlockCanvasAndPost(canvas);
+                    mGameState.onExit(mPowerSlider, mAngleSlider);
+                    Log.w(TAG, "transitioning from " + 
+                            mGameState.toString() + " to " +
+                            next.toString());
+                    mGameState = next;
                 }
             }
         }
@@ -221,16 +205,15 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
             }
         }
 
-        /** Called when the user presses the fire button.
-         *  Note: must not block in GUI thread */
-        public void onFireButton() {
+        /** Called from GUI thread when the user presses a button. */
+        public void onButton(GameState.GameButton b) {
             synchronized (mUserInputSem) {
-                mGameState.fireButton();
+                mGameState.onButton(b);
             }
         }
 
-        /** Called when the user presses the zoom in button.
-         *  Note: must not block in GUI thread */
+        /** Called from GUI thread when the user presses the 
+         *  zoom in button. */
         public void onZoomIn() {
             synchronized (mUserInputSem) {
                 mGraphics.zoomIn();
@@ -238,8 +221,8 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
             }
         }
 
-        /** Called when the user presses the zoom out button.
-         *  Note: must not block in GUI thread */
+        /** Called from GUI thread when the user presses the 
+         *  zoom out button. */
         public void onZoomOut() {
             synchronized (mUserInputSem) {
                 mGraphics.zoomOut();
@@ -247,30 +230,12 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
             }
         }
 
-        /** Called (from the GUI thread) when the user moves the power
-         * slider */
-        public void onPowerChange(int val) {
-            if (mGameState == GameState.PLAYER_MOVE) {
-                synchronized (mUserInputSem) {
-                    Player curPlayer = mModel.getCurPlayer();
-                    curPlayer.setPower(val);
-                    mGraphics.setNeedScreenRedraw();
-                    mUserInputSem.notify();
-                }
-            }
-        }
-
-        /** Called when the user moves the angle slider
-         *  Note: must not block in GUI thread
-         *  Note: angle is given in degrees and must be converted to radians. */
-        public void onAngleChange(int val) {
-            if (mGameState == GameState.PLAYER_MOVE) {
-                synchronized (mUserInputSem) {
-                    Player curPlayer = mModel.getCurPlayer();
-                    curPlayer.setAngleDeg(val);
-                    mGraphics.setNeedScreenRedraw();
-                    mUserInputSem.notify();
-                }
+        /** Called (from the GUI thread) when the user moves a slider */
+        public void onSliderChange(boolean isPowerSlider, int val) {
+            synchronized (mUserInputSem) {
+                mGameState.onSlider(mModel, isPowerSlider, val);
+                mGraphics.setNeedRedrawAll();
+                mUserInputSem.notify();
             }
         }
 
@@ -430,12 +395,12 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
 
         mPowerAdaptor = new SalvoSlider.Listener() {
             public void onPositionChange(int val) {
-                mThread.onPowerChange(val);
+                mThread.onSliderChange(true, val);
             }
         };
         mAngleAdaptor = new SalvoSlider.Listener() {
             public void onPositionChange(int val) {
-                mThread.onAngleChange(val);
+                mThread.onSliderChange(false, val);
             }
         };
         setFocusable(false); // make sure we get key events

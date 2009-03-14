@@ -72,7 +72,7 @@ public class Graphics {
     private Path mTempPath;
 
     /** true if we need to redraw the whole screen */
-    private boolean mRedrawAll;
+    private boolean mNeedRedrawAll;
 
     private Model mModel;
 
@@ -101,8 +101,8 @@ public class Graphics {
         return mPlayerColors[playerId];
     }
 
-    public boolean needToRedrawAll() {
-        return mRedrawAll;
+    public boolean getNeedRedrawAll() {
+        return mNeedRedrawAll;
     }
 
     /** Give the onscreen coordinate corresponding to x */
@@ -171,33 +171,37 @@ public class Graphics {
         if (newY < 0f)
             newY = 0f;
         if (newX != mV.mViewX || newY != mV.mViewY) {
-            mRedrawAll = true;
+            mNeedRedrawAll = true;
             mV.mViewX = newX;
             mV.mViewY = newY;
         }
     }
 
-    public void setNeedScreenRedraw() {
-        mRedrawAll = true;
+    public void setNeedRedrawAll() {
+        mNeedRedrawAll = true;
+    }
+
+    public void clearNeedRedrawAll() {
+        mNeedRedrawAll = false;
     }
 
     public void setSurfaceSize(int width, int height) {
         mCanvasWidth = width;
         mCanvasHeight = height;
-        mRedrawAll = true;
+        mNeedRedrawAll = true;
         // TODO Properly center, reposition canvas to be in bounds, 
         // possibly zoom in
     }
 
     /** Draws the playing field */
     public void drawScreen(Canvas canvas) {
-        mRedrawAll = false;
+        // Only redraw if we need to
+        if (!mNeedRedrawAll) {
+            return;
+        }
 
-        // Clear canvas
-        mScratchRect.set(0, 0, mCanvasWidth, mCanvasHeight);
-        canvas.drawRect(mScratchRect, mClear);
+        canvas.drawColor(Color.BLACK);
 
-        // Draw the terrain
         float maxX = mV.mViewX + (mCanvasWidth / mV.mZoom);
         float slotWidth = mV.mZoom;
         int firstSlot =
@@ -310,11 +314,11 @@ public class Graphics {
         canvas.drawCircle(x+5*n, y+d+e+h+j, a, thinPaint);
     }
 
-    public void drawTrajectory(Canvas canvas, Player player, boolean all,
+    public void drawTrajectory(Canvas canvas, Player player,
                                 float x[], float y[], short numSamples) {
         Paint paint = mPlayerThickPaint[player.getId()];
         int start;
-        if (all)
+        if (mNeedRedrawAll)
             start = 0;
         else {
             start = numSamples - 2;
@@ -324,7 +328,7 @@ public class Graphics {
 
         float prevX = gameXtoOnscreenX(x[start]);
         float prevY = gameYtoOnscreenY(y[start]);
-        for (i = start + 1; i < numSamples; ++i) {
+        for (int i = start + 1; i < numSamples; ++i) {
             mTempPath.moveTo(prevX, prevY);
             float curX = gameXtoOnscreenX(x[i]);
             float curY = gameYtoOnscreenY(y[i]);
@@ -343,7 +347,7 @@ public class Graphics {
         float newCenterX = getGameCenterX();
         float newCenterY = getGameCenterY();
 
-        mRedrawAll = true;
+        mNeedRedrawAll = true;
         scrollBy(oldCenterX - newCenterX, oldCenterY - newCenterY);
     }
 
@@ -405,7 +409,7 @@ public class Graphics {
         mScratchRect = new RectF(0, 0, 0, 0);
         //Resources res = context.getResources();
 
-        mRedrawAll = false;
+        mNeedRedrawAll = false;
 
         // Set viewX, viewY, zoom
         mV = new ViewSettings(4, 0.5f, 15f);
