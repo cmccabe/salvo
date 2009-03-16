@@ -353,6 +353,7 @@ public interface GameState {
         // his turret...
         public void redraw(Canvas canvas, Model model) {
             Graphics.instance.drawScreen(canvas, model);
+            Graphics.instance.clearNeedRedrawAll();
         }
 
         public HumanMoveState() { }
@@ -371,13 +372,13 @@ public interface GameState {
                             Listener powerAdaptor, Listener angleAdaptor) {
             model.getCurPlayer().fireWeapon();
             Weapon.instance.calculateTrajectory(model);
-            mCurSample = 1;
+            mCurSample = 0;
             // todo: zoom so that start and end points are both visible
         }
 
         public GameState main(Model model) {
             short nextSample = (short)(mCurSample + 1);
-            if (mCurSample > Weapon.instance.getTotalSamples()) {
+            if (nextSample >= Weapon.instance.getTotalSamples()) {
                 return sExplosionState;
             }
             mCurSample = nextSample;
@@ -403,7 +404,7 @@ public interface GameState {
 
         public void redraw(Canvas canvas, Model model) {
             Graphics gfx = Graphics.instance;
-            //gfx.setNeedRedrawAll();
+            gfx.setNeedRedrawAll();
             gfx.drawScreen(canvas, model);
             gfx.drawTrajectory(canvas, model.getCurPlayer(), mCurSample);
             gfx.clearNeedRedrawAll();

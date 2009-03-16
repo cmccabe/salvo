@@ -321,21 +321,17 @@ public enum Graphics {
         int start;
         if (mNeedRedrawAll)
             start = 0;
-        else {
+        else
             start = curSample - 1;
-            if (start < 0)
-                return;
-        }
 
         float prevX = gameXtoOnscreenX(x[start]);
         float prevY = gameYtoOnscreenY(y[start]);
+        Log.w(TAG, "prevX = " + prevX + ", prevY = " + prevY);
         for (int i = start + 1; i <= curSample; ++i) {
-            mTempPath.moveTo(prevX, prevY);
             float curX = gameXtoOnscreenX(x[i]);
             float curY = gameYtoOnscreenY(y[i]);
-            mTempPath.lineTo(curX, curY);
-            canvas.drawPath(mTempPath, paint);
-            mTempPath.rewind();
+            Log.w(TAG, "curX = " + curX + ", curY = " + curY);
+            canvas.drawLine(prevX, prevY, curX, curY, paint);
             prevX = curX;
             prevY = curY;
         }

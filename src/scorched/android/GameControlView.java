@@ -356,7 +356,7 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
         super(context, attrs);
 
         // Try to get hardware acceleration
-        /*try {
+        try {
             getHolder().setType(
                 android.view.SurfaceHolder.SURFACE_TYPE_HARDWARE);
             Log.w(TAG, "GameControlView: activated hardware acceleration");
@@ -365,7 +365,7 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
             getHolder().setType(
                 android.view.SurfaceHolder.SURFACE_TYPE_NORMAL);
             Log.w(TAG, "GameControlView: no acceleration");
-        }*/
+        }
     }
 
     public void initialize(Model model,

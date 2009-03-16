@@ -26,7 +26,8 @@ public enum Weapon
 
     /*================= Static =================*/
     /** Returns the distance squared between two points */
-    static float distanceSquared(float x1, float y1, float x2, float y2) {
+    private static float distanceSquared(float x1, float y1,
+                                         float x2, float y2) {
         float x = (x1 - x2);
         float y = (y1 - y2);
         return (x * x) + (y * y);
@@ -56,7 +57,8 @@ public enum Weapon
         return mTotalSamples;
     }
 
-    /** Returns true if the x, y coordinates given are inside the earth */
+    /** Returns true if the x, y coordinates of x[index], y[index] 
+     *  are inside the earth */
     private boolean testCollision(Model model, int index) {
         float x = mX[index];
         float y = mY[index];
@@ -79,18 +81,15 @@ public enum Weapon
     public void calculateTrajectory(Model model) {
         float x = mX[0];
         float y = mY[0];
+        short index;
         mTotalCalculations = 0;
-        mTotalSamples = MAX_SAMPLES;
-        for (short index = 0; index < MAX_SAMPLES; index++) {
-            if (testCollision(model, index)) {
-                mTotalSamples = index;
+        for (index = 0; index < MAX_SAMPLES - 1; index++) {
+            if (testCollision(model, index))
                 break;
-            }
-            if (!getNextCoords(index)) {
-                mTotalSamples = index;
+            if (!getNextCoords(index))
                 break;
-            }
         }
+        mTotalSamples = (short)(index + 1);
     }
 
     /** Gets the next coordinates for mX and mY.
@@ -116,8 +115,8 @@ public enum Weapon
             if (distanceSquared(x, y, prevX, prevY) > MIN_UPDATE_DIST_SQ) {
                 mX[index + 1] = x;
                 mY[index + 1] = y;
-                Log.w(TAG, "setting mX[" + index + "] = " + x);
-                Log.w(TAG, "setting mY[" + index + "] = " + y);
+                Log.w(TAG, "setting mX[" + (index + 1) + "] = " + x + ", " +
+                                   "mY[" + (index + 1) + "] = " + y);
                 return true;
             }
             mTotalCalculations++;
