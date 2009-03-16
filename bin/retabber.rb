@@ -7,6 +7,7 @@ Find.find(".") do |path|
   next unless File.file?(path)
   if (path =~ /.java$/) then
     file = File.new(path, "r")
+    found_problems = false
     while (line = file.gets)
       line.chomp!
       if (line =~ /\t/) then
@@ -21,6 +22,7 @@ Find.find(".") do |path|
       lines << line
     end
     if (found_problems) then
+      puts path
       file = File.new(path, "w")
       lines.each do |l|
         file.puts l
