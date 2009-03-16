@@ -98,7 +98,7 @@ public class Model {
         return mCurPlayerId;
     }
 
-    /** Sets mCurPlayerId to the next valid player id-- or to 
+    /** Sets mCurPlayerId to the next valid player id-- or to
      * INVALID_PLAYER_ID if there are none. */
     public void nextPlayer() {
         int oldPlayer = mCurPlayerId;

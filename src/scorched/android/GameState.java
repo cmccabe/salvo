@@ -32,7 +32,7 @@ public interface GameState {
                         Graphics graphics);
 
     /** The function that will be executed for this state in the main event
-     *  loop. 
+     *  loop.
      *
      * @return          the next state, or null if we want to stay in this
      *                  state
@@ -42,10 +42,10 @@ public interface GameState {
     public GameState main(Model model);
 
     /** Called when we exit the state.
-     *  
+     *
      * Under MainThread lock
      */
-    public void onExit(SalvoSlider powerSlider, 
+    public void onExit(SalvoSlider powerSlider,
                        SalvoSlider angleSlider);
 
     /** Returns the minimum of time that should elapse between calls to
@@ -73,34 +73,34 @@ public interface GameState {
       *
       * Under MainThread lock
       */
-    public void redraw(Canvas canvas, Model model, 
+    public void redraw(Canvas canvas, Model model,
                        Graphics gfx);
 
     /*================= Game States =================*/
     //         +-------------------------+        no more rounds left
     //         | LeaderboardState        |--------------> game over
-    //  force  |                         |              
-    //  draw   | show the leaderboard    |<---------+   
-    //  -----> |                         |          |   
-    //         +-------------------------+          |   
-    //                     | next round button      |   
-    //                     V                        |   
-    //         +------------------------------+     |   
-    //  new    | BuyWeaponsState              |     |         
-    //  game   |                              |     |        
+    //  force  |                         |
+    //  draw   | show the leaderboard    |<---------+
+    //  -----> |                         |          |
+    //         +-------------------------+          |
+    //                     | next round button      |
+    //                     V                        |
+    //         +------------------------------+     |
+    //  new    | BuyWeaponsState              |     |
+    //  game   |                              |     |
     //  -----> | allow humans to buy          |     |
     //         | weapons (1 at a time)        |     |
-    //         | (comps buy too, silently)    |     |        
-    //         +------------------------------+     |   
+    //         | (comps buy too, silently)    |     |
+    //         +------------------------------+     |
     //                     |                        |
     //                     V                        |
-    //         +------------------------------+     |   
-    //         | TurnStartState               |     |         
+    //         +------------------------------+     |
+    //         | TurnStartState               |     |
     //         |                              |     | No more valid players
     //   +---->| find next valid player       |-----+
     //   |     | (if any)                     |
-    //   |  +->|                              |-----+             
-    //   |  |  +------------------------------+     |   
+    //   |  +->|                              |-----+
+    //   |  |  +------------------------------+     |
     //   |  |              | next player is human   | next player is AI
     //   |  |              V                        V
     //   |  |  +------------------------------+  +------------------------+
@@ -112,13 +112,13 @@ public interface GameState {
     //   |  up +------------------------------+  +------------------------+
     //   |                 |                        |
     //   |                 V                        |
-    //   |     +------------------------------+     |   
-    //   |     | Ballistics                   |     |         
-    //   |     |                              |<----+        
+    //   |     +------------------------------+     |
+    //   |     | Ballistics                   |     |
+    //   |     |                              |<----+
     //   |     | display missles flying       |
     //   |     | through the air              |
-    //   |     |                              |              
-    //   |     +------------------------------+         
+    //   |     |                              |
+    //   |     +------------------------------+
     //   |                 |
     //   |                 V
     //   |     +------------------------------+
@@ -126,8 +126,8 @@ public interface GameState {
     //   |     |                              |
     //   |     | display explosion            |
     //   |     | mutate terrain               |
-    //   |     |                              |              
-    //   |     +------------------------------+         
+    //   |     |                              |
+    //   |     +------------------------------+
     //   |                 |
     //   +-----------------+
     //
@@ -142,7 +142,7 @@ public interface GameState {
                             SalvoSlider powerSlider, SalvoSlider angleSlider,
                             Listener powerAdaptor, Listener angleAdaptor,
                             Graphics graphics) {
-            mFinished = false; 
+            mFinished = false;
 
             // TODO: give a reward to the 'surviving' player
             // use: int newPlayer = model.getCurPlayerId();, etc.
@@ -155,7 +155,7 @@ public interface GameState {
             return (mFinished) ? sBuyWeaponsState : null;
         }
 
-        public void onExit(SalvoSlider powerSlider, 
+        public void onExit(SalvoSlider powerSlider,
                            SalvoSlider angleSlider) { }
 
         public int getBlockingDelay() {
@@ -171,7 +171,7 @@ public interface GameState {
 
         public boolean needRedraw(Graphics graphics) { return false; }
 
-        public void redraw(Canvas canvas, Model model, 
+        public void redraw(Canvas canvas, Model model,
                            Graphics gfx) { }
 
         public LeaderboardState() { }
@@ -198,7 +198,7 @@ public interface GameState {
             return (mFinished) ? sBuyWeaponsState : null;
         }
 
-        public void onExit(SalvoSlider powerSlider, 
+        public void onExit(SalvoSlider powerSlider,
                            SalvoSlider angleSlider) {
             // TODO: implement game layout
             // TODO: implement game menus
@@ -208,7 +208,7 @@ public interface GameState {
             return 0;
         }
 
-        public void onButton(GameState.GameButton b) { 
+        public void onButton(GameState.GameButton b) {
             if (b == GameButton.DONE)
                 mFinished = true;
         }
@@ -217,11 +217,11 @@ public interface GameState {
 
         public boolean needRedraw(Graphics graphics) { return false; }
 
-        public void redraw(Canvas canvas, Model model, 
+        public void redraw(Canvas canvas, Model model,
                            Graphics gfx) { }
 
         public BuyWeaponsState() { }
-        
+
         private boolean mFinished;
     }
 
@@ -254,7 +254,7 @@ public interface GameState {
             return curPlayer.getGameState();
         }
 
-        public void onExit(SalvoSlider powerSlider, 
+        public void onExit(SalvoSlider powerSlider,
                            SalvoSlider angleSlider) { }
 
         public int getBlockingDelay() {
@@ -267,7 +267,7 @@ public interface GameState {
 
         public boolean needRedraw(Graphics graphics) { return false; }
 
-        public void redraw(Canvas canvas, Model model, 
+        public void redraw(Canvas canvas, Model model,
                            Graphics gfx) { }
 
         public TurnStartState() { }
@@ -286,13 +286,13 @@ public interface GameState {
                             Graphics graphics)
         {
             mFired = false;
-            
+
             // Activate sliders
             // TODO: look up sliders by layout
             Player curPlayer = model.getCurPlayer();
             int myColor = graphics.getPlayerColor(curPlayer.getId());
-            
-            powerSlider.setState(SalvoSlider.SliderState.BAR, 
+
+            powerSlider.setState(SalvoSlider.SliderState.BAR,
                         powerAdaptor,
                         Player.MIN_POWER, Player.MAX_POWER,
                         curPlayer.getPower(),
@@ -308,11 +308,11 @@ public interface GameState {
             return (mFired) ? sBallisticsState : null;
         }
 
-        public void onExit(SalvoSlider powerSlider, 
+        public void onExit(SalvoSlider powerSlider,
                            SalvoSlider angleSlider) {
             // Deactivate sliders
             // TODO: look up sliders by layout
-            powerSlider.setState(SalvoSlider.SliderState.DISABLED, 
+            powerSlider.setState(SalvoSlider.SliderState.DISABLED,
                         null, 0, 0, 0, 0);
             angleSlider.setState(SalvoSlider.SliderState.DISABLED,
                         null, 0, 0, 0, 0);
@@ -379,7 +379,7 @@ public interface GameState {
                             Graphics graphics) {
             mNumSamples = 0;
             mCurSample = 0;
-            w.calculateTrajectory(model, mX, mY);
+            //w.calculateTrajectory(model, mX, mY);
         }
 
         public GameState main(Model model) {
@@ -392,7 +392,7 @@ public interface GameState {
             return null;
         }
 
-        public void onExit(SalvoSlider powerSlider, 
+        public void onExit(SalvoSlider powerSlider,
                            SalvoSlider angleSlider) {
         }
 
@@ -402,16 +402,16 @@ public interface GameState {
 
         public void onButton(GameButton b) { }
 
-        public void onSlider(Model model, boolean isPowerSlider, int val) { } 
+        public void onSlider(Model model, boolean isPowerSlider, int val) { }
 
         public boolean needRedraw(Graphics graphics) {
             return true;
         }
 
-        public void redraw(Canvas canvas, Model model, 
+        public void redraw(Canvas canvas, Model model,
                            Graphics gfx) {
             gfx.drawScreen(canvas);
-            gfx.drawTrajectory(canvas, model.getCurPlayer(), 
+            gfx.drawTrajectory(canvas, model.getCurPlayer(),
                                mX, mY, mCurSample);
             gfx.clearNeedRedrawAll();
         }
@@ -446,7 +446,7 @@ public interface GameState {
             return sTurnStartState;
         }
 
-        public void onExit(SalvoSlider powerSlider, 
+        public void onExit(SalvoSlider powerSlider,
                            SalvoSlider angleSlider) { }
 
         public int getBlockingDelay() {
@@ -461,10 +461,10 @@ public interface GameState {
             return true;
         }
 
-        public void redraw(Canvas canvas, Model model, 
+        public void redraw(Canvas canvas, Model model,
                            Graphics gfx) {
             gfx.drawScreen(canvas);
-            //gfx.drawExplosion(canvas, model.getCurPlayer(), 
+            //gfx.drawExplosion(canvas, model.getCurPlayer(),
             //                   mX, mY, mCurSample);
             gfx.clearNeedRedrawAll();
         }

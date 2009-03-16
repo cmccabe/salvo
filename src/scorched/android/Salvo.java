@@ -26,7 +26,7 @@ public class Salvo extends Activity {
     /**
      * Invoked when the Activity is created.
      *
-     * @param savedInstanceState a Bundle containing state saved from a 
+     * @param savedInstanceState a Bundle containing state saved from a
      *        previous execution, or null if this is a new execution
      */
     @Override
@@ -37,7 +37,7 @@ public class Salvo extends Activity {
         setContentView(R.layout.title);
 
         ////////////////// Get pointers to stuff
-        final ImageView myImage = 
+        final ImageView myImage =
             (ImageView)findViewById(R.id.title_picture);
         final Button newGame = (Button)findViewById(R.id.new_game);
         final Button about = (Button)findViewById(R.id.about);
@@ -47,10 +47,10 @@ public class Salvo extends Activity {
         ////////////////// Initialize stuff
         final Activity titleActivity = this;
         newGame.setOnClickListener(new OnClickListener() {
-        	public void onClick(View arg0) {
-            	Intent setupIntent = new Intent().
+            public void onClick(View arg0) {
+                Intent setupIntent = new Intent().
                     setClass(titleActivity, GameSetupActivity.class);
-                startActivity(setupIntent); 
+                startActivity(setupIntent);
             }
         });
     }

@@ -22,7 +22,7 @@ public class Graphics {
 
     /*================= Types =================*/
     static public class ViewSettings implements Cloneable {
-        /** The zoom factor (axes are each multiplied by this when we 
+        /** The zoom factor (axes are each multiplied by this when we
          *  zoom in) */
         public static final float ZOOM_FACTOR = 2f;
 
@@ -159,12 +159,12 @@ public class Graphics {
         float MaxX = Model.MAX_X - 2;
         if (newRight > MaxX)
             newX = MaxX - (mCanvasWidth / mV.mZoom);
-        float MaxY = Model.MAX_ELEVATION + 
+        float MaxY = Model.MAX_ELEVATION +
             2*(Model.PLAYER_SIZE + Model.TURRET_LENGTH);
         if (newTop > MaxY)
             newY = MaxY - (mCanvasHeight / mV.mZoom);
 
-        // We never want to scroll the game below the bottom edge, so 
+        // We never want to scroll the game below the bottom edge, so
         // after doing the above check, we do the below check
         if (newX < 0f)
             newX = 0f;
@@ -189,7 +189,7 @@ public class Graphics {
         mCanvasWidth = width;
         mCanvasHeight = height;
         mNeedRedrawAll = true;
-        // TODO Properly center, reposition canvas to be in bounds, 
+        // TODO Properly center, reposition canvas to be in bounds,
         // possibly zoom in
     }
 

@@ -146,7 +146,7 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
                             }
                             finally {
                                 if (canvas != null) {
-                                    // Don't leave the Surface in an 
+                                    // Don't leave the Surface in an
                                     // inconsistent state
                                     mSurfaceHolder.
                                         unlockCanvasAndPost(canvas);
@@ -169,7 +169,7 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
                         }
                     }
                     mGameState.onExit(mPowerSlider, mAngleSlider);
-                    Log.w(TAG, "transitioning from " + 
+                    Log.w(TAG, "transitioning from " +
                             mGameState.toString() + " to " +
                             next.toString());
                     mGameState = next;
@@ -212,7 +212,7 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
             }
         }
 
-        /** Called from GUI thread when the user presses the 
+        /** Called from GUI thread when the user presses the
          *  zoom in button. */
         public void onZoomIn() {
             synchronized (mUserInputSem) {
@@ -221,7 +221,7 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
             }
         }
 
-        /** Called from GUI thread when the user presses the 
+        /** Called from GUI thread when the user presses the
          *  zoom out button. */
         public void onZoomOut() {
             synchronized (mUserInputSem) {

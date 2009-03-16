@@ -28,17 +28,17 @@ public class GameSetupActivity extends Activity {
         ////////////////// Initialize stuff
         final Activity titleActivity = this;
         startGame.setOnClickListener(new OnClickListener() {
-        	public void onClick(View arg0) {
-            	Intent setupIntent =
-            		new Intent().setClass(titleActivity, RunGameActivity.class);
-            	    startActivity(setupIntent); 
+            public void onClick(View arg0) {
+                Intent setupIntent =
+                    new Intent().setClass(titleActivity, RunGameActivity.class);
+                    startActivity(setupIntent);
             }
         });
     }
 
     @Override
     protected void onPause() {
-    	super.onPause();
+        super.onPause();
     }
 
     @Override
@@ -52,24 +52,24 @@ public class GameSetupActivity extends Activity {
 //
 //public class Calc extends Activity {
 //public static final String PREFS_NAME = "MyPrefsFile";
-//    . . .      
+//    . . .
 //
 //    @Override
-//    protected void onCreate(Bundle state){         
+//    protected void onCreate(Bundle state){
 //       super.onCreate(state);
-//    
+//
 //    . . .
-//    
+//
 //       // Restore preferences
 //       SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
 //       boolean silent = settings.getBoolean("silentMode", false);
 //       setSilent(silent);
 //    }
-//    
+//
 //    @Override
 //    protected void onStop(){
 //       super.onStop();
-//    
+//
 //      // Save user preferences. We need an Editor object to
 //      // make changes. All objects are from android.context.Context
 //      SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);

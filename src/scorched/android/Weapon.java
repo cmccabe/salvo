@@ -83,7 +83,7 @@ public class Weapon
     /*================= Operations =================*/
     /** Calculate the trajectory of this weapon */
     public void calculateTrajectory(Model model, float x[], float y[]) {
-        
+
     }
 
     /** Move the projectile forward. */
