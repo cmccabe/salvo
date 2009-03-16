@@ -79,16 +79,13 @@ public class Player {
         return GameState.sHumanMoveState;
     }
 
-    public Weapon getWeapon() {
-        // Eventually this will return the specific type of weapon you
-        // have selected.
-        // It might be even better to cache the Weapon instance in Player
-        // to avoid making another allocation.
+    /** Initialize the Weapon singleton with what we're firing */
+    public void fireWeapon() {
         float dx = (float)Math.cos(mAngleRad);
         dx = (dx * mPower) / 10000.0f;
         float dy = (float)Math.sin(mAngleRad);
         dy = (dy * mPower) / 10000.0f;
-        return new Weapon(getTurretX(), getTurretY(), dx, dy);
+        Weapon.instance.initialize(getTurretX(), getTurretY(), dx, dy);
     }
 
     /** Return a float representing the X position of the end of the

@@ -18,7 +18,7 @@ import android.view.SurfaceView;
  * Controller for the Scorched Android game.
  *
  * GameControlView gets input from the user, as well as events from other
- * parts of the system, and presents them to mGraphics and mModel.
+ * parts of the system, and presents them to Graphics and mModel.
  */
 class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
     /*================= Constants =================*/
@@ -39,9 +39,6 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
 
         /** Indicate whether or not the game is paused */
         private boolean mPaused = false;
-
-        /** Pointer to the view */
-        public Graphics mGraphics = null;
 
         /** Handle to the surface manager object we interact with */
         private SurfaceHolder mSurfaceHolder;
@@ -69,14 +66,12 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
         /** Last Y coordinate the user touched (in game coordinates) */
         private float mTouchY;
 
-        public ScorchedThread(Graphics graphics,
-                            SurfaceHolder surfaceHolder,
+        public ScorchedThread(SurfaceHolder surfaceHolder,
                             Context context,
                             Handler handler,
                             SalvoSlider powerSlider,
                             SalvoSlider angleSlider) {
             mGameState = null;
-            mGraphics = graphics;
             mSurfaceHolder = surfaceHolder;
             mContext = context;
             mHandler = handler;
@@ -99,7 +94,7 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
         /* Callback invoked when the surface dimensions change. */
         public void setSurfaceSize(int width, int height) {
             synchronized (mUserInputSem) {
-                mGraphics.setSurfaceSize(width, height);
+                Graphics.instance.setSurfaceSize(width, height);
                 mUserInputSem.notify();
             }
         }
@@ -130,19 +125,18 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
                 while (true) {
                     mGameState.onEnter(mModel,
                                     mPowerSlider, mAngleSlider,
-                                    mPowerAdaptor, mAngleAdaptor,
-                                    mGraphics);
+                                    mPowerAdaptor, mAngleAdaptor);
                     GameState next = null;
                     while (true) {
                         next = mGameState.main(mModel);
                         if (next != null)
                             break;
                         // redraw whatever needs to be redrawn
-                        if (mGameState.needRedraw(mGraphics)) {
+                        if (mGameState.needRedraw()) {
                             Canvas canvas = null;
                             try {
                                 canvas = mSurfaceHolder.lockCanvas(null);
-                                mGameState.redraw(canvas, mModel, mGraphics);
+                                mGameState.redraw(canvas, mModel);
                             }
                             finally {
                                 if (canvas != null) {
@@ -209,6 +203,7 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
         public void onButton(GameState.GameButton b) {
             synchronized (mUserInputSem) {
                 mGameState.onButton(b);
+                mUserInputSem.notify();
             }
         }
 
@@ -216,7 +211,7 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
          *  zoom in button. */
         public void onZoomIn() {
             synchronized (mUserInputSem) {
-                mGraphics.zoomIn();
+                Graphics.instance.zoomIn();
                 mUserInputSem.notify();
             }
         }
@@ -225,7 +220,7 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
          *  zoom out button. */
         public void onZoomOut() {
             synchronized (mUserInputSem) {
-                mGraphics.zoomOut();
+                Graphics.instance.zoomOut();
                 mUserInputSem.notify();
             }
         }
@@ -234,7 +229,7 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
         public void onSliderChange(boolean isPowerSlider, int val) {
             synchronized (mUserInputSem) {
                 mGameState.onSlider(mModel, isPowerSlider, val);
-                mGraphics.setNeedRedrawAll();
+                Graphics.instance.setNeedRedrawAll();
                 mUserInputSem.notify();
             }
         }
@@ -248,19 +243,20 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
                     (action == MotionEvent.ACTION_MOVE) ||
                     (action == MotionEvent.ACTION_UP))
                 {
+                    Graphics gfx = Graphics.instance;
                     if (mTouchViewSettings == null) {
-                        mTouchViewSettings = mGraphics.getViewSettings();
-                        mTouchX = mGraphics.onscreenXtoGameX(me.getX(),
-                                    mTouchViewSettings);
-                        mTouchY = mGraphics.onscreenYtoGameY(me.getY(),
-                                    mTouchViewSettings);
+                        mTouchViewSettings = gfx.getViewSettings();
+                        mTouchX = gfx.onscreenXtoGameX
+                                    (me.getX(), mTouchViewSettings);
+                        mTouchY = gfx.onscreenYtoGameY
+                                    (me.getY(), mTouchViewSettings);
                     }
                     else {
-                        float x = mGraphics.onscreenXtoGameX
-                            (me.getX(), mTouchViewSettings);
-                        float y = mGraphics.onscreenYtoGameY
-                            (me.getY(), mTouchViewSettings);
-                        mGraphics.scrollBy(mTouchX - x, -(mTouchY - y));
+                        float x = gfx.onscreenXtoGameX
+                                    (me.getX(), mTouchViewSettings);
+                        float y = gfx.onscreenYtoGameY
+                                    (me.getY(), mTouchViewSettings);
+                        gfx.scrollBy(mTouchX - x, -(mTouchY - y));
                         notify = true;
                         mTouchX = x;
                         mTouchY = y;
@@ -372,8 +368,8 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
         }*/
     }
 
-    public void initialize(Model model, Graphics graphics,
-                            SalvoSlider powerSlider, SalvoSlider angleSlider)
+    public void initialize(Model model,
+                        SalvoSlider powerSlider, SalvoSlider angleSlider)
     {
         mModel = model;
 
@@ -382,7 +378,7 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
         holder.addCallback(this);
 
         // Create game controller thread
-        mThread = new ScorchedThread(graphics, holder, getContext(),
+        mThread = new ScorchedThread(holder, getContext(),
             new Handler() {
                 @Override
                 public void handleMessage(Message m) {

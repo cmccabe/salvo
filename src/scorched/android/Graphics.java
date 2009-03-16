@@ -16,9 +16,11 @@ import android.util.Log;
  * This class doesn't know anything about locking. It is up to the caller to
  * ensure that everything is protected properly.
  */
-public class Graphics {
+public enum Graphics {
+    instance;
+
     /*================= Constants =================*/
-    private final String TAG = "Graphics";
+    private final static String TAG = "Graphics";
 
     /*================= Types =================*/
     static public class ViewSettings implements Cloneable {
@@ -61,7 +63,7 @@ public class Graphics {
     private Paint mClear, mTerrainPaint;
 
     /** Player colors */
-    int mPlayerColors[];
+    private int mPlayerColors[];
 
     /** Thin paint to draw the players */
     private Paint mPlayerThinPaint[];
@@ -73,10 +75,6 @@ public class Graphics {
 
     /** true if we need to redraw the whole screen */
     private boolean mNeedRedrawAll;
-
-    private Model mModel;
-
-    private Context mContext;
 
     private ViewSettings mV;
 
@@ -194,7 +192,7 @@ public class Graphics {
     }
 
     /** Draws the playing field */
-    public void drawScreen(Canvas canvas) {
+    public void drawScreen(Canvas canvas, Model model) {
         // Only redraw if we need to
         if (!mNeedRedrawAll) {
             return;
@@ -209,7 +207,7 @@ public class Graphics {
         int lastSlot =
             boundaryCheckDrawSlot(roundDownToMultipleOfTwo(maxX) + 2);
         float x = gameXtoOnscreenX(firstSlot);
-        float h[] = mModel.getHeights();
+        float h[] = model.getHeights();
         for (int i = firstSlot; i < lastSlot; i += 2) {
             mTempPath.moveTo(x, gameYtoOnscreenY(h[i]));
             mTempPath.quadTo(x + slotWidth, gameYtoOnscreenY(h[i+1]),
@@ -219,11 +217,11 @@ public class Graphics {
             canvas.drawPath(mTempPath, mTerrainPaint);
             mTempPath.rewind();
 
-            Player p1 = mModel.slotToPlayer(i);
+            Player p1 = model.slotToPlayer(i);
             if (p1 != null) {
                 drawPlayer(canvas, p1);
             }
-            Player p2 = mModel.slotToPlayer(i+1);
+            Player p2 = model.slotToPlayer(i+1);
             if (p2 != null ) {
                 drawPlayer(canvas, p2);
             }
@@ -315,20 +313,23 @@ public class Graphics {
     }
 
     public void drawTrajectory(Canvas canvas, Player player,
-                                float x[], float y[], short numSamples) {
-        Paint paint = mPlayerThickPaint[player.getId()];
+                                short curSample) {
+        final float x[] = Weapon.instance.getX();
+        final float y[] = Weapon.instance.getY();
+
+        final Paint paint = mPlayerThickPaint[player.getId()];
         int start;
         if (mNeedRedrawAll)
             start = 0;
         else {
-            start = numSamples - 2;
+            start = curSample - 1;
             if (start < 0)
                 return;
         }
 
         float prevX = gameXtoOnscreenX(x[start]);
         float prevY = gameYtoOnscreenY(y[start]);
-        for (int i = start + 1; i < numSamples; ++i) {
+        for (int i = start + 1; i <= curSample; ++i) {
             mTempPath.moveTo(prevX, prevY);
             float curX = gameXtoOnscreenX(x[i]);
             float curY = gameYtoOnscreenY(y[i]);
@@ -368,10 +369,11 @@ public class Graphics {
     }
 
     /*================= Lifecycle =================*/
-    public Graphics(Context context, Model model) {
-        mContext = context;
-        mModel = model;
-
+    /** Initialize the Graphics singleton.
+     * NOTE: absolutely do not hold on to a reference to the Context, or
+     *       else you will leak memory.
+     */
+    public void initialize(Context context) {
         // Load Paints
         mClear = new Paint();
         mClear.setAntiAlias(false);
@@ -382,7 +384,7 @@ public class Graphics {
         mTerrainPaint.setARGB(255, 0, 255, 0);
 
         // get player colors
-        String playerColorStr[] = mContext.getResources().
+        String playerColorStr[] = context.getResources().
                     getStringArray(R.array.player_colors);
         mPlayerColors = new int[playerColorStr.length];
         for (int i = 0; i < playerColorStr.length; ++i) {

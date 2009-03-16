@@ -19,7 +19,6 @@ public class RunGameActivity extends Activity {
     /*================= Data =================*/
     private GameControlView mGameControl;
     private Model mModel;
-    private Graphics mGraphics;
 
     /*================= Utility =================*/
 
@@ -41,7 +40,7 @@ public class RunGameActivity extends Activity {
         players[3] = new ComputerPlayer(3);
         players[4] = new LocalHumanPlayer(4);
         mModel = new Model(players);
-        mGraphics = new Graphics(getBaseContext(), mModel);
+        Graphics.instance.initialize(getBaseContext());
 
         ////////////////// setContentView
         requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -61,7 +60,7 @@ public class RunGameActivity extends Activity {
         final ZoomButton zoomOut = (ZoomButton)findViewById(R.id.ZoomOut);
 
         ////////////////// Initialize stuff
-        mGameControl.initialize(mModel, mGraphics, powerSlider, angleSlider);
+        mGameControl.initialize(mModel, powerSlider, angleSlider);
         fireButton.setOnClickListener(new OnClickListener() {
             public void onClick(View arg0) {
                 mGameControl.getThread().onButton(GameState.GameButton.FIRE);

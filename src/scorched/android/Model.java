@@ -105,7 +105,7 @@ public class Model {
         int player = mCurPlayerId + 1;
 
         while (true) {
-            if (player > mPlayers.length) {
+            if (player >= mPlayers.length) {
                 if (oldPlayer == Player.INVALID_PLAYER_ID) {
                     // We searched the whole array and didn't find any valid
                     // players.
