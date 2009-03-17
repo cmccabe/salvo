@@ -144,29 +144,31 @@ public enum Graphics {
         return mV.mViewY + (mCanvasHeight /  mV.mZoom);
     }
 
-    public ViewSettings getEnclosingViewSettings(float x1, float y1,
-                                                 float x2, float y2) {
+    public void getEnclosingViewSettings(
+    		float x1, float y1, float x2, float y2,
+            float slop, ViewSettings out) {
         float xMin, xMax, yMin, yMax;
         if (x1 < x2) {
-            xMin = x1;
-            xMax = x2;
+            xMin = x1 - slop;
+            xMax = x2 + slop;
         }
         else {
-            xMin = x2;
-            xMax = x1;
+            xMin = x2 - slop;
+            xMax = x1 + slop;
         }
         if (y1 < y2) {
-               yMin = y1;
-            yMax = y2;
+            yMin = y1 - slop;
+            yMax = y2 + slop;
         }
         else {
-            yMin = y2;
-            yMax = y1;
+            yMin = y2 - slop;
+            yMax = y1 + slop;
         }
         float yZ = mCanvasHeight / (yMax - yMin);
         float xZ = mCanvasWidth / (xMax - xMin);
-        return new ViewSettings(xMin, yMin,
-                                (yZ > xZ) ? xZ : yZ);
+        out.mViewX = xMin;
+        out.mViewY = yMin;
+        out.mZoom = (yZ > xZ) ? xZ : yZ;
     }
 
     public ViewSettings getViewSettings() {
@@ -351,9 +353,6 @@ public enum Graphics {
 
         final Paint paint = mPlayerThickPaint[player.getId()];
 
-//        float prevX = gameXtoOnscreenX(x[start]);
-//        float prevY = gameYtoOnscreenY(y[start]);
-        //Log.w(TAG, "prevX = " + prevX + ", prevY = " + prevY);
         sTrajTemp[0] = gameXtoOnscreenX(x[0]);
         sTrajTemp[1] = gameYtoOnscreenY(y[0]);
         int i = 2;

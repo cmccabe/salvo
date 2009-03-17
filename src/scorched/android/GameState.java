@@ -379,9 +379,10 @@ public interface GameState {
             float x[] = wpn.getX();
             float y[] = wpn.getY();
             int total = wpn.getTotalSamples();
-            Graphics.ViewSettings v =
-                gfx.getEnclosingViewSettings(x[0], y[0], x[total-1], y[total-1]);
-            gfx.setViewSettings(v);
+            gfx.getEnclosingViewSettings(
+            		x[0], y[0], x[total-1], y[total-1], 1,
+            		mViewSettingsTemp);
+            gfx.setViewSettings(mViewSettingsTemp);
             mCurSample = 0;
             // todo: zoom so that start and end points are both visible
         }
@@ -421,8 +422,11 @@ public interface GameState {
         }
 
         public BallisticsState() {
+        	mViewSettingsTemp = new Graphics.ViewSettings(0,0,0);
         }
 
+        Graphics.ViewSettings mViewSettingsTemp;
+        
         short mCurSample;
     }
 
