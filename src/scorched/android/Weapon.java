@@ -1,16 +1,11 @@
 package scorched.android;
 
-import java.util.Iterator;
-import java.util.Stack;
-
-import android.util.Log;
-
 public enum Weapon
 {
     instance;
 
     /*================= Constants =================*/
-    private final static String TAG = "Weapon";
+    //private final static String TAG = "Weapon";
 
     /** The maximum number of samples we can store in our trajectory */
     public final static int MAX_SAMPLES = 500;

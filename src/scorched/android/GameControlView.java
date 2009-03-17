@@ -2,8 +2,6 @@ package scorched.android;
 
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -50,21 +48,11 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
         /** Message handler used by thread to interact with TextView */
         private Handler mHandler;
 
-        /** The zoom, pan settings that were in effect when the user started
-         * pressing on the screen */
-        private Graphics.ViewSettings mTouchViewSettings;
-
         /** The slider representing power */
         private SalvoSlider mPowerSlider;
 
         /** The slider representing angle */
         private SalvoSlider mAngleSlider;
-
-        /** Last X coordinate the user touched (in game coordinates) */
-        private float mTouchX;
-
-        /** Last Y coordinate the user touched (in game coordinates) */
-        private float mTouchY;
 
         public ScorchedThread(SurfaceHolder surfaceHolder,
                             Context context,
@@ -75,7 +63,6 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
             mSurfaceHolder = surfaceHolder;
             mContext = context;
             mHandler = handler;
-            mTouchViewSettings = null;
             mPowerSlider = powerSlider;
             mAngleSlider = angleSlider;
         }
@@ -199,80 +186,33 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
             }
         }
 
-        /** Called from GUI thread when the user presses a button. */
+        /** Called from GUI thread when the user presses a button.
+         */
         public void onButton(GameState.GameButton b) {
             synchronized (mUserInputSem) {
-                mGameState.onButton(b);
-                mUserInputSem.notify();
+                if (mGameState.onButton(b))
+                    mUserInputSem.notify();
             }
         }
 
-        /** Called from GUI thread when the user presses the
-         *  zoom in button. */
-        public void onZoomIn() {
-            synchronized (mUserInputSem) {
-                Graphics.instance.zoomIn();
-                mUserInputSem.notify();
-            }
-        }
-
-        /** Called from GUI thread when the user presses the
-         *  zoom out button. */
-        public void onZoomOut() {
-            synchronized (mUserInputSem) {
-                Graphics.instance.zoomOut();
-                mUserInputSem.notify();
-            }
-        }
-
-        /** Called (from the GUI thread) when the user moves a slider */
+        /** Called (from the GUI thread) when the user moves a slider
+         */
         public void onSliderChange(boolean isPowerSlider, int val) {
             synchronized (mUserInputSem) {
-                mGameState.onSlider(mModel, isPowerSlider, val);
-                Graphics.instance.setNeedRedrawAll();
-                mUserInputSem.notify();
+                if (mGameState.onSlider(mModel, isPowerSlider, val))
+                    mUserInputSem.notify();
             }
         }
 
         /** Handles a touchscreen event */
         public boolean onTouchEvent(MotionEvent me) {
-            int action = me.getAction();
-            boolean notify = false;
             synchronized (mUserInputSem) {
-                if ((action == MotionEvent.ACTION_DOWN) ||
-                    (action == MotionEvent.ACTION_MOVE) ||
-                    (action == MotionEvent.ACTION_UP))
-                {
-                    Graphics gfx = Graphics.instance;
-                    if (mTouchViewSettings == null) {
-                        mTouchViewSettings = gfx.getViewSettings();
-                        mTouchX = gfx.onscreenXtoGameX
-                                    (me.getX(), mTouchViewSettings);
-                        mTouchY = gfx.onscreenYtoGameY
-                                    (me.getY(), mTouchViewSettings);
-                    }
-                    else {
-                        float x = gfx.onscreenXtoGameX
-                                    (me.getX(), mTouchViewSettings);
-                        float y = gfx.onscreenYtoGameY
-                                    (me.getY(), mTouchViewSettings);
-                        gfx.scrollBy(mTouchX - x, -(mTouchY - y));
-                        notify = true;
-                        mTouchX = x;
-                        mTouchY = y;
-                    }
-                }
-                // TODO: do edgeflags?
-
-                if (action == MotionEvent.ACTION_UP) {
-                    mTouchViewSettings = null;
-                }
-                if (notify == true) {
+                if (mGameState.onTouchEvent(me))
                     mUserInputSem.notify();
-                }
             }
             return true;
         }
+
     }
 
     /*================= Members =================*/

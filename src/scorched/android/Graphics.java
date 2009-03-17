@@ -24,10 +24,21 @@ public enum Graphics {
     private final static String TAG = "Graphics";
 
     /*================= Types =================*/
-    static public class ViewSettings implements Cloneable {
+    static public class ViewSettings {
+        /*================= Constants =================*/
         /** The zoom factor (axes are each multiplied by this when we
          *  zoom in) */
-        public static final float ZOOM_FACTOR = 2f;
+        public final static float USER_ZOOM_FACTOR = 1.8f;
+
+        /** The maximum X coordinate we'll ever show on the screen */
+        public final static float MAX_DISPLAYED_X = Model.MAX_X - 2;
+
+        /** The user cannot pan so that the top edge of the screen is greater
+         * than this coordinate. However, if the screen is zoomed out, we will
+         * display higher Y coordinates than this one.
+         */
+        public final static float MAX_PAN_Y =
+            Model.MAX_ELEVATION + 2*(Model.PLAYER_SIZE + Model.TURRET_LENGTH);
 
         /*================= Members =================*/
         /** The X-offset of the view window */
@@ -39,15 +50,122 @@ public enum Graphics {
         /** The zoom factor */
         public float mZoom;
 
+        /*================= Operations =================*/
+        /** Change this ViewSettings object to be the same as 'src'
+         */
+        public void copyInPlace(ViewSettings src) {
+            mViewX = src.mViewX;
+            mViewY = src.mViewY;
+            mZoom = src.mZoom;
+        }
+
+        /** Change the ViewSetting to enclose (x1, y1) and (x2, y2)
+         */
+        public void encloseCoords(
+                    float x1, float y1, float x2, float y2,
+                    float slop,
+                    float canvasWidth, float canvasHeight) {
+            float xMin, xMax, yMin, yMax;
+            if (x1 < x2) {
+                xMin = x1 - slop;
+                xMax = x2 + slop;
+            }
+            else {
+                xMin = x2 - slop;
+                xMax = x1 + slop;
+            }
+            if (y1 < y2) {
+                yMin = y1 - slop;
+                yMax = y2 + slop;
+            }
+            else {
+                yMin = y2 - slop;
+                yMax = y1 + slop;
+            }
+            float yZ = canvasHeight / (yMax - yMin);
+            float xZ = canvasWidth / (xMax - xMin);
+            mutate(xMin, yMin, (yZ > xZ) ? xZ : yZ,
+                    canvasWidth, canvasHeight);
+        }
+
+        /** Changes the zoom to 'newZoom', while changing mViewX and mViewY
+         *  so that the view is still centered on the same point (if
+         *  possible).
+         *
+         * @return      true if the ViewSettings were changed
+         */
+        public boolean zoomAndPreserveCenter(float newZoom,
+                                   float canvasWidth, float canvasHeight) {
+            float oldCenterX = mViewX + (canvasWidth / (2 * mZoom));
+            float oldCenterY = mViewY + (canvasHeight / (2 * mZoom));
+            float newCenterX = mViewX + (canvasWidth / (2 * newZoom));
+            float newCenterY = mViewY + (canvasHeight / (2 * newZoom));
+
+            return mutate(mViewX + (oldCenterX - newCenterX),
+                          mViewY + (oldCenterY - newCenterY),
+                          newZoom,
+                          canvasWidth, canvasHeight);
+        }
+
+        /** Scrolls the ViewSetting by x, y
+         *
+         * @return      true if the ViewSettings were changed
+         */
+        public boolean scrollBy(float x, float y,
+                                float canvasWidth, float canvasHeight) {
+            return mutate(mViewX + x, mViewY + y, mZoom,
+                            canvasWidth, canvasHeight);
+        }
+
+        /** Sets the ViewSetting. The values will be constrained to be
+         * reasonable-- i.e., they won't display offscreen stuff or be zoomed
+         * in or out too much.
+         *
+         * @return      true if the ViewSettings were changed
+         */
+        public boolean mutate(float nX, float nY, float nZ,
+                              float canvasWidth, float canvasHeight) {
+            // Make sure we don't zoom in too far
+            // For now this is: if the X shows less than the size of a tank
+            if (nZ > canvasWidth / Model.PLAYER_SIZE)
+                nZ = canvasWidth / Model.PLAYER_SIZE;
+            // Determine if new zoom level makes things too tiny
+            // For now this is: if the X zoom shows more than the entire field
+            else if (nZ < canvasWidth / MAX_DISPLAYED_X )
+                nZ = canvasWidth / MAX_DISPLAYED_X;
+
+            // Don't show offscreen stuff
+            float newRight = nX + (canvasWidth / nZ);
+            float newTop = nY + (canvasHeight /  nZ);
+            if (newRight > MAX_DISPLAYED_X)
+                nX = MAX_DISPLAYED_X - (canvasWidth / nZ);
+            if (newTop > MAX_PAN_Y)
+                nY = MAX_PAN_Y - (canvasHeight / nZ);
+
+            // We never want to scroll the game below the bottom edge, so
+            // after doing the above check, we do the below check
+            if (nX < 0f)
+                nX = 0f;
+            if (nY < 0f)
+                nY = 0f;
+
+            // Return true only if something changed
+            Log.w(TAG, "nX=" + nX + ",nY=" + nY + ",nZ=" + nZ);
+            if (nX != mViewX || nY != mViewY || nZ != mZoom) {
+                mViewX = nX;
+                mViewY = nY;
+                mZoom = nZ;
+                return true;
+            }
+            else
+                return false;
+        }
+
         /*================= Lifecycle =================*/
         public ViewSettings(float viewX, float viewY, float zoom) {
             mViewX = viewX;
             mViewY = viewY;
             mZoom = zoom;
-        }
-
-        public ViewSettings clone() {
-            return new ViewSettings(mViewX, mViewY, mZoom);
         }
     }
 
@@ -74,10 +192,11 @@ public enum Graphics {
 
     private Path mTempPath;
 
-    /** true if we need to redraw the whole screen */
-    private boolean mNeedRedrawAll;
-
+    /** the current view settings */
     private ViewSettings mV;
+
+    /** temporary space used to draw trajectory */
+    private static float mTrajTemp[];
 
     /*================= Static =================*/
     private static final int roundDownToMultipleOfTwo(float x) {
@@ -100,10 +219,6 @@ public enum Graphics {
         return mPlayerColors[playerId];
     }
 
-    public boolean getNeedRedrawAll() {
-        return mNeedRedrawAll;
-    }
-
     /** Give the onscreen coordinate corresponding to x */
     public float gameXtoOnscreenX(float x) {
         return (x - mV.mViewX) * mV.mZoom;
@@ -124,112 +239,33 @@ public enum Graphics {
         return (y / v.mZoom) + v.mViewY;
     }
 
-    /** Get the X game coordinate of the ccenter of the viewport */
-    private float getGameCenterX() {
-        return mV.mViewX + (mCanvasWidth / (2 * mV.mZoom));
-    }
-
-    /** Get the Y game coordinate of the ccenter of the viewport */
-    private float getGameCenterY() {
-        return mV.mViewY + (mCanvasHeight / (2 * mV.mZoom));
-    }
-
-    /** Get the X game coordinate of the right edge of the viewport */
-    private float getGameRightEdge() {
-        return mV.mViewX + (mCanvasWidth / mV.mZoom);
-    }
-
-    /** Get the Y game coordinate of the top edge of the viewport */
-    private float getGameTopEdge() {
-        return mV.mViewY + (mCanvasHeight /  mV.mZoom);
-    }
-
     public void getEnclosingViewSettings(
-    		float x1, float y1, float x2, float y2,
-            float slop, ViewSettings out) {
-        float xMin, xMax, yMin, yMax;
-        if (x1 < x2) {
-            xMin = x1 - slop;
-            xMax = x2 + slop;
-        }
-        else {
-            xMin = x2 - slop;
-            xMax = x1 + slop;
-        }
-        if (y1 < y2) {
-            yMin = y1 - slop;
-            yMax = y2 + slop;
-        }
-        else {
-            yMin = y2 - slop;
-            yMax = y1 + slop;
-        }
-        float yZ = mCanvasHeight / (yMax - yMin);
-        float xZ = mCanvasWidth / (xMax - xMin);
-        out.mViewX = xMin;
-        out.mViewY = yMin;
-        out.mZoom = (yZ > xZ) ? xZ : yZ;
+            float x1, float y1, float x2, float y2, float slop,
+                ViewSettings out) {
+        out.encloseCoords(x1, y1, x2, y2, slop, mCanvasWidth, mCanvasHeight);
     }
 
-    public ViewSettings getViewSettings() {
-        return mV.clone();
+    public void getViewSettings(ViewSettings out) {
+        out.copyInPlace(mV);
     }
 
     /*================= Operations =================*/
     public void setViewSettings(ViewSettings v) {
-        mV = v;
-    }
-
-    public void scrollBy(float x, float y) {
-        // Make sure we don't scroll off the edge
-        float newX = mV.mViewX + x;
-        float newY = mV.mViewY + y;
-        float newRight = getGameRightEdge() + x;
-        float newTop = getGameTopEdge() + y;
-        float MaxX = Model.MAX_X - 2;
-        if (newRight > MaxX)
-            newX = MaxX - (mCanvasWidth / mV.mZoom);
-        float MaxY = Model.MAX_ELEVATION +
-            2*(Model.PLAYER_SIZE + Model.TURRET_LENGTH);
-        if (newTop > MaxY)
-            newY = MaxY - (mCanvasHeight / mV.mZoom);
-
-        // We never want to scroll the game below the bottom edge, so
-        // after doing the above check, we do the below check
-        if (newX < 0f)
-            newX = 0f;
-        if (newY < 0f)
-            newY = 0f;
-        if (newX != mV.mViewX || newY != mV.mViewY) {
-            mNeedRedrawAll = true;
-            mV.mViewX = newX;
-            mV.mViewY = newY;
-        }
-    }
-
-    public void setNeedRedrawAll() {
-        mNeedRedrawAll = true;
-    }
-
-    public void clearNeedRedrawAll() {
-        mNeedRedrawAll = false;
+        mV.copyInPlace(v);
     }
 
     public void setSurfaceSize(int width, int height) {
         mCanvasWidth = width;
         mCanvasHeight = height;
-        mNeedRedrawAll = true;
+        //mNeedRedrawAll = true;
         // TODO Properly center, reposition canvas to be in bounds,
         // possibly zoom in
+        // TODO somehow hook into GameState so that we can let it know
+        // that we need a redraw
     }
 
     /** Draws the playing field */
     public void drawScreen(Canvas canvas, Model model) {
-        // Only redraw if we need to
-        if (!mNeedRedrawAll) {
-            return;
-        }
-
         canvas.drawColor(Color.BLACK);
 
         float maxX = mV.mViewX + (mCanvasWidth / mV.mZoom);
@@ -344,8 +380,8 @@ public enum Graphics {
         canvas.drawCircle(x+5*n, y+d+e+h+j, a, thinPaint);
     }
 
-    private static float sTrajTemp[] = new float[Weapon.MAX_SAMPLES * 4];
-
+    /** Draw the weapon's trajectory
+     */
     public void drawTrajectory(Canvas canvas, Player player,
                                 short curSample) {
         final float x[] = Weapon.instance.getX();
@@ -353,42 +389,45 @@ public enum Graphics {
 
         final Paint paint = mPlayerThickPaint[player.getId()];
 
-        sTrajTemp[0] = gameXtoOnscreenX(x[0]);
-        sTrajTemp[1] = gameYtoOnscreenY(y[0]);
+        mTrajTemp[0] = gameXtoOnscreenX(x[0]);
+        mTrajTemp[1] = gameYtoOnscreenY(y[0]);
         int i = 2;
         for (int j = 1; j <= curSample; j++) {
-            sTrajTemp[i] = sTrajTemp[i+2] = gameXtoOnscreenX(x[j]);
-            sTrajTemp[i+1] = sTrajTemp[i+3] = gameYtoOnscreenY(y[j]);
+            mTrajTemp[i] = mTrajTemp[i+2] = gameXtoOnscreenX(x[j]);
+            mTrajTemp[i+1] = mTrajTemp[i+3] = gameYtoOnscreenY(y[j]);
             i+=4;
         }
-        canvas.drawLines(sTrajTemp, 0, curSample * 4, paint);
+        canvas.drawLines(mTrajTemp, 0, curSample * 4, paint);
     }
 
-    private void applyZoom(float newZoom) {
-        float oldCenterX = getGameCenterX();
-        float oldCenterY = getGameCenterY();
-        mV.mZoom = newZoom;
-        float newCenterX = getGameCenterX();
-        float newCenterY = getGameCenterY();
-
-        mNeedRedrawAll = true;
-        scrollBy(oldCenterX - newCenterX, oldCenterY - newCenterY);
+    /** Scroll at the user's behest.
+     *
+     * @return  true if the ViewSettings have been changed
+     */
+    public boolean userScrollBy(float x, float y) {
+        boolean ret = mV.scrollBy(x, y, mCanvasWidth, mCanvasHeight);
+        Log.w(TAG, "userScrollBy(" + x + "," + y + ") -- ret = " + ret);
+        return ret;
     }
 
-    public void zoomOut() {
-        // Determine if new zoom level makes things too tiny
-        // For now this is: if the X zoom shows more than the entire field
-        float newZoom = mV.mZoom / ViewSettings.ZOOM_FACTOR;
-        if (mCanvasWidth / newZoom > Model.MAX_X - 2) return;
-        applyZoom(newZoom);
+    /** Zooms out at the user's behest.
+     *
+     * @return  true if the ViewSettings have been changed
+     */
+    public boolean userZoomOut() {
+        return mV.zoomAndPreserveCenter
+                (mV.mZoom / ViewSettings.USER_ZOOM_FACTOR,
+                 mCanvasWidth, mCanvasHeight);
     }
 
-    public void zoomIn() {
-        // Make sure we don't zoom in too far
-        // For now this is: if the X shows less than the size of a tank
-        float newZoom = mV.mZoom * ViewSettings.ZOOM_FACTOR;
-        if (mCanvasWidth / newZoom < Model.PLAYER_SIZE) return;
-        applyZoom(newZoom);
+    /** Zooms in at the user's behest.
+     *
+     * @return  true if the ViewSettings have been changed
+     */
+    public boolean userZoomIn() {
+        return mV.zoomAndPreserveCenter
+                (mV.mZoom * ViewSettings.USER_ZOOM_FACTOR,
+                 mCanvasWidth, mCanvasHeight);
     }
 
     /*================= Lifecycle =================*/
@@ -434,9 +473,10 @@ public enum Graphics {
         mScratchRect = new RectF(0, 0, 0, 0);
         //Resources res = context.getResources();
 
-        mNeedRedrawAll = false;
-
         // Set viewX, viewY, zoom
         mV = new ViewSettings(4, 0.5f, 15f);
+
+        // allocate some temporary space for weapon trajectories
+        mTrajTemp = new float[Weapon.MAX_SAMPLES * 4];
     }
 }

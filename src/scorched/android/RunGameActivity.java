@@ -68,12 +68,14 @@ public class RunGameActivity extends Activity {
         });
         zoomIn.setOnClickListener(new OnClickListener() {
             public void onClick(View arg0) {
-                mGameControl.getThread().onZoomIn();
+                mGameControl.getThread().onButton(
+                    GameState.GameButton.ZOOM_IN);
             }
         });
         zoomOut.setOnClickListener(new OnClickListener() {
             public void onClick(View arg0) {
-                mGameControl.getThread().onZoomOut();
+                mGameControl.getThread().onButton(
+                    GameState.GameButton.ZOOM_OUT);
             }
         });
     }
