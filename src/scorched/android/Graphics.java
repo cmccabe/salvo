@@ -312,29 +312,27 @@ public enum Graphics {
         canvas.drawCircle(x+5*n, y+d+e+h+j, a, thinPaint);
     }
 
+    private static float sTrajTemp[] = new float[Weapon.MAX_SAMPLES * 4];
+
     public void drawTrajectory(Canvas canvas, Player player,
                                 short curSample) {
         final float x[] = Weapon.instance.getX();
         final float y[] = Weapon.instance.getY();
 
         final Paint paint = mPlayerThickPaint[player.getId()];
-        int start;
-        if (mNeedRedrawAll)
-            start = 0;
-        else
-            start = curSample - 1;
 
-        float prevX = gameXtoOnscreenX(x[start]);
-        float prevY = gameYtoOnscreenY(y[start]);
-        Log.w(TAG, "prevX = " + prevX + ", prevY = " + prevY);
-        for (int i = start + 1; i <= curSample; ++i) {
-            float curX = gameXtoOnscreenX(x[i]);
-            float curY = gameYtoOnscreenY(y[i]);
-            Log.w(TAG, "curX = " + curX + ", curY = " + curY);
-            canvas.drawLine(prevX, prevY, curX, curY, paint);
-            prevX = curX;
-            prevY = curY;
+//        float prevX = gameXtoOnscreenX(x[start]);
+//        float prevY = gameYtoOnscreenY(y[start]);
+        //Log.w(TAG, "prevX = " + prevX + ", prevY = " + prevY);
+        sTrajTemp[0] = gameXtoOnscreenX(x[0]);
+        sTrajTemp[1] = gameYtoOnscreenY(y[0]);
+        int i = 2;
+        for (int j = 1; j <= curSample; j++) {
+            sTrajTemp[i] = sTrajTemp[i+2] = gameXtoOnscreenX(x[j]);
+            sTrajTemp[i+1] = sTrajTemp[i+3] = gameYtoOnscreenY(y[j]);
+            i+=4;
         }
+        canvas.drawLines(sTrajTemp, 0, curSample * 4, paint);
     }
 
     private void applyZoom(float newZoom) {

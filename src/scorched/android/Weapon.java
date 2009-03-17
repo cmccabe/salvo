@@ -13,7 +13,7 @@ public enum Weapon
     private final static String TAG = "Weapon";
 
     /** The maximum number of samples we can store in our trajectory */
-    private final static int MAX_SAMPLES = 400;
+    public final static int MAX_SAMPLES = 500;
 
     /** The maximum number of times we will recalculate trajectory before
      *  giving up and triggering the explosion. */
@@ -22,7 +22,7 @@ public enum Weapon
     /** The minimum distance squared (in slots) we will accept between two
      * points on our trajectory before we accept the need to keep draw
      * both points */
-    private final static float MIN_UPDATE_DIST_SQ = (float)0.1;
+    private final static float MIN_UPDATE_DIST_SQ = (float)0.2;
 
     /*================= Static =================*/
     /** Returns the distance squared between two points */
@@ -57,7 +57,7 @@ public enum Weapon
         return mTotalSamples;
     }
 
-    /** Returns true if the x, y coordinates of x[index], y[index] 
+    /** Returns true if the x, y coordinates of x[index], y[index]
      *  are inside the earth */
     private boolean testCollision(Model model, int index) {
         float x = mX[index];
@@ -115,8 +115,8 @@ public enum Weapon
             if (distanceSquared(x, y, prevX, prevY) > MIN_UPDATE_DIST_SQ) {
                 mX[index + 1] = x;
                 mY[index + 1] = y;
-                Log.w(TAG, "setting mX[" + (index + 1) + "] = " + x + ", " +
-                                   "mY[" + (index + 1) + "] = " + y);
+                //Log.w(TAG, "setting mX[" + (index + 1) + "] = " + x + ", " +
+                //                   "mY[" + (index + 1) + "] = " + y);
                 return true;
             }
             mTotalCalculations++;

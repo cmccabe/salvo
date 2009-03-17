@@ -285,7 +285,7 @@ public interface GameState {
             // Activate sliders
             // TODO: look up sliders by layout
             Player curPlayer = model.getCurPlayer();
-            int myColor = 
+            int myColor =
                 Graphics.instance.getPlayerColor(curPlayer.getId());
 
             powerSlider.setState(SalvoSlider.SliderState.BAR,
@@ -382,7 +382,7 @@ public interface GameState {
                 return sExplosionState;
             }
             mCurSample = nextSample;
-            Log.w(TAG, "mCurSample = " + mCurSample);
+            //Log.w(TAG, "mCurSample = " + mCurSample);
             return null;
         }
 

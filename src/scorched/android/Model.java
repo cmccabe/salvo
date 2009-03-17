@@ -51,7 +51,7 @@ public class Model {
 
     /** The force of gravity.
       * As measured by change in downward force each sample */
-    public static final float GRAVITY = 0.001f;
+    public static final float GRAVITY = 0.00006f;
 
     enum TerrainType {
         TRIANGULAR,
