@@ -128,10 +128,10 @@ public enum Weapon
     public void initialize(float initX, float initY,
                            float deltaX, float deltaY) {
         mX[0] = initX;
-           mY[0] = initY;
+        mY[0] = initY;
         mDeltaX = deltaX;
-           mDeltaY = deltaY;
-           mTotalSamples = 1;
+        mDeltaY = deltaY;
+        mTotalSamples = 1;
     }
 
     private Weapon() {

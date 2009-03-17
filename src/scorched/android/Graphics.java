@@ -10,6 +10,7 @@ import android.graphics.Path;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.util.Log;
+import android.view.View;
 
 /**
  * The graphics object does all the work of drawing stuff on the screen.
@@ -143,11 +144,40 @@ public enum Graphics {
         return mV.mViewY + (mCanvasHeight /  mV.mZoom);
     }
 
+    public ViewSettings getEnclosingViewSettings(float x1, float y1,
+                                                 float x2, float y2) {
+        float xMin, xMax, yMin, yMax;
+        if (x1 < x2) {
+            xMin = x1;
+            xMax = x2;
+        }
+        else {
+            xMin = x2;
+            xMax = x1;
+        }
+        if (y1 < y2) {
+               yMin = y1;
+            yMax = y2;
+        }
+        else {
+            yMin = y2;
+            yMax = y1;
+        }
+        float yZ = mCanvasHeight / (yMax - yMin);
+        float xZ = mCanvasWidth / (xMax - xMin);
+        return new ViewSettings(xMin, yMin,
+                                (yZ > xZ) ? xZ : yZ);
+    }
+
     public ViewSettings getViewSettings() {
         return mV.clone();
     }
 
     /*================= Operations =================*/
+    public void setViewSettings(ViewSettings v) {
+        mV = v;
+    }
+
     public void scrollBy(float x, float y) {
         // Make sure we don't scroll off the edge
         float newX = mV.mViewX + x;

@@ -370,8 +370,18 @@ public interface GameState {
         public void onEnter(Model model,
                             SalvoSlider powerSlider, SalvoSlider angleSlider,
                             Listener powerAdaptor, Listener angleAdaptor) {
+            Graphics gfx = Graphics.instance;
+            Weapon wpn = Weapon.instance;
+
             model.getCurPlayer().fireWeapon();
-            Weapon.instance.calculateTrajectory(model);
+            wpn.calculateTrajectory(model);
+
+            float x[] = wpn.getX();
+            float y[] = wpn.getY();
+            int total = wpn.getTotalSamples();
+            Graphics.ViewSettings v =
+                gfx.getEnclosingViewSettings(x[0], y[0], x[total-1], y[total-1]);
+            gfx.setViewSettings(v);
             mCurSample = 0;
             // todo: zoom so that start and end points are both visible
         }
