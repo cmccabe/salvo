@@ -570,13 +570,17 @@ public interface GameState {
                             Listener powerAdaptor, Listener angleAdaptor) {
             Weapon wpn = Weapon.instance;
             WeaponType wtp = wpn.getWeaponType();
-            mMaxExplosionSize = wtp.explosionSize();
+            mMaxExplosionSize = wtp.getExplosionSize();
             mCurExplosionSize = 0;
             Graphics.instance.initializeExplosion();
         }
 
         public GameState main(Model model) {
             if (mCurExplosionSize > mMaxExplosionSize) {
+                // TODO: explosion retreating animation
+                Weapon wpn = Weapon.instance;
+                model.doExplosion(wpn.getFinalX(), wpn.getFinalY(),
+                                mMaxExplosionSize);
                 return sTurnStartState;
             }
             mCurExplosionSize += 0.01;
