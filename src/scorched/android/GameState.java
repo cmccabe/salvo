@@ -2,6 +2,7 @@ package scorched.android;
 
 import android.graphics.Canvas;
 import android.util.Log;
+import android.view.MotionEvent;
 import scorched.android.SalvoSlider.Listener;
 
 
@@ -14,10 +15,13 @@ public interface GameState {
         OK,
         DONE,
         FIRE,
-        WEAP
+        WEAP,
+        ZOOM_IN,
+        ZOOM_OUT,
     }
 
     public class DomainException extends RuntimeException {
+        public final static long serialVersionUID = 1;
         public DomainException(String message) {
            super(message);
         }
@@ -58,13 +62,24 @@ public interface GameState {
 
     /** Called when the user presses a button
      * Under MainThread lock
+     *
+     * @return  true if the main thread needs to be notified of a change
      */
-    public void onButton(GameButton b);
+    public boolean onButton(GameButton b);
 
     /** Called when the user moves a slider
      * Under MainThread lock
+     *
+     * @return  true if the main thread needs to be notified of a change
      */
-    public void onSlider(Model model, boolean isPowerSlider, int val);
+    public boolean onSlider(Model model, boolean isPower, int val);
+
+    /** Handles a touchscreen event
+     * Under MainThread lock
+     *
+     * @return  true if the main thread needs to be notified of a change
+     */
+    public boolean onTouchEvent(MotionEvent me);
 
     /** Return true if you need to redraw the screen */
     public boolean needRedraw();
@@ -163,12 +178,23 @@ public interface GameState {
             return 0;
         }
 
-        public void onButton(GameButton b) {
-            if (b == GameButton.OK)
+        public boolean onButton(GameButton b) {
+            if (b == GameButton.OK) {
                 mFinished = true;
+                return true;
+            }
+            else {
+                return false;
+            }
         }
 
-        public void onSlider(Model model, boolean isPowerSlider, int val) { }
+        public boolean onSlider(Model model, boolean isPower, int val) {
+            return false;
+        }
+
+        public boolean onTouchEvent(MotionEvent me) {
+            return false;
+        }
 
         public boolean needRedraw() { return false; }
 
@@ -207,12 +233,22 @@ public interface GameState {
             return 0;
         }
 
-        public void onButton(GameState.GameButton b) {
-            if (b == GameButton.DONE)
+        public boolean onButton(GameButton b) {
+            if (b == GameButton.DONE) {
                 mFinished = true;
+                return true;
+            }
+            else
+                return false;
         }
 
-        public void onSlider(Model model, boolean isPowerSlider, int val) { }
+        public boolean onSlider(Model model, boolean isPower, int val) {
+            return false;
+        }
+
+        public boolean onTouchEvent(MotionEvent me) {
+            return false;
+        }
 
         public boolean needRedraw() { return false; }
 
@@ -258,9 +294,15 @@ public interface GameState {
             return 0;
         }
 
-        public void onButton(GameButton b) { }
+        public boolean onButton(GameButton b) { return false; }
 
-        public void onSlider(Model model, boolean isPowerSlider, int val) { }
+        public boolean onSlider(Model model, boolean isPower, int val) {
+            return false;
+        }
+
+        public boolean onTouchEvent(MotionEvent me) {
+            return false;
+        }
 
         public boolean needRedraw() { return false; }
 
@@ -280,6 +322,10 @@ public interface GameState {
                             SalvoSlider powerSlider, SalvoSlider angleSlider,
                             Listener powerAdaptor, Listener angleAdaptor)
         {
+            mNeedRedraw = true;
+            mFingerDown = false;
+            mTouchX = 0;
+            mTouchY = 0;
             mFired = false;
 
             // Activate sliders
@@ -318,46 +364,122 @@ public interface GameState {
             return 0;
         }
 
-        public void onButton(GameButton b) {
+        public boolean onButton(GameButton b) {
             switch (b) {
                 case OK:
+                    return false;
                 case DONE:
-                    break;
+                    return false;
                 case WEAP:
                     // TODO: display the user's armory and allow him to
                     // choose another weapon.  Probably want to create a
                     // ListView programmatically and fiddle around with it.
                     // Maybe needs a new State to handle.
+                    return false;
                 case FIRE:
                     mFired = true;
-                break;
+                    return true;
+                case ZOOM_IN:
+                    if (Graphics.instance.userZoomIn()) {
+                        mNeedRedraw = true;
+                        return true;
+                    }
+                    else
+                        return false;
+                case ZOOM_OUT:
+                    if (Graphics.instance.userZoomOut()) {
+                        mNeedRedraw = true;
+                        return true;
+                    }
+                    else
+                        return false;
             }
+            return false;
         }
 
-        public void onSlider(Model model, boolean isPowerSlider, int val) {
-            if (isPowerSlider) {
+        public boolean onSlider(Model model, boolean isPower, int val) {
+            // TODO: have setPower and setAngleDeg return true only if the
+            // value was changed
+            if (isPower)
                 model.getCurPlayer().setPower(val);
-            }
-            else {
+            else
                 model.getCurPlayer().setAngleDeg(val);
+            mNeedRedraw = true;
+            return true;
+        }
+
+        public boolean onTouchEvent(MotionEvent me) {
+            int action = me.getAction();
+            boolean notify = false;
+            if ((action == MotionEvent.ACTION_DOWN) ||
+                (action == MotionEvent.ACTION_MOVE) ||
+                (action == MotionEvent.ACTION_UP))
+            {
+                Graphics gfx = Graphics.instance;
+                if (mFingerDown == false) {
+                    mFingerDown = true;
+                    gfx.getViewSettings(mTouchViewSettings);
+                    mTouchX = gfx.onscreenXtoGameX
+                                (me.getX(), mTouchViewSettings);
+                    mTouchY = gfx.onscreenYtoGameY
+                                (me.getY(), mTouchViewSettings);
+                }
+                else {
+                    float x = gfx.onscreenXtoGameX
+                                (me.getX(), mTouchViewSettings);
+                    float y = gfx.onscreenYtoGameY
+                                (me.getY(), mTouchViewSettings);
+                    if (gfx.userScrollBy(mTouchX - x, -(mTouchY - y)))
+                        notify = true;
+                    mTouchX = x;
+                    mTouchY = y;
+                }
             }
+            // TODO: do edgeflags?
+
+            if (action == MotionEvent.ACTION_UP) {
+                mFingerDown = false;
+            }
+            if (notify)
+                mNeedRedraw = true;
+            return notify;
         }
 
         public boolean needRedraw() {
-            return Graphics.instance.getNeedRedrawAll();
+            return mNeedRedraw;
         }
 
-        // The human move state doesn't draw anything special on the screen.
-        // Perhaps later we'll implement a special partial draw mode for
-        // HumanMoveState where we redraw only the player when moving around
-        // his turret...
         public void redraw(Canvas canvas, Model model) {
             Graphics.instance.drawScreen(canvas, model);
-            Graphics.instance.clearNeedRedrawAll();
+            mNeedRedraw = false;
         }
 
-        public HumanMoveState() { }
+        public HumanMoveState() {
+            mNeedRedraw = true;
+            mFingerDown = false;
+            mTouchViewSettings = new Graphics.ViewSettings(0,0,0);
+            mTouchX = 0;
+            mTouchY = 0;
+            mFired = false;
+        }
 
+        /** True if we need a screen refresh */
+        private boolean mNeedRedraw;
+
+        /** True while the user's finger is down on the touch screen */
+        private boolean mFingerDown;
+
+        /** The zoom, pan settings that were in effect when the user started
+         * pressing on the screen */
+        private Graphics.ViewSettings mTouchViewSettings;
+
+        /** Last X coordinate the user touched (in game coordinates) */
+        private float mTouchX;
+
+        /** Last Y coordinate the user touched (in game coordinates) */
+        private float mTouchY;
+
+        /** True if the user has just fired his weapon */
         private boolean mFired;
     }
 
@@ -379,9 +501,10 @@ public interface GameState {
             float x[] = wpn.getX();
             float y[] = wpn.getY();
             int total = wpn.getTotalSamples();
-            Graphics.ViewSettings v =
-                gfx.getEnclosingViewSettings(x[0], y[0], x[total-1], y[total-1]);
-            gfx.setViewSettings(v);
+            gfx.getEnclosingViewSettings
+                    (x[0], y[0], x[total-1], y[total-1], 1,
+                    mViewSettingsTemp);
+            gfx.setViewSettings(mViewSettingsTemp);
             mCurSample = 0;
             // todo: zoom so that start and end points are both visible
         }
@@ -404,9 +527,15 @@ public interface GameState {
             return 10;
         }
 
-        public void onButton(GameButton b) { }
+        public boolean onButton(GameButton b) { return false; }
 
-        public void onSlider(Model model, boolean isPowerSlider, int val) { }
+        public boolean onSlider(Model model, boolean isPower, int val) {
+            return false;
+        }
+
+        public boolean onTouchEvent(MotionEvent me) {
+            return false;
+        }
 
         public boolean needRedraw() {
             return true;
@@ -414,14 +543,15 @@ public interface GameState {
 
         public void redraw(Canvas canvas, Model model) {
             Graphics gfx = Graphics.instance;
-            gfx.setNeedRedrawAll();
             gfx.drawScreen(canvas, model);
             gfx.drawTrajectory(canvas, model.getCurPlayer(), mCurSample);
-            gfx.clearNeedRedrawAll();
         }
 
         public BallisticsState() {
+            mViewSettingsTemp = new Graphics.ViewSettings(0,0,0);
         }
+
+        Graphics.ViewSettings mViewSettingsTemp;
 
         short mCurSample;
     }
@@ -437,11 +567,24 @@ public interface GameState {
 
         public void onEnter(Model model,
                             SalvoSlider powerSlider, SalvoSlider angleSlider,
-                            Listener powerAdaptor, Listener angleAdaptor)
-                            { }
+                            Listener powerAdaptor, Listener angleAdaptor) {
+            Weapon wpn = Weapon.instance;
+            WeaponType wtp = wpn.getWeaponType();
+            mMaxExplosionSize = wtp.getExplosionSize();
+            mCurExplosionSize = 0;
+            Graphics.instance.initializeExplosion();
+        }
 
         public GameState main(Model model) {
-            return sTurnStartState;
+            if (mCurExplosionSize > mMaxExplosionSize) {
+                // TODO: explosion retreating animation
+                Weapon wpn = Weapon.instance;
+                model.doExplosion(wpn.getFinalX(), wpn.getFinalY(),
+                                mMaxExplosionSize);
+                return sTurnStartState;
+            }
+            mCurExplosionSize += 0.01;
+            return null;
         }
 
         public void onExit(SalvoSlider powerSlider,
@@ -454,35 +597,54 @@ public interface GameState {
             return 10;
         }
 
-        public void onButton(GameButton b) { }
+        public boolean onButton(GameButton b) { return false; }
 
-        public void onSlider(Model model, boolean isPowerSlider, int val) { }
+        public boolean onSlider(Model model, boolean isPower, int val) {
+            return false;
+        }
+
+        public boolean onTouchEvent(MotionEvent me) {
+            return false;
+        }
 
         public boolean needRedraw() {
             return true;
         }
 
         public void redraw(Canvas canvas, Model model) {
-            Graphics.instance.drawScreen(canvas, model);
-            //gfx.drawExplosion(canvas, model.getCurPlayer(),
-            //                   mX, mY, mCurSample);
-            Graphics.instance.clearNeedRedrawAll();
+            Graphics gfx = Graphics.instance;
+            gfx.drawScreen(canvas, model);
+                // TODO: scrollBy view randomly to make it look
+                // like it's shaking
+            gfx.drawExplosion(canvas, model.getCurPlayer(),
+                              mCurExplosionSize);
         }
 
         public ExplosionState() { }
+
+        private float mMaxExplosionSize;
+
+        private float mCurExplosionSize;
     }
 
     /*================= Static =================*/
     // We use static storage for the game states. This avoid dynamic memory
     // allocation. Be careful not to hold on to any important memory in the
     // states, though.
-    public LeaderboardState sLeaderBoardState = new LeaderboardState();
-    public BuyWeaponsState sBuyWeaponsState = new BuyWeaponsState();
-    public TurnStartState sTurnStartState = new TurnStartState();
-    public HumanMoveState sHumanMoveState = new HumanMoveState();
-    //public ComputerMoveState sComputerMoveState = new ComputerMoveState();
-    public BallisticsState sBallisticsState = new BallisticsState();
-    public ExplosionState sExplosionState = new ExplosionState();
+    public static LeaderboardState
+        sLeaderBoardState = new LeaderboardState();
+    public static BuyWeaponsState
+        sBuyWeaponsState = new BuyWeaponsState();
+    public static TurnStartState
+        sTurnStartState = new TurnStartState();
+    public static HumanMoveState
+        sHumanMoveState = new HumanMoveState();
+    //public ComputerMoveState
+    //  sComputerMoveState = new ComputerMoveState();
+    public static BallisticsState
+        sBallisticsState = new BallisticsState();
+    public static ExplosionState
+        sExplosionState = new ExplosionState();
 
     /*================= Constants =================*/
     /*================= Types =================*/

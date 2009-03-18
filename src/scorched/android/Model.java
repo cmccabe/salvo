@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Random;
 
 import android.os.Bundle;
+import android.util.Log;
 
 /**
  * Model for the Scorched Android game.
@@ -200,6 +201,69 @@ public class Model {
     /** Gets the terrain slot for player number N */
     private int playerIdToSlot(int playerId) {
         return ((MAX_X /2) + (MAX_X * playerId)) / mPlayers.length;
+    }
+
+    private float square(float x) {
+        return x * x;
+    }
+
+    private int constrainSlot(int slot) {
+        if (slot < 0)
+            return 0;
+        else if (slot >= MAX_X)
+            return MAX_X - 1;
+        else
+            return slot;
+    }
+
+    /** Updates the height field with the result of an explosion at (x0,y0)
+     *  with the given radius
+     */
+    public void doExplosion(float x0, float y0, float radius) {
+        final float xLeft = x0 - (radius/2f);
+        final float xRight = x0 + (radius/2f);
+        final int firstSlot = constrainSlot((int)(xLeft + 0.5f));
+        final int lastSlot = constrainSlot((int)(xRight + 0.5f));
+
+        for (int slot = firstSlot; slot <= lastSlot; slot++) {
+             // The equation for a circle is
+             // (x - x0)^2 + (y - y0)^2 = r
+             //
+             // Solved for y:
+             //              _____________
+             //   y = y0 +  | r - (x-x0)^2
+             //          - \|
+             //
+            final float tmp = radius - square(slot - x0);
+            if (tmp <= 0)
+                continue;
+            final float tmp2 = (float)Math.sqrt(tmp);
+            final float top = y0 + tmp2;
+            final float bottom = y0 - tmp2;
+            doSlotCollision(slot, top, bottom);
+         }
+    }
+
+    /** Changes the height field at X='slot' to reflect an explosion
+     *  that extends upward to 'top' and downward to 'bottom'.
+     */
+    private void doSlotCollision(int slot, float top, float bottom) {
+        Log.w(TAG,"doSlotCollision(slot=" + slot +
+                                ",top=" + top +
+                                ",bottom=" + bottom);
+        final float slotHeight = mHeights[slot];
+        if (bottom >= slotHeight) {
+            // The explosion is too far up in the air to affect the ground
+            return;
+        }
+        else if (top <= slotHeight) {
+            // The explosion is completely underground
+            mHeights[slot] -= (top - bottom);
+        }
+        else {
+            // Part of the explosion is underground, but part is in the air
+            mHeights[slot] -= (slotHeight - bottom);
+        }
     }
 
     /*================= Save / Restore =================*/
