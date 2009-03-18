@@ -54,6 +54,15 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
         /** The slider representing angle */
         private SalvoSlider mAngleSlider;
 
+        /** Last X coordinate the user touched (in game coordinates) */
+        private float mTouchX;
+
+        /** Last Y coordinate the user touched (in game coordinates) */
+        private float mTouchY;
+        
+        /** The object to control sound */
+        private Sound mSound;
+
         public ScorchedThread(SurfaceHolder surfaceHolder,
                             Context context,
                             Handler handler,
@@ -65,6 +74,7 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
             mHandler = handler;
             mPowerSlider = powerSlider;
             mAngleSlider = angleSlider;
+            mSound = new Sound(context);
         }
 
         /*================= Operations =================*/

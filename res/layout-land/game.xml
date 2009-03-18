@@ -7,7 +7,7 @@
     android:layout_height="fill_parent">
     <FrameLayout android:layout_width="fill_parent" android:layout_height="fill_parent" android:layout_weight="1">
     <scorched.android.GameControlView
-        android:id="@+id/scorched_layout" 
+        android:id="@+id/game_control_view" 
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:layout_weight="1"
