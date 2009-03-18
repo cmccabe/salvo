@@ -7,9 +7,10 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.RadialGradient;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.util.Log;
+import android.graphics.Shader;
 import android.view.View;
 
 /**
@@ -22,6 +23,10 @@ public enum Graphics {
 
     /*================= Constants =================*/
     private final static String TAG = "Graphics";
+
+    private final static int RED = Color.argb(255,255,0,0);
+
+    private final static int ORANGE = Color.argb(255,255,140,0);
 
     /*================= Types =================*/
     static public class ViewSettings {
@@ -150,7 +155,6 @@ public enum Graphics {
                 nY = 0f;
 
             // Return true only if something changed
-            Log.w(TAG, "nX=" + nX + ",nY=" + nY + ",nZ=" + nZ);
             if (nX != mViewX || nY != mViewY || nZ != mZoom) {
                 mViewX = nX;
                 mViewY = nY;
@@ -189,6 +193,9 @@ public enum Graphics {
 
     /** Thick paint to draw the players */
     private Paint mPlayerThickPaint[];
+
+    /** The paint for explosions */
+    private Paint mExplosionPaint;
 
     private Path mTempPath;
 
@@ -400,13 +407,37 @@ public enum Graphics {
         canvas.drawLines(mTrajTemp, 0, curSample * 4, paint);
     }
 
+    public void initializeExplosion() {
+        final float centerX = Weapon.instance.getFinalX();
+        final float centerY = Weapon.instance.getFinalY();
+        Shader explosionShader =
+            new RadialGradient(gameXtoOnscreenX(centerX),
+                               gameYtoOnscreenY(centerY),
+                               1, RED, ORANGE, Shader.TileMode.REPEAT);
+        mExplosionPaint.setShader(explosionShader);
+    }
+
+    /** Draw an explosion
+     */
+    public void drawExplosion(Canvas canvas,
+                              Player player, float curSize) {
+        final float centerX = Weapon.instance.getFinalX();
+        final float centerY = Weapon.instance.getFinalY();
+        final float drawCenterX = gameXtoOnscreenX(centerX);
+        final float drawCenterY = gameYtoOnscreenY(centerY);
+
+        final Paint paint = mPlayerThickPaint[player.getId()];
+        final float drawCurSize = mV.mZoom * curSize;
+        canvas.drawCircle(drawCenterX, drawCenterY, drawCurSize,
+                            mExplosionPaint);
+    }
+
     /** Scroll at the user's behest.
      *
      * @return  true if the ViewSettings have been changed
      */
     public boolean userScrollBy(float x, float y) {
         boolean ret = mV.scrollBy(x, y, mCanvasWidth, mCanvasHeight);
-        Log.w(TAG, "userScrollBy(" + x + "," + y + ") -- ret = " + ret);
         return ret;
     }
 
@@ -469,6 +500,11 @@ public enum Graphics {
             mPlayerThickPaint[i] = pthick;
         }
 
+        // calculate explosion paint
+        int red = Color.argb(255,255,0,0);
+        int orange = Color.argb(255,255,140,0);
+
+        mExplosionPaint = new Paint();
         mTempPath = new Path();
         mScratchRect = new RectF(0, 0, 0, 0);
         //Resources res = context.getResources();

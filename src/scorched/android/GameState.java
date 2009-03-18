@@ -567,11 +567,20 @@ public interface GameState {
 
         public void onEnter(Model model,
                             SalvoSlider powerSlider, SalvoSlider angleSlider,
-                            Listener powerAdaptor, Listener angleAdaptor)
-                            { }
+                            Listener powerAdaptor, Listener angleAdaptor) {
+            Weapon wpn = Weapon.instance;
+            WeaponType wtp = wpn.getWeaponType();
+            mMaxExplosionSize = wtp.explosionSize();
+            mCurExplosionSize = 0;
+            Graphics.instance.initializeExplosion();
+        }
 
         public GameState main(Model model) {
-            return sTurnStartState;
+            if (mCurExplosionSize > mMaxExplosionSize) {
+                return sTurnStartState;
+            }
+            mCurExplosionSize += 0.01;
+            return null;
         }
 
         public void onExit(SalvoSlider powerSlider,
@@ -599,25 +608,39 @@ public interface GameState {
         }
 
         public void redraw(Canvas canvas, Model model) {
-            Graphics.instance.drawScreen(canvas, model);
-            //gfx.drawExplosion(canvas, model.getCurPlayer(),
-            //                   mX, mY, mCurSample);
+            Graphics gfx = Graphics.instance;
+            gfx.drawScreen(canvas, model);
+                // TODO: scrollBy view randomly to make it look
+                // like it's shaking
+            gfx.drawExplosion(canvas, model.getCurPlayer(),
+                              mCurExplosionSize);
         }
 
         public ExplosionState() { }
+
+        private float mMaxExplosionSize;
+
+        private float mCurExplosionSize;
     }
 
     /*================= Static =================*/
     // We use static storage for the game states. This avoid dynamic memory
     // allocation. Be careful not to hold on to any important memory in the
     // states, though.
-    public LeaderboardState sLeaderBoardState = new LeaderboardState();
-    public BuyWeaponsState sBuyWeaponsState = new BuyWeaponsState();
-    public TurnStartState sTurnStartState = new TurnStartState();
-    public HumanMoveState sHumanMoveState = new HumanMoveState();
-    //public ComputerMoveState sComputerMoveState = new ComputerMoveState();
-    public BallisticsState sBallisticsState = new BallisticsState();
-    public ExplosionState sExplosionState = new ExplosionState();
+    public static LeaderboardState
+        sLeaderBoardState = new LeaderboardState();
+    public static BuyWeaponsState
+        sBuyWeaponsState = new BuyWeaponsState();
+    public static TurnStartState
+        sTurnStartState = new TurnStartState();
+    public static HumanMoveState
+        sHumanMoveState = new HumanMoveState();
+    //public ComputerMoveState
+    //  sComputerMoveState = new ComputerMoveState();
+    public static BallisticsState
+        sBallisticsState = new BallisticsState();
+    public static ExplosionState
+        sExplosionState = new ExplosionState();
 
     /*================= Constants =================*/
     /*================= Types =================*/

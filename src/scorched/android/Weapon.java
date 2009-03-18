@@ -19,6 +19,8 @@ public enum Weapon
      * both points */
     private final static float MIN_UPDATE_DIST_SQ = (float)0.2;
 
+    /*================= Types =================*/
+
     /*================= Static =================*/
     /** Returns the distance squared between two points */
     private static float distanceSquared(float x1, float y1,
@@ -38,6 +40,8 @@ public enum Weapon
     private short mTotalSamples;
 
     private short mTotalCalculations;
+
+    private WeaponType mWeaponType;
 
     /*================= Access =================*/
     public float[] getX() {
@@ -71,11 +75,21 @@ public enum Weapon
         return (y <= interpolatedY);
     }
 
+    public WeaponType getWeaponType() {
+        return mWeaponType;
+    }
+
+    public float getFinalX() {
+        return mX[mTotalSamples-1];
+    }
+
+    public float getFinalY() {
+        return mY[mTotalSamples-1];
+    }
+
     /*================= Operations =================*/
     /** Calculate the trajectory of this weapon */
     public void calculateTrajectory(Model model) {
-        float x = mX[0];
-        float y = mY[0];
         short index;
         mTotalCalculations = 0;
         for (index = 0; index < MAX_SAMPLES - 1; index++) {
@@ -121,12 +135,14 @@ public enum Weapon
 
     /*================= Lifecycle =================*/
     public void initialize(float initX, float initY,
-                           float deltaX, float deltaY) {
+                           float deltaX, float deltaY,
+                           WeaponType weaponType) {
         mX[0] = initX;
         mY[0] = initY;
         mDeltaX = deltaX;
         mDeltaY = deltaY;
         mTotalSamples = 1;
+        mWeaponType = weaponType;
     }
 
     private Weapon() {

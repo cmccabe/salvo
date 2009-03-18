@@ -85,7 +85,8 @@ public class Player {
         dx = (dx * mPower) / 10000.0f;
         float dy = (float)Math.sin(mAngleRad);
         dy = (dy * mPower) / 10000.0f;
-        Weapon.instance.initialize(getTurretX(), getTurretY(), dx, dy);
+        Weapon.instance.initialize(getTurretX(), getTurretY(), dx, dy,
+                                   WeaponType.sBabyMissile);
     }
 
     /** Return a float representing the X position of the end of the
