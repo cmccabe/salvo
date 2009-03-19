@@ -74,7 +74,6 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
             mHandler = handler;
             mPowerSlider = powerSlider;
             mAngleSlider = angleSlider;
-            mSound = new Sound(context);
         }
 
         /*================= Operations =================*/
