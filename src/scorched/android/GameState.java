@@ -282,10 +282,9 @@ public interface GameState {
                 return;
             }
             else if (oldPlayer == Player.INVALID_PLAYER_ID) {
-                // If the previous player was "invalid player," that means 
+                // If the previous player was "invalid player," that means
                 // that this is the first turn that anyone has had.
                 // Skip the intro animation.
-                Log.w(TAG, "curPlayerId = Player.INVALID_PLAYER_ID");
                 model.getCurPlayer().getIdealViewSettings(mInitViewSettings);
                 Graphics.instance.setViewSettings(mInitViewSettings);
                 mCurAnimationStep = MAX_ANIMATION_STEP;

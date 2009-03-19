@@ -303,7 +303,7 @@ public enum Graphics {
 
     /*================= Operations =================*/
     public void setViewSettings(ViewSettings v) {
-        Log.w(TAG, "setViewSettings(v=" + v.toString());
+        Log.w(TAG, "setViewSettings(v=" + v.toString() + ")");
         mV.copyInPlace(v);
     }
 
@@ -509,7 +509,7 @@ public enum Graphics {
 
     /*================= Lifecycle =================*/
     /** Initialize the Graphics singleton.
-     * NOTE: absolutely do not hold on to a reference to the Context, or
+     * NOTE: Context must be an Application Context,
      *       else you will leak memory.
      */
     public void initialize(Context context) {

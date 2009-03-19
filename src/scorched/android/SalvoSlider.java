@@ -33,7 +33,7 @@ public class SalvoSlider extends View {
         DISABLED,
 
         /**
-         * The slider will be drawn using a bar graphic. Touch will be 
+         * The slider will be drawn using a bar graphic. Touch will be
          * enabled.
          */
         BAR,
@@ -112,7 +112,7 @@ public class SalvoSlider extends View {
 
     /* ================= Operations ================= */
     /**
-     * Cache a bunch of stuff that we don't want to have to recalculate on 
+     * Cache a bunch of stuff that we don't want to have to recalculate on
      * each draw().
      */
     private void cacheStuff() {
@@ -304,7 +304,7 @@ public class SalvoSlider extends View {
     }
 
     /**
-     * Change the slider state to something else. This can be called 
+     * Change the slider state to something else. This can be called
      * from non-UI threads.
      */
     public void setState(SliderState state, Listener listener, int min,
