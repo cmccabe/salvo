@@ -33,6 +33,7 @@ public class GameSetupActivity extends Activity {
                     startActivity(setupIntent);
             }
         });
+        //public SharedPreferences getPreferences(int mode)
     }
 
     @Override
