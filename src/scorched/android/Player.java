@@ -104,6 +104,12 @@ public class Player {
             ((float)Math.sin(mAngleRad) * Model.TURRET_LENGTH);
     }
 
+    /** Get view settings focused on this player */
+    public void getIdealViewSettings(Graphics.ViewSettings out) {
+        Graphics.instance.getEnclosingViewSettings
+            (mX - 6, mY - 2, mX + 6, mY + 2, 1, out);
+    }
+
     /*================= Operations =================*/
     public void setX(int x) {
         mX = x;

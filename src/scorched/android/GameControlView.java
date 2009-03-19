@@ -87,14 +87,6 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
             this.interrupt();
         }
 
-        /* Callback invoked when the surface dimensions change. */
-        public void setSurfaceSize(int width, int height) {
-            synchronized (mUserInputSem) {
-                Graphics.instance.setSurfaceSize(width, height);
-                mUserInputSem.notify();
-            }
-        }
-
         /*================= Main =================*/
         @Override
         public void run() {
@@ -266,19 +258,26 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
     /** Callback invoked when the surface dimensions change. */
     public void surfaceChanged(SurfaceHolder holder, int format, int width,
             int height) {
-        mThread.setSurfaceSize(width, height);
+        synchronized (mSurfaceHasBeenCreatedSem) {
+            if (!mSurfaceHasBeenCreated) {
+                Graphics.instance.setSurfaceSize(width, height);
+                // Wake up mThread.run() if it's waiting for the surface
+                // to have ben created.
+                mSurfaceHasBeenCreated = true;
+                mSurfaceHasBeenCreatedSem.notify();
+            }
+            else {
+                // We only expect to see the surfaceChanged callback once.
+                assert(false);
+            }
+        }
     }
 
     /** Callback invoked when the Surface has been created and is
      * ready to be used. */
     public void surfaceCreated(SurfaceHolder holder) {
-        synchronized (mSurfaceHasBeenCreatedSem) {
-            // Wake up mThread.run() if it's waiting for the surface to have
-            // ben created
-            mSurfaceHasBeenCreated = true;
-            mSurfaceHasBeenCreatedSem.notify();
-        }
-        Log.w(TAG, "surfaceCreated(): set mSurfaceHasBeenCreated");
+        // Wait for the surfaceChanged callback to tell us how big the
+        // surface is before starting the thread.
     }
 
     /** Callback invoked when the Surface has been destroyed and must

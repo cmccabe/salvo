@@ -40,7 +40,7 @@ public class RunGameActivity extends Activity {
         players[3] = new ComputerPlayer(3);
         players[4] = new LocalHumanPlayer(4);
         mModel = new Model(players);
-        Graphics.instance.initialize(getBaseContext());
+        Graphics.instance.initialize(getApplicationContext());
 
         ////////////////// setContentView
         requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -86,14 +86,16 @@ public class RunGameActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
-        //mGameControl.getThread().pause(); // pause game when Activity pauses
+        //mGameControl.getThread().pause(); // pause game when
+                                                // Activity pauses
     }
 
     /**
      * Notification that something is about to happen, to give the Activity a
      * chance to save state.
      *
-     * @param outState a Bundle into which this Activity should save its state
+     * @param outState a Bundle into which this Activity should save its
+     *        state
      */
     @Override
     protected void onSaveInstanceState(Bundle outState) {

@@ -33,7 +33,8 @@ public class SalvoSlider extends View {
         DISABLED,
 
         /**
-         * The slider will be drawn using a bar graphic. Touch will be enabled.
+         * The slider will be drawn using a bar graphic. Touch will be
+         * enabled.
          */
         BAR,
 
@@ -111,22 +112,27 @@ public class SalvoSlider extends View {
 
     /* ================= Operations ================= */
     /**
-     * Cache a bunch of stuff that we don't want to have to recalculate on each
-     * draw().
+     * Cache a bunch of stuff that we don't want to have to recalculate on
+     * each draw().
      */
     private void cacheStuff() {
         assert Thread.holdsLock(mState);
+        // Don't need to cache anything for the DISABLED state
+        if (mState == SliderState.DISABLED)
+            return;
         mLeftBound = (mWidth * BUTTON_PERCENT) / 100;
         mRightBound = (mWidth * (100 - BUTTON_PERCENT)) / 100;
 
-        int colors[] = new int[3];
-        colors[0] = Color.WHITE;
-        colors[1] = mColor;
-        colors[2] = Color.WHITE;
-        Shader barShader = new LinearGradient(0, 0, 0, (mHeight * 3) / 2,
-                colors, null, Shader.TileMode.REPEAT);
-        mBarPaint = new Paint();
-        mBarPaint.setShader(barShader);
+        if (mState == SliderState.BAR) {
+            int colors[] = new int[3];
+            colors[0] = Color.WHITE;
+            colors[1] = mColor;
+            colors[2] = Color.WHITE;
+            Shader barShader = new LinearGradient(0, 0, 0, (mHeight * 3) / 2,
+                    colors, null, Shader.TileMode.REPEAT);
+            mBarPaint = new Paint();
+            mBarPaint.setShader(barShader);
+        }
 
         mFontPaint = new Paint();
         mFontPaint.setColor(Color.WHITE);
@@ -149,7 +155,7 @@ public class SalvoSlider extends View {
             case BAR:
                 canvas.drawColor(Color.BLACK);
                 x = mLeftBound
-                        + (((mRightBound - mLeftBound) * mVal) /
+                        + (((mRightBound - mLeftBound) * (mVal - mMin)) /
                             (mMax - mMin));
                 mTempRect.set(mLeftBound, 0, x, mHeight);
                 canvas.drawRect(mTempRect, mBarPaint);
@@ -298,8 +304,8 @@ public class SalvoSlider extends View {
     }
 
     /**
-     * Change the slider state to something else. This can be called from non-UI
-     * threads.
+     * Change the slider state to something else. This can be called
+     * from non-UI threads.
      */
     public void setState(SliderState state, Listener listener, int min,
             int max, int val, int color) {

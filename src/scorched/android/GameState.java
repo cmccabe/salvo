@@ -261,37 +261,70 @@ public interface GameState {
 
     /** The start of a turn. */
     class TurnStartState implements GameState {
+        private final static int MAX_ANIMATION_STEP = 100;
+
         public String toString() {
             return "TurnStartState";
         }
 
         public void onEnter(Model model,
                             SalvoSlider powerSlider, SalvoSlider angleSlider,
-                            Listener powerAdaptor, Listener angleAdaptor) { }
-
-        public GameState main(Model model) {
+                            Listener powerAdaptor, Listener angleAdaptor) {
+            // Determine next game state
             int oldPlayer = model.getCurPlayerId();
             model.nextPlayer();
             int newPlayer = model.getCurPlayerId();
             if (newPlayer == Player.INVALID_PLAYER_ID) {
                 // Everyone died. It was a draw.
-                return GameState.sLeaderBoardState;
+                // TODO: display "it was a draw!" or similar
+                mCurAnimationStep = MAX_ANIMATION_STEP;
+                mNextGameState = GameState.sLeaderBoardState;
+                return;
             }
-            if (newPlayer == oldPlayer) {
+            else if (oldPlayer == Player.INVALID_PLAYER_ID) {
+                // If the previous player was "invalid player," that means
+                // that this is the first turn that anyone has had.
+                // Skip the intro animation.
+                model.getCurPlayer().getIdealViewSettings(mInitViewSettings);
+                Graphics.instance.setViewSettings(mInitViewSettings);
+                mCurAnimationStep = MAX_ANIMATION_STEP;
+            }
+            else if (newPlayer == oldPlayer) {
                 // There's only one player left!
                 // That means he's the winner!
-                return GameState.sLeaderBoardState;
+                // TODO: display "foo wins" or similar
+                mCurAnimationStep = MAX_ANIMATION_STEP;
+                mNextGameState = GameState.sLeaderBoardState;
+                return;
+            }
+            else {
+                // Do the animation
+                mCurAnimationStep = 0;
             }
 
             Player curPlayer = model.getCurPlayer();
-            return curPlayer.getGameState();
+            Graphics.instance.getViewSettings(mInitViewSettings);
+            curPlayer.getIdealViewSettings(mFinalViewSettings);
+            mNextGameState = curPlayer.getGameState();
+        }
+
+        public GameState main(Model model) {
+            if (mCurAnimationStep >= MAX_ANIMATION_STEP)
+                return mNextGameState;
+            mCurAnimationStep++;
+
+            mCurViewSettings.interpolate(
+                mInitViewSettings, mFinalViewSettings,
+                mCurAnimationStep, MAX_ANIMATION_STEP);
+            Graphics.instance.setViewSettings(mCurViewSettings);
+            return null;
         }
 
         public void onExit(SalvoSlider powerSlider,
                            SalvoSlider angleSlider) { }
 
         public int getBlockingDelay() {
-            return 0;
+            return 10;
         }
 
         public boolean onButton(GameButton b) { return false; }
@@ -304,11 +337,29 @@ public interface GameState {
             return false;
         }
 
-        public boolean needRedraw() { return false; }
+        public boolean needRedraw() {
+            return true;
+        }
 
-        public void redraw(Canvas canvas, Model model) { }
+        public void redraw(Canvas canvas, Model model) {
+            Graphics.instance.drawScreen(canvas, model);
+        }
 
-        public TurnStartState() { }
+        public TurnStartState() {
+            mInitViewSettings = new Graphics.ViewSettings(0,0,0);
+            mCurViewSettings = new Graphics.ViewSettings(0,0,0);
+            mFinalViewSettings = new Graphics.ViewSettings(0,0,0);
+        }
+
+        private int mCurAnimationStep;
+
+        Graphics.ViewSettings mInitViewSettings;
+
+        Graphics.ViewSettings mCurViewSettings;
+
+        Graphics.ViewSettings mFinalViewSettings;
+
+        private GameState mNextGameState;
     }
 
     /** A human turn. We will accept input from the touchscreen and do all
