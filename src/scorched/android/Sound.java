@@ -43,7 +43,7 @@ public enum Sound  {
 		}
 
 		/** Play a sound - don't let it play twice at once. */
-		private void playSound(MediaPlayer sound, Context context) {
+		private void playSound(MediaPlayer sound) {
 			synchronized (playing) {
 				if (playing.contains(sound)) {
 					return;
@@ -90,6 +90,6 @@ public enum Sound  {
 	/** Play a booming sound. */
 	public void playBoom(Context context) {
 		init(context);
-		state.playSound(state.boom, context);
+		state.playSound(state.boom);
 	}
 }
