@@ -118,21 +118,21 @@ public class SalvoSlider extends View {
         assert Thread.holdsLock(mState);
         // Don't need to cache anything for the DISABLED state
         if (mState == SliderState.DISABLED)
-        	return;
+            return;
         mLeftBound = (mWidth * BUTTON_PERCENT) / 100;
         mRightBound = (mWidth * (100 - BUTTON_PERCENT)) / 100;
 
         if (mState == SliderState.BAR) {
-	        int colors[] = new int[3];
-	        colors[0] = Color.WHITE;
-	        colors[1] = mColor;
-	        colors[2] = Color.WHITE;
-	        Shader barShader = new LinearGradient(0, 0, 0, (mHeight * 3) / 2,
-	                colors, null, Shader.TileMode.REPEAT);
-	        mBarPaint = new Paint();
-	        mBarPaint.setShader(barShader);
+            int colors[] = new int[3];
+            colors[0] = Color.WHITE;
+            colors[1] = mColor;
+            colors[2] = Color.WHITE;
+            Shader barShader = new LinearGradient(0, 0, 0, (mHeight * 3) / 2,
+                    colors, null, Shader.TileMode.REPEAT);
+            mBarPaint = new Paint();
+            mBarPaint.setShader(barShader);
         }
-        
+
         mFontPaint = new Paint();
         mFontPaint.setColor(Color.WHITE);
         mFontPaint.setAntiAlias(true);

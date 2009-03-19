@@ -282,10 +282,10 @@ public interface GameState {
                 return;
             }
             else if (oldPlayer == Player.INVALID_PLAYER_ID) {
-            	// If the previous player was "invalid player," that means that this
-            	// is the first turn that anyone has had.
-            	// Skip the intro animation.
-            	mCurAnimationStep = MAX_ANIMATION_STEP;
+                // If the previous player was "invalid player," that means that this
+                // is the first turn that anyone has had.
+                // Skip the intro animation.
+                mCurAnimationStep = MAX_ANIMATION_STEP;
             }
             else if (newPlayer == oldPlayer) {
                 // There's only one player left!
@@ -296,8 +296,8 @@ public interface GameState {
                 return;
             }
             else {
-            	// Do the animation
-            	mCurAnimationStep = 0;
+                // Do the animation
+                mCurAnimationStep = 0;
             }
 
             Player curPlayer = model.getCurPlayer();
@@ -312,7 +312,7 @@ public interface GameState {
             mCurAnimationStep++;
 
             mCurViewSettings.interpolate(
-                mInitViewSettings, mFinalViewSettings, 
+                mInitViewSettings, mFinalViewSettings,
                 mCurAnimationStep, MAX_ANIMATION_STEP);
             Graphics.instance.setViewSettings(mCurViewSettings);
             return null;

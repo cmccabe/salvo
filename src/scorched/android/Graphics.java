@@ -44,7 +44,7 @@ public enum Graphics {
          * display higher Y coordinates than this one.
          */
         public final static float MAX_PAN_Y =
-            Model.MAX_ELEVATION + 
+            Model.MAX_ELEVATION +
                 2 * (Model.PLAYER_SIZE + Model.TURRET_LENGTH);
 
         /*================= Members =================*/
@@ -59,12 +59,12 @@ public enum Graphics {
 
         /*================= Accessor =================*/
         public String toString() {
-        	String ret = "ViewSettings(mViewX=" + mViewX +
-        				 " , mViewY=" + mViewY +
-        				 " , mZoom=" + mZoom;
-        	return ret;
+            String ret = "ViewSettings(mViewX=" + mViewX +
+                         " , mViewY=" + mViewY +
+                         " , mZoom=" + mZoom;
+            return ret;
         }
-        
+
         /*================= Operations =================*/
         /** Change this ViewSettings object to be the same as 'src'
          */
@@ -176,12 +176,12 @@ public enum Graphics {
         }
 
         private float square(float f) {
-        	return f * f;
+            return f * f;
         }
-        
+
         /** Modifies this ViewSettings to be midway between initVs and
-         * finalVs. It will be curStep / maxStep of the way along. 
-         * 
+         * finalVs. It will be curStep / maxStep of the way along.
+         *
          * Note: if initVs and finalVs are 'in bounds,' then the output will be too.
          * So we don't call mutate() here.
          */
@@ -191,21 +191,21 @@ public enum Graphics {
             final int curStepCmp = maxStep - curStep;
             final float maxStepF = maxStep;
             mViewX = ((initVs.mViewX * curStepCmp) / maxStepF) +
-                     	((finalVs.mViewX * curStep) / maxStepF);
+                         ((finalVs.mViewX * curStep) / maxStepF);
             mViewY = ((initVs.mViewY * curStepCmp) / maxStepF) +
                         ((finalVs.mViewY * curStep) / maxStepF);
-            
+
             // For zoom, don't linearly interpolate.
-            // We want to stay zoomed-out (mZoom ~ small) for longer, 
+            // We want to stay zoomed-out (mZoom ~ small) for longer,
             // because that looks better.
             // Use some simple numerical tricks to do that...
             float maxStepSquared = maxStep * maxStep;
             float curZoomStep;
             if (initVs.mZoom > finalVs.mZoom)
-            	curZoomStep = square(curStep);
+                curZoomStep = square(curStep);
             else
-            	curZoomStep = maxStepSquared - square(curStep - maxStep);
-        	float curZoomStepCmp = maxStepSquared - curZoomStep;
+                curZoomStep = maxStepSquared - square(curStep - maxStep);
+            float curZoomStepCmp = maxStepSquared - curZoomStep;
             mZoom = ((initVs.mZoom * curZoomStepCmp) / maxStepSquared) +
                         ((finalVs.mZoom * curZoomStep) / maxStepSquared);
         }
@@ -303,7 +303,7 @@ public enum Graphics {
 
     /*================= Operations =================*/
     public void setViewSettings(ViewSettings v) {
-    	Log.w(TAG, "setViewSettings(v=" + v.toString());
+        Log.w(TAG, "setViewSettings(v=" + v.toString());
         mV.copyInPlace(v);
     }
 
