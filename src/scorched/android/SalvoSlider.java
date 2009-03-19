@@ -33,7 +33,8 @@ public class SalvoSlider extends View {
         DISABLED,
 
         /**
-         * The slider will be drawn using a bar graphic. Touch will be enabled.
+         * The slider will be drawn using a bar graphic. Touch will be 
+         * enabled.
          */
         BAR,
 
@@ -111,8 +112,8 @@ public class SalvoSlider extends View {
 
     /* ================= Operations ================= */
     /**
-     * Cache a bunch of stuff that we don't want to have to recalculate on each
-     * draw().
+     * Cache a bunch of stuff that we don't want to have to recalculate on 
+     * each draw().
      */
     private void cacheStuff() {
         assert Thread.holdsLock(mState);
@@ -154,7 +155,7 @@ public class SalvoSlider extends View {
             case BAR:
                 canvas.drawColor(Color.BLACK);
                 x = mLeftBound
-                        + (((mRightBound - mLeftBound) * mVal) /
+                        + (((mRightBound - mLeftBound) * (mVal - mMin)) /
                             (mMax - mMin));
                 mTempRect.set(mLeftBound, 0, x, mHeight);
                 canvas.drawRect(mTempRect, mBarPaint);
@@ -303,8 +304,8 @@ public class SalvoSlider extends View {
     }
 
     /**
-     * Change the slider state to something else. This can be called from non-UI
-     * threads.
+     * Change the slider state to something else. This can be called 
+     * from non-UI threads.
      */
     public void setState(SliderState state, Listener listener, int min,
             int max, int val, int color) {
