@@ -32,6 +32,8 @@ public class Salvo extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        Sound.instance.init(this);
 
         ////////////////// setContentView
         setContentView(R.layout.title);

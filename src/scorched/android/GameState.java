@@ -624,6 +624,7 @@ public interface GameState {
             mMaxExplosionSize = wtp.getExplosionSize();
             mCurExplosionSize = 0;
             Graphics.instance.initializeExplosion();
+            Sound.instance.playBoom(powerSlider.getContext().getApplicationContext());
         }
 
         public GameState main(Model model) {
