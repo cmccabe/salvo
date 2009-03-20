@@ -35,31 +35,24 @@
         android:id="@+id/TopSliderRow"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:layout_weight="3"
+        android:layout_weight="6"
         android:orientation="horizontal">
         <Button
             android:text="WEAP"
             android:id="@+id/WeapButton"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:layout_weight="6"
+            android:layout_weight="8"
         />
-        <scorched.android.SalvoSlider 
-            android:id="@+id/PowerSlider"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:layout_weight="2"
-        />
-    </LinearLayout>
-    <LinearLayout
-        android:id="@+id/BottomSliderRow"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:layout_weight="3"
-        android:orientation="horizontal">
         <Button
             android:text="FIRE"
             android:id="@+id/FireButton"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_weight="8"
+        />
+        <scorched.android.SalvoSlider 
+            android:id="@+id/PowerSlider"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
             android:layout_weight="6"
@@ -68,7 +61,7 @@
             android:id="@+id/AngleSlider"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:layout_weight="2"
+            android:layout_weight="6"
         />
     </LinearLayout>
 </LinearLayout>
