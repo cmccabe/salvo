@@ -303,7 +303,7 @@ public enum Graphics {
 
     /*================= Operations =================*/
     public void setViewSettings(ViewSettings v) {
-        Log.w(TAG, "setViewSettings(v=" + v.toString() + ")");
+        //Log.w(TAG, "setViewSettings(v=" + v.toString() + ")");
         mV.copyInPlace(v);
     }
 

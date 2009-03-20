@@ -33,6 +33,8 @@ public class RunGameActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        Log.w(this.getClass().getName(), "onCreate called");
+
         Player players[] = new Player[5];
         players[0] = new LocalHumanPlayer(0);
         players[1] = new ComputerPlayer(1);
@@ -86,6 +88,7 @@ public class RunGameActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
+        Log.w(this.getClass().getName(), "onPause called");
         //mGameControl.getThread().pause(); // pause game when
                                                 // Activity pauses
     }
@@ -98,10 +101,21 @@ public class RunGameActivity extends Activity {
      *        state
      */
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
+    protected void onSaveInstanceState(Bundle b) {
         // just have the View's thread save its state into our Bundle
-        super.onSaveInstanceState(outState);
-        mGameControl.getThread().saveState(outState);
+        super.onSaveInstanceState(b);
+        mGameControl.getThread().saveState(b);
         Log.w(this.getClass().getName(), "onSaveInstanceState called");
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle b) {
+        Log.w(this.getClass().getName(), "onRestoreInstanceState called");
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        Log.w(this.getClass().getName(),
+            "onWindowFocusChanged(" + hasFocus + ") called");
     }
 }
