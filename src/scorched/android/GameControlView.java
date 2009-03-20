@@ -59,7 +59,7 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
 
         /** Last Y coordinate the user touched (in game coordinates) */
         private float mTouchY;
-        
+
         /** The object to control sound */
         private Sound mSound;
 
