@@ -66,6 +66,9 @@ public enum Weapon
         if ((x < 0) || (x >= Model.MAX_X - 1)) {
             return true;
         }
+        // The floor is hard
+        if (y < 0)
+            return true;
 
         // Use linear interpolation to check if we're under the ground
         float h[] = model.getHeights();
