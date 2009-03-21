@@ -12,6 +12,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".ReadStuffActivity"
+                  android:label="ReadStuffActivity">
+        </activity>
         <activity android:name=".GameSetupActivity"
                   android:label="GameSetupActivity">
         </activity>

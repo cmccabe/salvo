@@ -55,6 +55,25 @@ public class Salvo extends Activity {
                 startActivity(setupIntent);
             }
         });
+        about.setOnClickListener(new OnClickListener() {
+            public void onClick(View arg0) {
+                Intent setupIntent = new Intent().
+                    setClass(titleActivity, ReadStuffActivity.class);
+                setupIntent.putExtra(ReadStuffActivity.STUFF_TYPE_EXTRA,
+                    ReadStuffActivity.StuffText.ABOUT_BOX.toCode());
+                startActivity(setupIntent);
+            }
+        });
+        help.setOnClickListener(new OnClickListener() {
+            public void onClick(View arg0) {
+                Intent setupIntent = new Intent().
+                    setClass(titleActivity, ReadStuffActivity.class);
+                setupIntent.putExtra(ReadStuffActivity.STUFF_TYPE_EXTRA,
+                    ReadStuffActivity.StuffText.HELP_BOX.toCode());
+                startActivity(setupIntent);
+            }
+        });
+
     }
 
     @Override
