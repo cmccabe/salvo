@@ -11,13 +11,34 @@
         android:orientation="horizontal"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent">
-        <LinearLayout android:id="@+id/NullLayout"
+        <LinearLayout android:id="@+id/LeftSideLayout"
                       android:orientation="vertical"
                       android:layout_width="fill_parent"
                       android:layout_height="fill_parent"
-                      android:layout_weight="1">
+                      android:layout_weight="1"
+                      android:layout_gravity="center_horizontal">
+            <TextView android:id="@+id/TitleText" 
+                      android:layout_width="fill_parent"
+                      android:layout_gravity="center_horizontal"
+                      android:layout_height="wrap_content"
+                      android:text="Salvo"
+                      android:textColor="#000"
+                      android:textSize="8mm"
+                      android:layout_marginTop="3mm"
+                      android:layout_marginLeft="1mm"
+                      android:layout_marginRight="1mm"
+                      android:layout_marginBottom="1mm">
+            </TextView>
+            <TextView android:id="@+id/CopyrightText" 
+                      android:layout_width="fill_parent"
+                      android:layout_gravity="center_horizontal"
+                      android:layout_height="wrap_content"
+                      android:textColor="#000"
+                      android:text="Copyright Amadeus Software, 2009"
+                      android:layout_margin="1mm">
+            </TextView>
         </LinearLayout>
-        <LinearLayout android:id="@+id/TitleButtonsLayout"
+        <LinearLayout android:id="@+id/RightSideLayout"
             android:orientation="vertical"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
