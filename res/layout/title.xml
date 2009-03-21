@@ -7,31 +7,42 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:src="@drawable/title" android:adjustViewBounds="false" android:clickable="false" android:cropToPadding="false" android:scaleType="fitXY"/>
-    <LinearLayout android:id="@+id/TitleButtonsLayout"
-        android:orientation="vertical"
+    <LinearLayout android:id="@+id/ScreenSplitterLayout"
+        android:orientation="horizontal"
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:layout_gravity="right"
-        android:layout_weight="1">
-        <Button android:id="@+id/new_game"
-                android:layout_gravity="right"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="New Game"/>
-        <Button android:id="@+id/about"
-                android:layout_gravity="right"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="About"/>
-        <Button android:id="@+id/buy_game"
-                android:layout_gravity="right"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Buy Game"/>
-        <Button android:id="@+id/help"
-                android:layout_gravity="right"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Help"/>
+        android:layout_height="fill_parent">
+        <LinearLayout android:id="@+id/NullLayout"
+                      android:orientation="vertical"
+                      android:layout_width="fill_parent"
+                      android:layout_height="fill_parent"
+                      android:layout_weight="1">
+        </LinearLayout>
+        <LinearLayout android:id="@+id/TitleButtonsLayout"
+            android:orientation="vertical"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_gravity="right"
+            android:layout_weight="1" android:paddingTop="30px">
+            <Button android:id="@+id/new_game"
+                    android:layout_gravity="right"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:text="New Game"/>
+            <Button android:id="@+id/about"
+                    android:layout_gravity="right"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:text="About"/>
+            <Button android:id="@+id/buy_game"
+                    android:layout_gravity="right"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Buy Game"/>
+            <Button android:id="@+id/help"
+                    android:layout_gravity="right"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Help"/>
+        </LinearLayout>
     </LinearLayout>
 </FrameLayout>
