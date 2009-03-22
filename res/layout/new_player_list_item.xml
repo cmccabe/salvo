@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/OverallNewPlayerListItemLayout"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+    <TextView android:id="@+id/row_text"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:textSize="4mm"
+    />
+    <!-- android:textAppearance="?android:attr/textAppearanceSmall" -->
+</LinearLayout>

@@ -1,13 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/OverallTitleLayout"
+    android:id="@+id/OverallGameSetupLayout"
     android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent">
-    <Button android:id="@+id/start_game"
-            android:layout_gravity="center"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Start Game"/>
+    <FrameLayout
+        android:id="@+id/PlayerListPlaceholder"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_weight="1"
+        android:layout_margin="2mm">
+        <ListView
+            android:id="@+id/player_list"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"            
+            android:visibility="visible"
+            android:clickable="true">
+        </ListView>
+        <!-- android:longClickable="true" -->
+        <!-- android:choiceMode="singleChoice" -->
+    </FrameLayout>
+    <LinearLayout
+        android:id="@+id/ButtonBar"
+        android:orientation="horizontal"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_weight="5"
+        android:layout_margin="1mm">
+        <Button android:id="@+id/add_player"
+                android:layout_gravity="center"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:layout_weight="1"
+                android:text="Add Player"/>
+        <Button android:id="@+id/play"
+                android:layout_gravity="center"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:layout_weight="1"
+                android:text="Play!"/>
+    </LinearLayout>
 </LinearLayout>

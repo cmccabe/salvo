@@ -5,7 +5,9 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListView;
 
 public class GameSetupActivity extends Activity {
     /*================= Constants =================*/
@@ -22,18 +24,27 @@ public class GameSetupActivity extends Activity {
         setContentView(R.layout.game_setup);
 
         ////////////////// Get pointers to stuff
-        final Button startGame = (Button)findViewById(R.id.start_game);
+        final Button play = (Button)findViewById(R.id.play);
+        final Button addPlayer = (Button)findViewById(R.id.add_player);
+        final ListView playerList = (ListView)findViewById(R.id.player_list);
 
         ////////////////// Initialize stuff
         final Activity titleActivity = this;
-        startGame.setOnClickListener(new OnClickListener() {
+        play.setOnClickListener(new OnClickListener() {
             public void onClick(View arg0) {
                 Intent setupIntent =
-                    new Intent().setClass(titleActivity, RunGameActivity.class);
+                    new Intent().setClass(titleActivity,
+                        RunGameActivity.class);
                     startActivity(setupIntent);
             }
         });
-        //public SharedPreferences getPreferences(int mode)
+        String arr[] = { "ahoy", "matey", "want", "some", "grog",
+                        "now", "or", "what", "do", "you", "want",
+                        "scurvy", "landlubber" };
+        ArrayAdapter<String> myArrayAdaptor =
+            new ArrayAdapter<String>(getBaseContext(),
+                R.layout.new_player_list_item, R.id.row_text, arr);
+        playerList.setAdapter(myArrayAdaptor);
     }
 
     @Override
@@ -45,7 +56,7 @@ public class GameSetupActivity extends Activity {
     protected void onSaveInstanceState(Bundle outState) { }
 }
 
-
+//public SharedPreferences getPreferences(int mode)
 
 //import android.app.Activity;
 //import android.content.SharedPreferences;

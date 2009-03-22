@@ -2,7 +2,8 @@
 
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
              android:layout_width="fill_parent"
-             android:layout_height="fill_parent">
+             android:layout_height="fill_parent"
+             android:background="#ff527faf">
     <TextView android:id="@+id/stuff" 
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
@@ -16,7 +17,7 @@
         android:paddingRight="2mm"
         android:paddingBottom="2mm"
         android:textColor="#000"
-        android:background="#ccc"
+        android:background="#eee"
         android:singleLine="false">
     </TextView>
     <Button android:id="@+id/back"
