@@ -16,7 +16,8 @@
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"            
             android:visibility="visible"
-            android:clickable="true">
+            android:clickable="true"
+            android:focusableInTouchMode="true">
         </ListView>
         <!-- android:longClickable="true" -->
         <!-- android:choiceMode="singleChoice" -->

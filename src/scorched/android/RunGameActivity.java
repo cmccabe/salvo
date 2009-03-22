@@ -36,13 +36,13 @@ public class RunGameActivity extends Activity {
         Log.w(this.getClass().getName(), "onCreate called");
 
         Player players[] = new Player[5];
-        players[0] = new LocalHumanPlayer(0);
-        players[1] = new ComputerPlayer(1);
-        players[2] = new ComputerPlayer(2);
-        players[3] = new ComputerPlayer(3);
-        players[4] = new LocalHumanPlayer(4);
+        players[0] = new LocalHumanPlayer(0, "a", Player.PlayerColor.BLUE);
+        players[1] = new ComputerPlayer(1, "b", Player.PlayerColor.GREEN);
+        players[2] = new ComputerPlayer(2, "c", Player.PlayerColor.PURPLE);
+        players[3] = new ComputerPlayer(3, "d", Player.PlayerColor.RED);
+        players[4] = new LocalHumanPlayer(4, "e", Player.PlayerColor.YELLOW);
         mModel = new Model(players);
-        Graphics.instance.initialize(getApplicationContext());
+        Graphics.instance.initialize(getApplicationContext(), mModel);
 
         ////////////////// setContentView
         requestWindowFeature(Window.FEATURE_NO_TITLE);

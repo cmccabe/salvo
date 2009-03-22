@@ -1,6 +1,34 @@
 package scorched.android;
 
+import android.graphics.Color;
+
 public class Player {
+    /*================= Types =================*/
+    public static enum PlayerColor {
+        RED("red", Color.argb(0xff, 0xef,0x29, 0x29)),
+        GREEN("green", Color.argb(0xff, 0x8a, 0xe2, 0xe4)),
+        YELLOW("yellow", Color.argb(0xff, 0xfc, 0xe9, 0x4f)),
+        BLUE("blue", Color.argb(0xff, 0x72, 0x9f, 0xcf)),
+        PURPLE("purple", Color.argb(0xff, 0xad, 0x7f, 0xa8)),
+        CYAN("cyan", Color.argb(0xff, 0x06, 0x98, 0x9a)),
+        GREY("grey", Color.argb(0xff, 0xd3, 0xd7, 0xcf)),
+        PINK("pink", Color.argb(0xff, 0xff, 0x83, 0xe9));
+
+        /*================= Data =================*/
+        private final String mName;
+        private final int mColor;
+
+        /*================= Access =================*/
+        public String getName() { return mName; }
+        public int toInt() { return mColor; }
+
+        /*================= Lifecycle =================*/
+        private PlayerColor(String name, int color) {
+            mName = name;
+            mColor = color;
+        }
+    }
+
     /*================= Constants =================*/
     private static final int MAX_LIFE = 1000;
 
@@ -42,6 +70,12 @@ public class Player {
      * scale as life. */
     private int mPower;
 
+    /** Player name */
+    private String mName;
+    
+    /** Our color */
+    private PlayerColor mColor;
+
     /*================= Static =================*/
 
     /*================= Access =================*/
@@ -70,6 +104,8 @@ public class Player {
     public int getPower() {
         return mPower;
     }
+
+    public Player.PlayerColor getColor() { return mColor; }
 
     public boolean isAlive() {
         return mLife > 0;
@@ -165,8 +201,11 @@ public class Player {
     }
 
     /*================= Lifecycle =================*/
-    public Player(int id) {
+    public Player(int id, String name, PlayerColor color) {
         mId = id;
+        mName = name;
+        mColor = color;
+        
         mLife = MAX_LIFE;
         setAngleDeg(MAX_TURRET_ANGLE / 4);
         mPower = (3 * MAX_POWER) / 4;

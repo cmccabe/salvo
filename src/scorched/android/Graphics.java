@@ -230,9 +230,6 @@ public enum Graphics {
     /** Paint to draw the lines on screen. */
     private Paint mClear, mTerrainPaint;
 
-    /** Player colors */
-    private int mPlayerColors[];
-
     /** Thin paint to draw the players */
     private Paint mPlayerThinPaint[];
 
@@ -267,10 +264,6 @@ public enum Graphics {
     }
 
     /*================= Access =================*/
-    public int getPlayerColor(int playerId) {
-        return mPlayerColors[playerId];
-    }
-
     /** Give the onscreen coordinate corresponding to x */
     public float gameXtoOnscreenX(float x) {
         return (x - mV.mViewX) * mV.mZoom;
@@ -511,8 +504,9 @@ public enum Graphics {
     /** Initialize the Graphics singleton.
      * NOTE: Context must be an Application Context,
      *       else you will leak memory.
+     * NOTE: We don't hang on to any references to the model
      */
-    public void initialize(Context context) {
+    public void initialize(Context context, Model model) {
         // Load Paints
         mClear = new Paint();
         mClear.setAntiAlias(false);
@@ -523,32 +517,25 @@ public enum Graphics {
         mTerrainPaint.setARGB(255, 0, 255, 0);
 
         // get player colors
-        String playerColorStr[] = context.getResources().
-                    getStringArray(R.array.player_colors);
-        mPlayerColors = new int[playerColorStr.length];
-        for (int i = 0; i < playerColorStr.length; ++i) {
-            mPlayerColors[i] = Color.parseColor(playerColorStr[i]);
-        }
+        int playerColors[] = new int[model.getNumberOfPlayers()];
+        for (int i = 0; i < playerColors.length; i++)
+            playerColors[i] = model.getPlayer(i).getColor().toInt();
 
         // calculate player paints
-        mPlayerThinPaint = new Paint[mPlayerColors.length];
-        mPlayerThickPaint = new Paint[mPlayerColors.length];
-        for (int i = 0; i < mPlayerColors.length; ++i) {
+        mPlayerThinPaint = new Paint[playerColors.length];
+        mPlayerThickPaint = new Paint[playerColors.length];
+        for (int i = 0; i < playerColors.length; ++i) {
             Paint pthin = new Paint();
             pthin.setAntiAlias(true);
-            pthin.setColor(mPlayerColors[i]);
+            pthin.setColor(playerColors[i]);
             mPlayerThinPaint[i] = pthin;
 
             Paint pthick = new Paint();
             pthick.setAntiAlias(true);
-            pthick.setColor(mPlayerColors[i]);
+            pthick.setColor(playerColors[i]);
             pthick.setStrokeWidth(3);
             mPlayerThickPaint[i] = pthick;
         }
-
-        // calculate explosion paint
-        int red = Color.argb(255,255,0,0);
-        int orange = Color.argb(255,255,140,0);
 
         mExplosionPaint = new Paint();
         mTempPath = new Path();

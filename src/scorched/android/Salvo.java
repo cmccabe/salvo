@@ -39,8 +39,6 @@ public class Salvo extends Activity {
         setContentView(R.layout.title);
 
         ////////////////// Get pointers to stuff
-        final ImageView myImage =
-            (ImageView)findViewById(R.id.title_picture);
         final Button newGame = (Button)findViewById(R.id.new_game);
         final Button about = (Button)findViewById(R.id.about);
         final Button buyGame = (Button)findViewById(R.id.buy_game);

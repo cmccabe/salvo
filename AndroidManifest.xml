@@ -12,6 +12,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+<!-- android:label=”@string/activity_dialog”
+android:theme=”@android:style/Theme.Dialog” -->
         <activity android:name=".ReadStuffActivity"
                   android:label="ReadStuffActivity">
         </activity>

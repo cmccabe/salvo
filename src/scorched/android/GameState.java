@@ -382,8 +382,7 @@ public interface GameState {
             // Activate sliders
             // TODO: look up sliders by layout
             Player curPlayer = model.getCurPlayer();
-            int myColor =
-                Graphics.instance.getPlayerColor(curPlayer.getId());
+            int myColor = curPlayer.getColor().toInt();
 
             powerSlider.setState(SalvoSlider.SliderState.BAR,
                         powerAdaptor,
