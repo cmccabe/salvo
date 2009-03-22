@@ -13,7 +13,7 @@ public class ReadStuffActivity extends Activity {
     /*================= Types =================*/
     public enum StuffText {
         /*================= Values =================*/
-        ABOUT_BOX(
+        ABOUT_BOX("About Salvo",
 "in no event unless required by applicable law or agreed to in writing " +
 "will any copyright holder, or any other party who may modify and/or " +
 "redistribute the program as permitted above, be liable to you for " +
@@ -23,7 +23,7 @@ public class ReadStuffActivity extends Activity {
 "inaccurate or losses sustained by you or third parties or a failure of " +
 "the program to operate with any other programs), even if such holder " +
 "or other party has been advised of the possibility of such damages."),
-        HELP_BOX("Foobah");
+        HELP_BOX("Help", "Foobah");
 
         /*================= Static =================*/
         static StuffText fromCode(int code) {
@@ -36,16 +36,22 @@ public class ReadStuffActivity extends Activity {
             return ordinal();
         }
 
+        public String getTitle() {
+            return mTitle;
+        }
+
         public String getText() {
             return mText;
         }
 
         /*================= Lifecycle =================*/
-        private StuffText(String text) {
+        private StuffText(String title, String text) {
+            mTitle = title;
             mText = text;
         }
 
         /*================= Data =================*/
+        final String mTitle;
         final String mText;
     }
 
@@ -61,6 +67,8 @@ public class ReadStuffActivity extends Activity {
         StuffText[] stuffs = StuffText.class.getEnumConstants();
         int code = getIntent().getIntExtra(STUFF_TYPE_EXTRA,
                                             stuffs[0].ordinal());
+        StuffText myText = StuffText.fromCode(code);
+        setTitle(myText.getTitle());
 
         ////////////////// setContentView
         setContentView(R.layout.read_stuff);
@@ -70,7 +78,6 @@ public class ReadStuffActivity extends Activity {
         final Button back = (Button)findViewById(R.id.back);
 
         ////////////////// Initialize stuff
-        StuffText myText = StuffText.fromCode(code);
         stuff.setText(myText.getText());
         Log.w(this.getClass().getName(),
             "StuffText(" + myText.ordinal() + ") = " + myText.getText());

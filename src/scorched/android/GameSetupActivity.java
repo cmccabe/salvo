@@ -43,7 +43,7 @@ public class GameSetupActivity extends Activity {
                         "scurvy", "landlubber" };
         ArrayAdapter<String> myArrayAdaptor =
             new ArrayAdapter<String>(getBaseContext(),
-                R.layout.new_player_list_item, R.id.row_text, arr);
+                R.layout.new_player_list_item, R.id.player_name, arr);
         playerList.setAdapter(myArrayAdaptor);
     }
 
