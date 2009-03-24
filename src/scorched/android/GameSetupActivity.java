@@ -36,7 +36,7 @@ public class GameSetupActivity extends Activity {
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog,
                                             int whichButton) {
-                            setResult(RESULT_OK);
+                            // just dismiss the box
                         }
                     });
 
@@ -92,7 +92,6 @@ public class GameSetupActivity extends Activity {
         });
 
         addPlayer.setOnClickListener(new NewPlayerListener());
-
 
         randPlayer.setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
