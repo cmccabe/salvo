@@ -6,13 +6,13 @@ public class Player {
     /*================= Types =================*/
     public static enum PlayerColor {
         RED("red", Color.argb(0xff, 0xef,0x29, 0x29)),
-        GREEN("green", Color.argb(0xff, 0x8a, 0xe2, 0xe4)),
         YELLOW("yellow", Color.argb(0xff, 0xfc, 0xe9, 0x4f)),
+        GREEN("green", Color.argb(0xff, 0x06, 0xd0, 0x30)),
+        CYAN("cyan", Color.argb(0xff, 0x8d, 0xef, 0xef)),
         BLUE("blue", Color.argb(0xff, 0x72, 0x9f, 0xcf)),
+        PINK("pink", Color.argb(0xff, 0xff, 0x83, 0xe9)),
         PURPLE("purple", Color.argb(0xff, 0xad, 0x7f, 0xa8)),
-        CYAN("cyan", Color.argb(0xff, 0x06, 0x98, 0x9a)),
-        GREY("grey", Color.argb(0xff, 0xd3, 0xd7, 0xcf)),
-        PINK("pink", Color.argb(0xff, 0xff, 0x83, 0xe9));
+        GREY("grey", Color.argb(0xff, 0xd3, 0xd7, 0xcf));
 
         /*================= Data =================*/
         private final String mName;
@@ -72,7 +72,7 @@ public class Player {
 
     /** Player name */
     private String mName;
-    
+
     /** Our color */
     private PlayerColor mColor;
 
@@ -205,7 +205,7 @@ public class Player {
         mId = id;
         mName = name;
         mColor = color;
-        
+
         mLife = MAX_LIFE;
         setAngleDeg(MAX_TURRET_ANGLE / 4);
         mPower = (3 * MAX_POWER) / 4;

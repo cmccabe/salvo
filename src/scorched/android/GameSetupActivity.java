@@ -13,8 +13,12 @@ import android.widget.ListView;
 
 public class GameSetupActivity extends Activity {
     /*================= Constants =================*/
-    private static final String TAG = "GameSetupActivity";
     public static final String PREFS_NAME = "MyPrefsFile";
+
+    /*================= Data =================*/
+    private ModelFactory mModelFactory;
+
+    private volatile boolean mInitialized = false;
 
     /*================= Operations =================*/
     /** Called when the activity is first created. */
@@ -24,6 +28,18 @@ public class GameSetupActivity extends Activity {
 
         ////////////////// setContentView
         setContentView(R.layout.game_setup);
+
+        mModelFactory = new ModelFactory(); //(savedInstanceState);
+    }
+
+    /** Called when the views are ready to be displayed */
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (mInitialized)
+            return;
+        else
+            mInitialized = true;
 
         ////////////////// Get pointers to stuff
         final Button play = (Button)findViewById(R.id.play);
@@ -43,13 +59,7 @@ public class GameSetupActivity extends Activity {
         });
 
         // initialize ListView
-        String arr[] = { "ahoy", "matey", "want", "some", "grog",
-                        "now", "or", "what", "do", "you", "want",
-                        "scurvy", "landlubber" };
-        ArrayAdapter<String> myArrayAdaptor =
-            new ArrayAdapter<String>(getBaseContext(),
-                R.layout.new_player_list_item, R.id.player_name, arr);
-        playerList.setAdapter(myArrayAdaptor);
+        playerList.setAdapter(mModelFactory.getPlayerListAdapter());
 
         playerList.setOnItemClickListener(
                 new AdapterView.OnItemClickListener() {
@@ -197,4 +207,14 @@ public class SeparatedListAdapter extends BaseAdapter {
 
 }
 
+*/
+
+/*
+        String arr[] = { "ahoy", "matey", "want", "some", "grog",
+                        "now", "or", "what", "do", "you", "want",
+                        "scurvy", "landlubber" };
+        ArrayAdapter<String> myArrayAdaptor =
+            new ArrayAdapter<String>(getBaseContext(),
+                R.layout.new_player_list_item, R.id.player_name, arr);
+        playerList.setAdapter(myArrayAdaptor);
 */

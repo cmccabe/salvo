@@ -46,17 +46,18 @@ public class RunGameActivity extends Activity {
         mModel = new Model(players);
         Graphics.instance.initialize(getApplicationContext(), mModel);
 
-        ////////////////// setContentView
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         Log.w(TAG, "setContentView");
         setContentView(R.layout.game);
+
+        // todo: create modelFactory or model out of savedInstanceState
     }
 
     @Override
-    public void onStart(Bundle savedInstanceState) {
-        super.onStart(savedInstanceState);
+    public void onStart() {
+        super.onStart();
 
         synchronized (mRunGameState) {
             if (mNeedInitialization == true) {
@@ -66,7 +67,7 @@ public class RunGameActivity extends Activity {
     }
 
     /** Hook up the various views to each other.
-     * Must be called after all views are finished being constructed-- i.e. 
+     * Must be called after all views are finished being constructed-- i.e.
      * in onStart, not onCreate. */
     private void initialize() {
         ////////////////// Get pointers to stuff
