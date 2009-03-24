@@ -55,12 +55,23 @@ public class Model {
     public static final float GRAVITY = 0.00006f;
 
     enum TerrainType {
-        TRIANGULAR,
-        FLAT,
-        //PLATEAUS,
-        JAGGED,
-        HILLY,
-        ROLLING,
+        // TODO: move terrain generation functions into this enum
+        Triangular,
+        Flat,
+        //Plateaus,
+        Jagged,
+        Hilly,
+        Rolling;
+
+        /** Returns an array of strings where each entry describes a 
+         * terrain type */
+        public static String [] getStrings() {
+            TerrainType t[] = TerrainType.values();
+            String ret[] = new String[t.length];
+            for (int i = 0; i < t.length; i++)
+                ret[i] = t[i].toString() + " terrain";
+            return ret;
+        }
     };
 
     /*================= Data =================*/
@@ -134,7 +145,7 @@ public class Model {
 
     /** Returns the player in this slot, or null if there is nobody there. */
     public Player slotToPlayer(int slot) {
-        return mSlotToPlayer.get(slot);
+        return mSlotToPlayer.get(new Integer(slot));
     }
 
     /*================= Height field stuff =================*/
@@ -144,7 +155,7 @@ public class Model {
         // Random height initialization
         switch (t)
         {
-            case TRIANGULAR:
+            case Triangular:
                 mHeights = new float[MAX_X];
                 for (int i = 0; i < MAX_X; i++) {
                     float tmp = (MAX_X - 1);
@@ -152,7 +163,7 @@ public class Model {
                 }
                 break;
 
-            case FLAT:
+            case Flat:
                 mHeights = new float[MAX_X];
                 float level = (float) (0.6 - (mRandom.nextFloat() / 4));
                 for (int i = 0; i < MAX_X; i++) {
@@ -160,17 +171,17 @@ public class Model {
                 }
                 break;
 
-            case JAGGED:
+            case Jagged:
                 mHeights = getRandomHeights();
                 mHeights = movingWindow(mHeights, 2);
                 break;
 
-            case HILLY:
+            case Hilly:
                 mHeights = getRandomHeights();
                 mHeights = movingWindow(mHeights, 3);
                 break;
 
-            case ROLLING:
+            case Rolling:
                 mHeights = getRandomHeights();
                 mHeights = movingWindow(mHeights, MAX_X / 3);
                 break;
@@ -290,7 +301,7 @@ public class Model {
         // Because of how drawScreen works
         assert(MAX_X % 2 == 0);
 
-        initHeights(TerrainType.HILLY);
+        initHeights(TerrainType.Hilly);
         mPlayers = players;
         for (int i = 0; i < mPlayers.length; i++) {
             int id = mPlayers[i].getId();
@@ -302,7 +313,7 @@ public class Model {
 
         mSlotToPlayer = new HashMap<Integer, Player>();
         for (int i = 0; i < mPlayers.length; i++) {
-            mSlotToPlayer.put(mPlayers[i].getX(), mPlayers[i]);
+            mSlotToPlayer.put(new Integer(mPlayers[i].getX()), mPlayers[i]);
         }
     }
 }

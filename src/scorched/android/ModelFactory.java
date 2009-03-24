@@ -252,6 +252,10 @@ public class ModelFactory {
             mAdapter.notifyDataSetChanged();
     }
 
+    public synchronized void modifyRandomPlayerPlacement(boolean b) {
+        mUseRandomPlayerPlacement = b;
+    }
+
 //    public synchronized void changePlayerFactory(int pos) {
 //        mPlayers.remove(pos);
 //        if (mAdapter)
@@ -261,7 +265,7 @@ public class ModelFactory {
     /*================= Lifecycle =================*/
     public ModelFactory() {
         // Some default game settings
-        mDesiredTerrainType = Model.TerrainType.HILLY;
+        mDesiredTerrainType = Model.TerrainType.Hilly;
         mUseRandomPlayerPlacement = true;
         mPlayers = new LinkedList < PlayerFactory >();
 

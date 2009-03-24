@@ -9,7 +9,9 @@ import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.ListView;
+import android.widget.Spinner;
 
 public class GameSetupActivity extends Activity {
     /*================= Constants =================*/
@@ -26,7 +28,6 @@ public class GameSetupActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        ////////////////// setContentView
         setContentView(R.layout.game_setup);
 
         mModelFactory = new ModelFactory(); //(savedInstanceState);
@@ -44,10 +45,13 @@ public class GameSetupActivity extends Activity {
         ////////////////// Get pointers to stuff
         final Button play = (Button)findViewById(R.id.play);
         final Button addPlayer = (Button)findViewById(R.id.add_player);
+        final CheckBox randPlayer = 
+            (CheckBox)findViewById(R.id.randomize_player_positions);
+        final Spinner terrainSpinner = 
+            (Spinner)findViewById(R.id.terrain_spinner);
         final ListView playerList = (ListView)findViewById(R.id.player_list);
 
         ////////////////// Initialize stuff]
-        // initialize Buttons
         final Activity titleActivity = this;
         play.setOnClickListener(new OnClickListener() {
             public void onClick(View arg0) {
@@ -58,16 +62,30 @@ public class GameSetupActivity extends Activity {
             }
         });
 
+        randPlayer.setOnClickListener(new OnClickListener() {
+            public void onClick(View v) {
+                mModelFactory.modifyRandomPlayerPlacement
+                    (randPlayer.isChecked());
+            }
+        });
+
+        ArrayAdapter<String> spinnerAdapter = 
+            new ArrayAdapter < String >(getBaseContext(),
+                R.layout.terrain_spinner_item, R.id.terrain_type,
+                Model.TerrainType.getStrings());
+        terrainSpinner.setAdapter(spinnerAdapter);
+
         // initialize ListView
         playerList.setAdapter(mModelFactory.getPlayerListAdapter());
-
         playerList.setOnItemClickListener(
                 new AdapterView.OnItemClickListener() {
               public void onItemClick(AdapterView<?> parent, View view,
                   int position, long id) {
                 int selectedPosition = parent.getSelectedItemPosition();
-                Log.i("SampleApp", "Click on position"+selectedPosition + "position=" + position + "id=" + id);
-              }
+                Log.i("SampleApp", 
+                        "Click on position"+selectedPosition + 
+                        "position=" + position + "id=" + id);
+                }
             });
     }
 
