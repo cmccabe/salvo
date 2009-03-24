@@ -35,6 +35,9 @@ public class Model {
     /*================= Constants =================*/
     private static final String TAG = "Model";
 
+    /** The maximum number of players we can have */
+    public static final int MAX_PLAYERS = 9;
+
     /** The highest X coordinate */
     public static final int MAX_X = 100;
 
@@ -63,7 +66,7 @@ public class Model {
         Hilly,
         Rolling;
 
-        /** Returns an array of strings where each entry describes a 
+        /** Returns an array of strings where each entry describes a
          * terrain type */
         public static String [] getStrings() {
             TerrainType t[] = TerrainType.values();

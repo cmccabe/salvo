@@ -211,6 +211,12 @@ public class ModelFactory {
         return mAdapter;
     }
 
+    /** Returns true if we can add another player */
+    public synchronized boolean canAddPlayer() {
+        // return (mPlayers.size() + 1 < Model.MAX_PLAYERS);
+        return false;
+    }
+
     /*================= Save / Restore =================*/
     public synchronized void saveState(Bundle map) {
         if (map != null) {
