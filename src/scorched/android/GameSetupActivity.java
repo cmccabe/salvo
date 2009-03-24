@@ -43,7 +43,6 @@ public class GameSetupActivity extends Activity {
                 b.show();
             }
         }
-
     };
 
     /*================= Data =================*/
@@ -80,14 +79,13 @@ public class GameSetupActivity extends Activity {
             (Spinner)findViewById(R.id.terrain_spinner);
         final ListView playerList = (ListView)findViewById(R.id.player_list);
 
-        ////////////////// Initialize stuff]
-        final Activity titleActivity = this;
+        ////////////////// Initialize stuff
         play.setOnClickListener(new OnClickListener() {
             public void onClick(View arg0) {
-                Intent setupIntent =
-                    new Intent().setClass(titleActivity,
-                        RunGameActivity.class);
-                    startActivity(setupIntent);
+                if (mModelFactory.everyoneIsAComputer())
+                    showAreYouSureYouWantToPlayWithoutHumans();
+                else
+                    launchRunGameActivity();
             }
         });
 
@@ -127,6 +125,39 @@ public class GameSetupActivity extends Activity {
 
     @Override
     protected void onSaveInstanceState(Bundle outState) { }
+
+    /** Warn about the dangers of an all-CPU world */
+    private void showAreYouSureYouWantToPlayWithoutHumans() {
+        // display alert that we can't have any more players
+        AlertDialog.Builder b = new AlertDialog.Builder(this);
+        b.setMessage("You have not created any human players.\n" +
+                    "Are you sure you want to watch the computer fight " +
+                    "itself?");
+        b.setCancelable(true);
+        b.setNegativeButton("Edit Players",
+            new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog,
+                                    int whichButton) {
+                }
+            });
+        b.setPositiveButton("Begin Game",
+            new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog,
+                                    int whichButton) {
+                    launchRunGameActivity();
+                }
+            });
+        b.show();
+    };
+
+    /** Starts the RunGameActivity */
+    private void launchRunGameActivity() {
+        final Activity titleActivity = this;
+        Intent setupIntent =
+            new Intent().setClass(titleActivity,
+                RunGameActivity.class);
+            startActivity(setupIntent);
+    }
 }
 
 //public SharedPreferences getPreferences(int mode)

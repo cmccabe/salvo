@@ -217,6 +217,16 @@ public class ModelFactory {
         return false;
     }
 
+    /** Returns true if all players are computers */
+    public synchronized boolean everyoneIsAComputer() {
+        for (PlayerFactory p: mPlayers) {
+            if (p.getPlayerType() ==
+                    PlayerFactory.PlayerType.HUMAN)
+                return false;
+        }
+        return true;
+    }
+
     /*================= Save / Restore =================*/
     public synchronized void saveState(Bundle map) {
         if (map != null) {
