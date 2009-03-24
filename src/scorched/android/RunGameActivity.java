@@ -1,8 +1,11 @@
 package scorched.android;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -137,4 +140,40 @@ public class RunGameActivity extends Activity {
         Log.w(this.getClass().getName(),
             "onWindowFocusChanged(" + hasFocus + ") called");
     }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        switch(keyCode) {
+            case KeyEvent.KEYCODE_BACK:
+                showAreYouSureYouWantToQuit();
+                return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
+    private void showAreYouSureYouWantToQuit() {
+        // display alert that we can't have any more players
+        AlertDialog.Builder b = new AlertDialog.Builder(this);
+        b.setMessage("Are you sure you want to end this game?\n" +
+                    "If you want to switch apps without quitting, " +
+                    "press \"HOME\"");
+        b.setCancelable(false);
+        b.setNegativeButton("End Game",
+            new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog,
+                                    int whichButton) {
+                    setResult(RESULT_OK);
+                    finish();
+                }
+            });
+        b.setPositiveButton("Cancel",
+            new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog,
+                                    int whichButton) {
+                    // Let's just forget we ever had this
+                    // conversation, OK?
+                }
+            });
+        b.show();
+    };
 }

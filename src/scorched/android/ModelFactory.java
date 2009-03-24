@@ -211,6 +211,22 @@ public class ModelFactory {
         return mAdapter;
     }
 
+    /** Returns true if we can add another player */
+    public synchronized boolean canAddPlayer() {
+        // return (mPlayers.size() + 1 < Model.MAX_PLAYERS);
+        return false;
+    }
+
+    /** Returns true if all players are computers */
+    public synchronized boolean everyoneIsAComputer() {
+        for (PlayerFactory p: mPlayers) {
+            if (p.getPlayerType() ==
+                    PlayerFactory.PlayerType.HUMAN)
+                return false;
+        }
+        return true;
+    }
+
     /*================= Save / Restore =================*/
     public synchronized void saveState(Bundle map) {
         if (map != null) {

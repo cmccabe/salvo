@@ -1,6 +1,8 @@
 package scorched.android;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -16,6 +18,32 @@ import android.widget.Spinner;
 public class GameSetupActivity extends Activity {
     /*================= Constants =================*/
     public static final String PREFS_NAME = "MyPrefsFile";
+
+    /*================= Types =================*/
+    private class NewPlayerListener implements View.OnClickListener {
+        public void onClick(View v) {
+            if (mModelFactory.canAddPlayer()) {
+                // TODO
+            }
+            else {
+                // display alert that we can't have any more players
+                AlertDialog.Builder b = new AlertDialog.
+                    Builder(GameSetupActivity.this);
+                b.setMessage("You already have " + Model.MAX_PLAYERS +
+                            " players. You can't add any more.");
+                b.setCancelable(true);
+                b.setPositiveButton("OK",
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog,
+                                            int whichButton) {
+                            // just dismiss the box
+                        }
+                    });
+
+                b.show();
+            }
+        }
+    };
 
     /*================= Data =================*/
     private ModelFactory mModelFactory;
@@ -45,22 +73,23 @@ public class GameSetupActivity extends Activity {
         ////////////////// Get pointers to stuff
         final Button play = (Button)findViewById(R.id.play);
         final Button addPlayer = (Button)findViewById(R.id.add_player);
-        final CheckBox randPlayer = 
+        final CheckBox randPlayer =
             (CheckBox)findViewById(R.id.randomize_player_positions);
-        final Spinner terrainSpinner = 
+        final Spinner terrainSpinner =
             (Spinner)findViewById(R.id.terrain_spinner);
         final ListView playerList = (ListView)findViewById(R.id.player_list);
 
-        ////////////////// Initialize stuff]
-        final Activity titleActivity = this;
+        ////////////////// Initialize stuff
         play.setOnClickListener(new OnClickListener() {
             public void onClick(View arg0) {
-                Intent setupIntent =
-                    new Intent().setClass(titleActivity,
-                        RunGameActivity.class);
-                    startActivity(setupIntent);
+                if (mModelFactory.everyoneIsAComputer())
+                    showAreYouSureYouWantToPlayWithoutHumans();
+                else
+                    launchRunGameActivity();
             }
         });
+
+        addPlayer.setOnClickListener(new NewPlayerListener());
 
         randPlayer.setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
@@ -69,7 +98,7 @@ public class GameSetupActivity extends Activity {
             }
         });
 
-        ArrayAdapter<String> spinnerAdapter = 
+        ArrayAdapter<String> spinnerAdapter =
             new ArrayAdapter < String >(getBaseContext(),
                 R.layout.terrain_spinner_item, R.id.terrain_type,
                 Model.TerrainType.getStrings());
@@ -82,8 +111,8 @@ public class GameSetupActivity extends Activity {
               public void onItemClick(AdapterView<?> parent, View view,
                   int position, long id) {
                 int selectedPosition = parent.getSelectedItemPosition();
-                Log.i("SampleApp", 
-                        "Click on position"+selectedPosition + 
+                Log.i("SampleApp",
+                        "Click on position"+selectedPosition +
                         "position=" + position + "id=" + id);
                 }
             });
@@ -96,6 +125,39 @@ public class GameSetupActivity extends Activity {
 
     @Override
     protected void onSaveInstanceState(Bundle outState) { }
+
+    /** Warn about the dangers of an all-CPU world */
+    private void showAreYouSureYouWantToPlayWithoutHumans() {
+        // display alert that we can't have any more players
+        AlertDialog.Builder b = new AlertDialog.Builder(this);
+        b.setMessage("You have not created any human players.\n" +
+                    "Are you sure you want to watch the computer fight " +
+                    "itself?");
+        b.setCancelable(true);
+        b.setNegativeButton("Edit Players",
+            new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog,
+                                    int whichButton) {
+                }
+            });
+        b.setPositiveButton("Begin Game",
+            new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog,
+                                    int whichButton) {
+                    launchRunGameActivity();
+                }
+            });
+        b.show();
+    };
+
+    /** Starts the RunGameActivity */
+    private void launchRunGameActivity() {
+        final Activity titleActivity = this;
+        Intent setupIntent =
+            new Intent().setClass(titleActivity,
+                RunGameActivity.class);
+            startActivity(setupIntent);
+    }
 }
 
 //public SharedPreferences getPreferences(int mode)
