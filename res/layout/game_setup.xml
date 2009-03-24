@@ -27,7 +27,8 @@
         android:layout_height="fill_parent"
         android:layout_width="fill_parent"
         android:layout_weight="2"
-        android:layout_margin="1mm">
+        android:layout_margin="1mm"
+        android:stretchColumns="*">
         <TableRow>
             <CheckBox android:id="@+id/randomize_player_positions"
                 android:layout_width="wrap_content"
