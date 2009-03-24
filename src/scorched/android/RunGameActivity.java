@@ -17,6 +17,8 @@ public class RunGameActivity extends Activity {
     private static final String TAG = "RunGameActivity";
 
     /*================= Data =================*/
+    private Object mRunGameState = new Object();
+    private boolean mNeedInitialization = true;
     private GameControlView mGameControl;
     private Model mModel;
 
@@ -50,7 +52,23 @@ public class RunGameActivity extends Activity {
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         Log.w(TAG, "setContentView");
         setContentView(R.layout.game);
+    }
 
+    @Override
+    public void onStart(Bundle savedInstanceState) {
+        super.onStart(savedInstanceState);
+
+        synchronized (mRunGameState) {
+            if (mNeedInitialization == true) {
+                initialize();
+            }
+        }
+    }
+
+    /** Hook up the various views to each other.
+     * Must be called after all views are finished being constructed-- i.e. 
+     * in onStart, not onCreate. */
+    private void initialize() {
         ////////////////// Get pointers to stuff
         mGameControl = (GameControlView)findViewById(R.id.game_control_view);
         final SalvoSlider powerSlider =

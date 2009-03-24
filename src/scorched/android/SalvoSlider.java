@@ -144,9 +144,9 @@ public class SalvoSlider extends View {
 
     @Override
     protected void onDraw(Canvas canvas) {
+        super.onDraw(canvas);
         int x;
         synchronized (mState) {
-            super.onDraw(canvas);
             switch (mState) {
             case DISABLED:
                 canvas.drawColor(Color.BLACK);
