@@ -9,7 +9,7 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.TextView;
 
-public class ReadStuffActivity extends Activity {
+public class ReadStuffAct extends Activity {
     /*================= Types =================*/
     public enum StuffText {
         /*================= Values =================*/

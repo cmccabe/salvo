@@ -5,8 +5,9 @@
     android:versionName="1.0.0">
     <application android:icon="@drawable/icon" 
                  android:label="@string/app_name">
-        <activity android:name=".Salvo"
-                  android:label="@string/app_name">
+        <activity android:name=".TitleScreenAct"
+                  android:label="@string/app_name"
+                  android:screenOrientation="landscape">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -14,14 +15,17 @@
         </activity>
 <!-- android:label=”@string/activity_dialog”
 android:theme=”@android:style/Theme.Dialog” -->
-        <activity android:name=".ReadStuffActivity"
-                  android:label="ReadStuffActivity">
+        <activity android:name=".ReadStuffAct"
+                  android:label="ReadStuffAct"
+                  android:screenOrientation="landscape">
         </activity>
-        <activity android:name=".GameSetupActivity"
-                  android:label="GameSetupActivity">
+        <activity android:name=".GameSetupAct"
+                  android:label="GameSetupAct"
+                  android:screenOrientation="landscape">
         </activity>
-        <activity android:name=".RunGameActivity"
-                  android:label="RunGameActivity">
+        <activity android:name=".RunGameAct"
+                  android:label="RunGameAct"
+                  android:screenOrientation="landscape">
         </activity>
     </application>
 </manifest> 

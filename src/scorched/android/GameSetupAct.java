@@ -15,7 +15,7 @@ import android.widget.CheckBox;
 import android.widget.ListView;
 import android.widget.Spinner;
 
-public class GameSetupActivity extends Activity {
+public class GameSetupAct extends Activity {
     /*================= Constants =================*/
     public static final String PREFS_NAME = "MyPrefsFile";
 
@@ -28,7 +28,7 @@ public class GameSetupActivity extends Activity {
             else {
                 // display alert that we can't have any more players
                 AlertDialog.Builder b = new AlertDialog.
-                    Builder(GameSetupActivity.this);
+                    Builder(GameSetupAct.this);
                 b.setMessage("You already have " + Model.MAX_PLAYERS +
                             " players. You can't add any more.");
                 b.setCancelable(true);
@@ -155,7 +155,7 @@ public class GameSetupActivity extends Activity {
         final Activity titleActivity = this;
         Intent setupIntent =
             new Intent().setClass(titleActivity,
-                RunGameActivity.class);
+                RunGameAct.class);
             startActivity(setupIntent);
     }
 }

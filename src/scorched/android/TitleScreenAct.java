@@ -14,9 +14,8 @@ import android.widget.ZoomButton;
 import scorched.android.Model;
 import android.view.View.OnClickListener;
 
-public class Salvo extends Activity {
+public class TitleScreenAct extends Activity {
     /*================= Constants =================*/
-    private static final String TAG = "Salvo";
 
     /*================= Data =================*/
 
@@ -49,25 +48,25 @@ public class Salvo extends Activity {
         newGame.setOnClickListener(new OnClickListener() {
             public void onClick(View arg0) {
                 Intent setupIntent = new Intent().
-                    setClass(titleActivity, GameSetupActivity.class);
+                    setClass(titleActivity, GameSetupAct.class);
                 startActivity(setupIntent);
             }
         });
         about.setOnClickListener(new OnClickListener() {
             public void onClick(View arg0) {
                 Intent setupIntent = new Intent().
-                    setClass(titleActivity, ReadStuffActivity.class);
-                setupIntent.putExtra(ReadStuffActivity.STUFF_TYPE_EXTRA,
-                    ReadStuffActivity.StuffText.ABOUT_BOX.toCode());
+                    setClass(titleActivity, ReadStuffAct.class);
+                setupIntent.putExtra(ReadStuffAct.STUFF_TYPE_EXTRA,
+                    ReadStuffAct.StuffText.ABOUT_BOX.toCode());
                 startActivity(setupIntent);
             }
         });
         help.setOnClickListener(new OnClickListener() {
             public void onClick(View arg0) {
                 Intent setupIntent = new Intent().
-                    setClass(titleActivity, ReadStuffActivity.class);
-                setupIntent.putExtra(ReadStuffActivity.STUFF_TYPE_EXTRA,
-                    ReadStuffActivity.StuffText.HELP_BOX.toCode());
+                    setClass(titleActivity, ReadStuffAct.class);
+                setupIntent.putExtra(ReadStuffAct.STUFF_TYPE_EXTRA,
+                    ReadStuffAct.StuffText.HELP_BOX.toCode());
                 startActivity(setupIntent);
             }
         });

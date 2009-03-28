@@ -15,9 +15,8 @@ import android.widget.ZoomButton;
 import scorched.android.Model;
 import android.view.View.OnClickListener;
 
-public class RunGameActivity extends Activity {
+public class RunGameAct extends Activity {
     /*================= Constants =================*/
-    private static final String TAG = "RunGameActivity";
 
     /*================= Data =================*/
     private Object mRunGameState = new Object();
@@ -52,7 +51,7 @@ public class RunGameActivity extends Activity {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        Log.w(TAG, "setContentView");
+        Log.w(this.getClass().getName(), "setContentView");
         setContentView(R.layout.game);
 
         // todo: create modelFactory or model out of savedInstanceState
