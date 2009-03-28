@@ -7,6 +7,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -17,33 +19,8 @@ import android.widget.Spinner;
 
 public class GameSetupAct extends Activity {
     /*================= Constants =================*/
-    public static final String PREFS_NAME = "MyPrefsFile";
 
     /*================= Types =================*/
-    private class NewPlayerListener implements View.OnClickListener {
-        public void onClick(View v) {
-            if (mModelFactory.canAddPlayer()) {
-                // TODO
-            }
-            else {
-                // display alert that we can't have any more players
-                AlertDialog.Builder b = new AlertDialog.
-                    Builder(GameSetupAct.this);
-                b.setMessage("You already have " + Model.MAX_PLAYERS +
-                            " players. You can't add any more.");
-                b.setCancelable(true);
-                b.setPositiveButton("OK",
-                    new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog,
-                                            int whichButton) {
-                            // just dismiss the box
-                        }
-                    });
-
-                b.show();
-            }
-        }
-    };
 
     /*================= Data =================*/
     private ModelFactory mModelFactory;
@@ -56,9 +33,13 @@ public class GameSetupAct extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.game_setup);
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+        WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
-        mModelFactory = new ModelFactory(); //(savedInstanceState);
+        setContentView(R.layout.game_setup_act);
+
+        mModelFactory = new ModelFactory(savedInstanceState);
     }
 
     /** Called when the views are ready to be displayed */
@@ -71,25 +52,54 @@ public class GameSetupAct extends Activity {
             mInitialized = true;
 
         ////////////////// Get pointers to stuff
-        final Button play = (Button)findViewById(R.id.play);
-        final Button addPlayer = (Button)findViewById(R.id.add_player);
-        final CheckBox randPlayer =
-            (CheckBox)findViewById(R.id.randomize_player_positions);
         final Spinner terrainSpinner =
             (Spinner)findViewById(R.id.terrain_spinner);
-        final ListView playerList = (ListView)findViewById(R.id.player_list);
+        final Spinner numRoundsSpinner =
+            (Spinner)findViewById(R.id.num_rounds_spinner);
+        final CheckBox randPlayer =
+            (CheckBox)findViewById(R.id.randomize_player_positions);
+        final Button choosePlayers =
+            (Button)findViewById(R.id.choose_players);
 
         ////////////////// Initialize stuff
-        play.setOnClickListener(new OnClickListener() {
-            public void onClick(View arg0) {
-                if (mModelFactory.everyoneIsAComputer())
-                    showAreYouSureYouWantToPlayWithoutHumans();
-                else
-                    launchRunGameActivity();
-            }
-        });
+        ArrayAdapter<String> terrainSpinnerA =
+            new ArrayAdapter < String >(getApplicationContext(),
+                R.layout.terrain_spinner_item, R.id.terrain_type,
+                Model.TerrainType.getStrings());
+        terrainSpinner.setAdapter(terrainSpinnerA);
+        terrainSpinner.setOnItemSelectedListener(
+            new Spinner.OnItemSelectedListener(){
+                public void onItemSelected(AdapterView<?> parent,
+                                    View v, int position, long id) {
+                    Model.TerrainType t[] = Model.TerrainType.values();
+                    Model.TerrainType ty = t[position];
+                    mModelFactory.setTerrainType(ty);
+                }
+                public void onNothingSelected(AdapterView<?> arg0) { }
+            });
+        terrainSpinner.setSelection
+            (mModelFactory.getDesiredTerrainType().ordinal());
 
-        addPlayer.setOnClickListener(new NewPlayerListener());
+        ArrayAdapter<String> numRoundsA =
+            new ArrayAdapter < String >(getApplicationContext(),
+                R.layout.terrain_spinner_item, R.id.terrain_type,
+                ModelFactory.NumRounds.getStrings());
+        numRoundsSpinner.setAdapter(numRoundsA);
+        numRoundsSpinner.setOnItemSelectedListener(
+            new Spinner.OnItemSelectedListener(){
+                public void onItemSelected(AdapterView<?> parent,
+                                    View v, int position, long id) {
+                    ModelFactory.NumRounds t[] =
+                        ModelFactory.NumRounds.values();
+                    ModelFactory.NumRounds ty = t[position];
+                    mModelFactory.setNumRounds(ty.toShort());
+                }
+                public void onNothingSelected(AdapterView<?> arg0) { }
+            });
+        numRoundsSpinner.setSelection
+            (ModelFactory.NumRounds.fromShort
+                (mModelFactory.getNumRounds())
+                    .ordinal());
 
         randPlayer.setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
@@ -97,25 +107,16 @@ public class GameSetupAct extends Activity {
                     (randPlayer.isChecked());
             }
         });
+        randPlayer.setChecked(mModelFactory.getRandomPlayerPlacement());
 
-        ArrayAdapter<String> spinnerAdapter =
-            new ArrayAdapter < String >(getBaseContext(),
-                R.layout.terrain_spinner_item, R.id.terrain_type,
-                Model.TerrainType.getStrings());
-        terrainSpinner.setAdapter(spinnerAdapter);
-
-        // initialize ListView
-        playerList.setAdapter(mModelFactory.getPlayerListAdapter());
-        playerList.setOnItemClickListener(
-                new AdapterView.OnItemClickListener() {
-              public void onItemClick(AdapterView<?> parent, View view,
-                  int position, long id) {
-                int selectedPosition = parent.getSelectedItemPosition();
-                Log.i("SampleApp",
-                        "Click on position"+selectedPosition +
-                        "position=" + position + "id=" + id);
-                }
-            });
+        /*choosePlayers.setOnClickListener(new OnClickListener() {
+            public void onClick(View arg0) {
+                final Activity thisAct = this;
+                Intent myIntent =
+                    new Intent().setClass(thisAct, PlayerSetupAct.class);
+                startActivity(myIntent);
+            }
+        });*/
     }
 
     @Override
@@ -124,177 +125,7 @@ public class GameSetupAct extends Activity {
     }
 
     @Override
-    protected void onSaveInstanceState(Bundle outState) { }
-
-    /** Warn about the dangers of an all-CPU world */
-    private void showAreYouSureYouWantToPlayWithoutHumans() {
-        // display alert that we can't have any more players
-        AlertDialog.Builder b = new AlertDialog.Builder(this);
-        b.setMessage("You have not created any human players.\n" +
-                    "Are you sure you want to watch the computer fight " +
-                    "itself?");
-        b.setCancelable(true);
-        b.setNegativeButton("Edit Players",
-            new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog,
-                                    int whichButton) {
-                }
-            });
-        b.setPositiveButton("Begin Game",
-            new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog,
-                                    int whichButton) {
-                    launchRunGameActivity();
-                }
-            });
-        b.show();
-    };
-
-    /** Starts the RunGameActivity */
-    private void launchRunGameActivity() {
-        final Activity titleActivity = this;
-        Intent setupIntent =
-            new Intent().setClass(titleActivity,
-                RunGameAct.class);
-            startActivity(setupIntent);
+    protected void onSaveInstanceState(Bundle b) {
+        mModelFactory.saveState(b);
     }
 }
-
-//public SharedPreferences getPreferences(int mode)
-
-//import android.app.Activity;
-//import android.content.SharedPreferences;
-//
-//public class Calc extends Activity {
-//public static final String PREFS_NAME = "MyPrefsFile";
-//    . . .
-//
-//    @Override
-//    protected void onCreate(Bundle state){
-//       super.onCreate(state);
-//
-//    . . .
-//
-//       // Restore preferences
-//       SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-//       boolean silent = settings.getBoolean("silentMode", false);
-//       setSilent(silent);
-//    }
-//
-//    @Override
-//    protected void onStop(){
-//       super.onStop();
-//
-//      // Save user preferences. We need an Editor object to
-//      // make changes. All objects are from android.context.Context
-//      SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-//      SharedPreferences.Editor editor = settings.edit();
-//      editor.putBoolean("silentMode", mSilentMode);
-//
-//      // Don't forget to commit your edits!!!
-//      editor.commit();
-//    }
-//}
-
-/*
-public class SeparatedListAdapter extends BaseAdapter {
-    public final Map<String,Adapter> sections = new LinkedHashMap<String,Adapter>();
-    public final ArrayAdapter<String> headers;
-    public final static int TYPE_SECTION_HEADER = 0;
-
-    public SeparatedListAdapter(Context context) {
-        headers = new ArrayAdapter<String>(context, R.layout.list_header);
-    }
-
-    public Object getItem(int position) {
-        for(Object section : this.sections.keySet()) {
-            Adapter adapter = sections.get(section);
-            int size = adapter.getCount() + 1;
-
-            // check if position inside this section
-            if(position == 0) return section;
-            if(position < size) return adapter.getItem(position - 1);
-
-            // otherwise jump into next section
-            position -= size;
-        }
-        return null;
-    }
-
-    public int getCount() {
-        // total together all sections, plus one for each section header
-        int total = 0;
-        for(Adapter adapter : this.sections.values())
-            total += adapter.getCount() + 1;
-        return total;
-    }
-
-    public int getViewTypeCount() {
-        // assume that headers count as one, then total all sections
-        int total = 1;
-        for(Adapter adapter : this.sections.values())
-            total += adapter.getViewTypeCount();
-        return total;
-    }
-
-    public int getItemViewType(int position) {
-        int type = 1;
-        for(Object section : this.sections.keySet()) {
-            Adapter adapter = sections.get(section);
-            int size = adapter.getCount() + 1;
-
-            // check if position inside this section
-            if(position == 0) return TYPE_SECTION_HEADER;
-            if(position < size) return type + adapter.getItemViewType(position - 1);
-
-            // otherwise jump into next section
-            position -= size;
-            type += adapter.getViewTypeCount();
-        }
-        return -1;
-    }
-
-    public boolean areAllItemsSelectable() {
-        return false;
-    }
-
-    public boolean isEnabled(int position) {
-        return (getItemViewType(position) != TYPE_SECTION_HEADER);
-    }
-
-    @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-        int sectionnum = 0;
-        for(Object section : this.sections.keySet()) {
-            Adapter adapter = sections.get(section);
-            int size = adapter.getCount() + 1;
-
-            // check if position inside this section
-            if(position == 0) return headers.getView(sectionnum, convertView, parent);
-            if(position < size) return adapter.getView(position - 1, convertView, parent);
-
-            // otherwise jump into next section
-            position -= size;
-            sectionnum++;
-        }
-        return null;
-    }
-
-    @Override
-    public long getItemId(int position) {
-        return position;
-    }
-
-}
-
-*/
-
-/*
-        String arr[] = { "ahoy", "matey", "want", "some", "grog",
-                        "now", "or", "what", "do", "you", "want",
-                        "scurvy", "landlubber" };
-        ArrayAdapter<String> myArrayAdaptor =
-            new ArrayAdapter<String>(getBaseContext(),
-                R.layout.new_player_list_item, R.id.player_name, arr);
-        playerList.setAdapter(myArrayAdaptor);
-*/

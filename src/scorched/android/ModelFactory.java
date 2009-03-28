@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Random;
 
+import scorched.android.Model.TerrainType;
+
 import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
@@ -28,8 +30,60 @@ import android.widget.TextView;
  */
 public class ModelFactory {
     /*================= Types =================*/
+    /** Represents the number of rounds in the game */
+    public static enum NumRounds {
+        ONE(1),
+        TWO(2),
+        THREE(3),
+        FOUR(4),
+        FIVE(5),
+        SIX(6),
+        SEVEN(7),
+        EIGHT(8),
+        TEN(10),
+        TWENTY(20);
+
+        /*================= Static =================*/
+        public static NumRounds fromShort(short s) {
+            NumRounds t[] = NumRounds.values();
+            for (NumRounds n : t) {
+                if (n.toShort() == s)
+                    return n;
+            }
+            throw new RuntimeException
+                ("no NumRounds object with mShort = " + s);
+        }
+
+        public static String [] getStrings() {
+            NumRounds t[] = NumRounds.values();
+            String ret[] = new String[t.length];
+            for (int i = 0; i < t.length; i++) {
+                StringBuilder b = new StringBuilder(10);
+                b.append(t[i].toShort()).append(" round");
+                if (t[i] != ONE)
+                    b.append("s");
+                ret[i] = b.toString();
+            }
+            return ret;
+        }
+
+        /*================= Data =================*/
+        private short mShort;
+
+        /*================= Access =================*/
+        public short toShort() {
+            return mShort;
+        }
+
+        /*================= Lifecycle =================*/
+        NumRounds(int i) {
+            mShort = (short)i;
+        }
+    };
+
+    /*================= Types =================*/
     public static class PlayerFactory {
-        /*================= Types =================*/
+
         private static enum PlayerType {
             HUMAN("Human player"),
             COMPUTER_EASY("Computer: Easy"),
@@ -188,18 +242,32 @@ public class ModelFactory {
         "KEY_DESIRED_TERRAIN_TYPE";
     private final static String KEY_USE_RANDOM_PLAYER_PLACEMENT =
         "KEY_USE_RANDOM_PLAYER_PLACEMENT";
+    private final static String KEY_NUM_ROUNDS = "KEY_NUM_ROUNDS";
     private final static String KEY_NUMBER_OF_PLAYERS =
         "KEY_NUMBER_OF_PLAYERS";
 
     /*================= Data =================*/
     private Model.TerrainType mDesiredTerrainType;
     private boolean mUseRandomPlayerPlacement;
+    private short mNumRounds;
     private LinkedList < PlayerFactory > mPlayers;
 
     /** A helper object that helps this class talk to a Listview */
     private PlayerListAdapter mAdapter;
 
     /*================= Access =================*/
+    public Model.TerrainType getDesiredTerrainType() {
+        return mDesiredTerrainType;
+    }
+
+    public boolean getRandomPlayerPlacement() {
+        return mUseRandomPlayerPlacement;
+    }
+
+    public short getNumRounds() {
+        return mNumRounds;
+    }
+
     public synchronized Model toModel() {
         // return new Model(...);
         return null;
@@ -234,6 +302,7 @@ public class ModelFactory {
                         mDesiredTerrainType.ordinal());
             map.putBoolean(KEY_USE_RANDOM_PLAYER_PLACEMENT,
                         mUseRandomPlayerPlacement);
+            map.putShort(KEY_NUM_ROUNDS, mNumRounds);
             map.putInt(KEY_NUMBER_OF_PLAYERS, mPlayers.size());
             for (PlayerFactory p : mPlayers) {
                 p.saveState(map);
@@ -241,13 +310,14 @@ public class ModelFactory {
         }
     }
 
-    public synchronized void restoreState(Bundle map) {
+    public final synchronized void restoreState(Bundle map) {
         if (map != null) {
-            int tt_ord = map.getInt(KEY_DESIRED_TERRAIN_TYPE, 0);
+            int tt_ord = map.getInt(KEY_DESIRED_TERRAIN_TYPE);
             mDesiredTerrainType = Model.TerrainType.values()[tt_ord];
             mUseRandomPlayerPlacement =
-                map.getBoolean(KEY_USE_RANDOM_PLAYER_PLACEMENT, true);
-            int numPlayers = map.getInt(KEY_NUMBER_OF_PLAYERS, 0);
+                map.getBoolean(KEY_USE_RANDOM_PLAYER_PLACEMENT);
+            mNumRounds = map.getShort(KEY_NUM_ROUNDS);
+            int numPlayers = map.getInt(KEY_NUMBER_OF_PLAYERS);
             mPlayers = new LinkedList < PlayerFactory >();
             for (int i = 0; i < numPlayers; ++i) {
                 mPlayers.add(PlayerFactory.fromBundle(i, map));
@@ -256,6 +326,18 @@ public class ModelFactory {
     }
 
     /*================= Operations =================*/
+    public synchronized void setTerrainType(TerrainType ty) {
+        mDesiredTerrainType = ty;
+    }
+
+    public synchronized void modifyRandomPlayerPlacement(boolean b) {
+        mUseRandomPlayerPlacement = b;
+    }
+
+    public synchronized void setNumRounds(short numRounds) {
+        mNumRounds = (short)numRounds;
+    }
+
     public synchronized void addPlayerFactory(PlayerFactory p) {
         mPlayers.add(p);
         if (mAdapter != null)
@@ -268,10 +350,6 @@ public class ModelFactory {
             mAdapter.notifyDataSetChanged();
     }
 
-    public synchronized void modifyRandomPlayerPlacement(boolean b) {
-        mUseRandomPlayerPlacement = b;
-    }
-
 //    public synchronized void changePlayerFactory(int pos) {
 //        mPlayers.remove(pos);
 //        if (mAdapter)
@@ -279,12 +357,21 @@ public class ModelFactory {
 //    }
 
     /*================= Lifecycle =================*/
-    public ModelFactory() {
+    public ModelFactory(Bundle b) {
         // Some default game settings
         mDesiredTerrainType = Model.TerrainType.Hilly;
         mUseRandomPlayerPlacement = true;
-        mPlayers = new LinkedList < PlayerFactory >();
+        mNumRounds = (short)3;
 
+        if (b == null)
+            createDefaultPlayers();
+        else
+            restoreState(b);
+    }
+
+    /** Create some default players */
+    private final void createDefaultPlayers() {
+        mPlayers = new LinkedList < PlayerFactory >();
         mPlayers.add(new PlayerFactory(0, "Red",
                         PlayerFactory.PlayerType.HUMAN,
                         (short)100, Player.PlayerColor.RED));

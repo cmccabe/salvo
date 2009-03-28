@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+>
+    <ImageView
+        android:src="@drawable/cloudy"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:scaleType="fitXY"/>
+    <LinearLayout 
+        android:orientation="vertical"
+        android:layout_height="fill_parent"
+        android:layout_width="fill_parent"
+        android:padding="2mm">
+        <TextView 
+            android:text="New Game"
+            android:textColor="#000"
+            android:textSize="7mm"
+            android:textStyle="bold"
+            android:layout_height="fill_parent"
+            android:layout_weight="6"
+            android:layout_gravity="center"
+            android:layout_width="wrap_content"
+        />
+        <!-- Spacer -->
+        <View android:layout_width="fill_parent"
+              android:layout_height="fill_parent"
+              android:layout_weight="6"/>
+        <Spinner android:id="@+id/terrain_spinner"
+            android:layout_height="fill_parent"
+            android:layout_weight="6"
+            android:layout_gravity="center"
+            android:drawSelectorOnTop="false"
+            android:textColor="#000"
+            android:textSize="2mm"
+            android:layout_width="wrap_content"/>
+        <Spinner android:id="@+id/num_rounds_spinner"
+            android:layout_height="fill_parent"
+            android:layout_gravity="center"
+            android:layout_weight="6"
+            android:textColor="#000"
+            android:textSize="2mm"
+            android:drawSelectorOnTop="false"
+        android:layout_width="wrap_content"/>
+        <CheckBox android:id="@+id/randomize_player_positions"
+            android:layout_height="fill_parent"
+            android:layout_weight="6"
+            android:layout_gravity="center"
+            android:textColor="#000"
+            android:textSize="3mm"
+            android:textStyle="bold"
+            android:text="Randomize player positions"
+            android:layout_width="wrap_content"/>
+        <Button android:id="@+id/choose_players"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_gravity="center"
+            android:textColor="#000"
+            android:textSize="3mm"
+            android:text="Choose Players!"
+            android:layout_weight="6"/>
+    </LinearLayout>
+</FrameLayout>

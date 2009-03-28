@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+    <!-- Left panel: player list -->
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_weight="5"
+        android:orientation="vertical"
+        android:layout_margin="1mm">
+        <ListView
+            android:id="@+id/player_list"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"            
+            android:layout_weight="1"            
+            android:visibility="visible"
+            android:clickable="true"
+            android:focusableInTouchMode="true">
+            <!-- android:longClickable="true" -->
+            <!-- android:choiceMode="singleChoice" -->
+        </ListView>
+        <Button android:id="@+id/add_player"
+            android:layout_gravity="center"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="3"            
+            android:text="Add Player"/>
+    </LinearLayout>
+    <!-- Right panel: player settings -->
+    <LinearLayout
+        android:layout_height="fill_parent"
+        android:layout_width="fill_parent"
+        android:layout_weight="6"
+        android:layout_margin="1mm"
+        android:orientation="vertical">
+        <EditText android:id="@+id/player_name"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:singleLine="True"
+            android:textColor="#000"
+            android:textSize="6mm"
+            android:layout_weight="6"
+        />
+        <Spinner android:id="@+id/player_color_spinner"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:drawSelectorOnTop="false"
+            android:layout_weight="6"
+        />
+        <Spinner android:id="@+id/player_type_spinner"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:drawSelectorOnTop="false"
+            android:layout_weight="6"
+        />
+        <LinearLayout
+            android:id="@+id/life_adjust_root"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_weight="4"
+            android:orientation="horizontal">
+            <Button
+                android:text="-"
+                android:id="@+id/player_life_minus"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:layout_weight="3"
+            />
+            <EditText android:id="@+id/player_life"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:singleLine="True"
+                android:textColor="#000"
+                android:textSize="6mm"
+                android:layout_weight="1"
+            />
+            <Button
+                android:text="+"
+                android:id="@+id/player_life_minus"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:layout_weight="3"
+            />
+        </LinearLayout>
+        <!-- Spacer -->
+        <View android:layout_width="fill_parent"
+              android:layout_height="fill_parent"
+              android:layout_weight="3"
+        />
+        <Button android:id="@+id/play"
+            android:layout_gravity="center"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_weight="3"
+            android:text="Play!"/>
+    </LinearLayout>
+</LinearLayout>

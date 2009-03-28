@@ -57,7 +57,8 @@ public class Model {
       * As measured by change in downward force each sample */
     public static final float GRAVITY = 0.00006f;
 
-    enum TerrainType {
+    /** Represents the type of terrain */
+    public static enum TerrainType {
         // TODO: move terrain generation functions into this enum
         Triangular,
         Flat,
@@ -66,8 +67,6 @@ public class Model {
         Hilly,
         Rolling;
 
-        /** Returns an array of strings where each entry describes a
-         * terrain type */
         public static String [] getStrings() {
             TerrainType t[] = TerrainType.values();
             String ret[] = new String[t.length];
