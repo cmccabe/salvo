@@ -23,7 +23,7 @@
             android:layout_weight="6"
             android:layout_gravity="center"
             android:layout_width="wrap_content"
-        />
+        android:typeface="monospace"/>
         <!-- Spacer -->
         <View android:layout_width="fill_parent"
               android:layout_height="fill_parent"
@@ -49,17 +49,15 @@
             android:layout_weight="6"
             android:layout_gravity="center"
             android:textColor="#000"
-            android:textSize="3mm"
             android:textStyle="bold"
             android:text="Randomize player positions"
-            android:layout_width="wrap_content"/>
+            android:layout_width="wrap_content" android:typeface="monospace"/>
         <Button android:id="@+id/choose_players"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
             android:layout_gravity="center"
             android:textColor="#000"
-            android:textSize="3mm"
             android:text="Choose Players!"
-            android:layout_weight="6"/>
+            android:layout_weight="6" android:typeface="monospace"/>
     </LinearLayout>
 </FrameLayout>

@@ -1,11 +1,13 @@
 package scorched.android;
 
+import scorched.android.Model.TerrainType;
 import android.graphics.Color;
 
 public class Player {
     /*================= Types =================*/
     public static enum PlayerColor {
         RED("red", Color.argb(0xff, 0xef,0x29, 0x29)),
+        ORANGE("orange", Color.argb(0xff, 0xff, 0xab, 0x34)),
         YELLOW("yellow", Color.argb(0xff, 0xfc, 0xe9, 0x4f)),
         GREEN("green", Color.argb(0xff, 0x06, 0xd0, 0x30)),
         CYAN("cyan", Color.argb(0xff, 0x8d, 0xef, 0xef)),
@@ -14,12 +16,14 @@ public class Player {
         PURPLE("purple", Color.argb(0xff, 0xad, 0x7f, 0xa8)),
         GREY("grey", Color.argb(0xff, 0xd3, 0xd7, 0xcf));
 
+        /*================= Static =================*/
+
         /*================= Data =================*/
         private final String mName;
         private final int mColor;
 
         /*================= Access =================*/
-        public String getName() { return mName; }
+        public String toString() { return mName; }
         public int toInt() { return mColor; }
 
         /*================= Lifecycle =================*/
@@ -30,7 +34,11 @@ public class Player {
     }
 
     /*================= Constants =================*/
-    private static final int MAX_LIFE = 1000;
+    public static final int MIN_STARTING_LIFE = 25;
+    public static final int DEFAULT_STARTING_LIFE = 100;
+    public static final int MAX_STARTING_LIFE = 1000;
+    public static final int MAX_LIFE = MAX_STARTING_LIFE;
+    public static final int MAX_NAME_LENGTH = 14;
 
     public static final int MIN_POWER = 50;
     public static final int MAX_POWER = 1000;

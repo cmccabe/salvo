@@ -20,6 +20,9 @@ android:theme=”@android:style/Theme.Dialog” -->
         <activity android:name=".GameSetupAct"
                   android:label="GameSetupAct">
         </activity>
+        <activity android:name=".PlayerSetupAct"
+                  android:label="PlayerSetupAct">
+        </activity>
         <activity android:name=".RunGameAct"
                   android:label="RunGameAct">
         </activity>

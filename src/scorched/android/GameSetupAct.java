@@ -64,7 +64,8 @@ public class GameSetupAct extends Activity {
         ////////////////// Initialize stuff
         ArrayAdapter<String> terrainSpinnerA =
             new ArrayAdapter < String >(getApplicationContext(),
-                R.layout.terrain_spinner_item, R.id.terrain_type,
+                R.layout.game_setup_spinner_item,
+                R.id.game_setup_spinner_item_text,
                 Model.TerrainType.getStrings());
         terrainSpinner.setAdapter(terrainSpinnerA);
         terrainSpinner.setOnItemSelectedListener(
@@ -82,7 +83,8 @@ public class GameSetupAct extends Activity {
 
         ArrayAdapter<String> numRoundsA =
             new ArrayAdapter < String >(getApplicationContext(),
-                R.layout.terrain_spinner_item, R.id.terrain_type,
+                R.layout.game_setup_spinner_item,
+                R.id.game_setup_spinner_item_text,
                 ModelFactory.NumRounds.getStrings());
         numRoundsSpinner.setAdapter(numRoundsA);
         numRoundsSpinner.setOnItemSelectedListener(
@@ -109,14 +111,14 @@ public class GameSetupAct extends Activity {
         });
         randPlayer.setChecked(mModelFactory.getRandomPlayerPlacement());
 
-        /*choosePlayers.setOnClickListener(new OnClickListener() {
+        choosePlayers.setOnClickListener(new OnClickListener() {
             public void onClick(View arg0) {
-                final Activity thisAct = this;
+                final Activity thisAct = GameSetupAct.this;
                 Intent myIntent =
                     new Intent().setClass(thisAct, PlayerSetupAct.class);
                 startActivity(myIntent);
             }
-        });*/
+        });
     }
 
     @Override

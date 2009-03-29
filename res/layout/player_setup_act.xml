@@ -5,7 +5,7 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent">
     <!-- Left panel: player list -->
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:layout_weight="5"
@@ -14,87 +14,100 @@
         <ListView
             android:id="@+id/player_list"
             android:layout_width="fill_parent"
-            android:layout_height="fill_parent"            
-            android:layout_weight="1"            
+            android:layout_height="fill_parent"
             android:visibility="visible"
             android:clickable="true"
-            android:focusableInTouchMode="true">
-            <!-- android:longClickable="true" -->
-            <!-- android:choiceMode="singleChoice" -->
+            android:focusableInTouchMode="true"
+            android:layout_above="@+id/add_player"
+            android:layout_alignParentTop="true">
+        <!-- android:longClickable="true" -->
+        <!-- android:choiceMode="singleChoice" -->
         </ListView>
         <Button android:id="@+id/add_player"
-            android:layout_gravity="center"
-            android:layout_width="fill_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="3"            
-            android:text="Add Player"/>
-    </LinearLayout>
+            android:layout_weight="1"
+            android:text="Add"
+            android:typeface="monospace"
+            android:layout_alignParentBottom="true"/>
+        <Button android:id="@+id/delete_player"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Delete"
+            android:typeface="monospace"
+            android:layout_alignParentBottom="true"
+        android:layout_toRightOf="@+id/add_player"/>
+    </RelativeLayout>
     <!-- Right panel: player settings -->
-    <LinearLayout
+    <RelativeLayout
         android:layout_height="fill_parent"
         android:layout_width="fill_parent"
-        android:layout_weight="6"
+        android:layout_weight="5"
+        android:orientation="vertical"
         android:layout_margin="1mm"
-        android:orientation="vertical">
+        android:gravity="center">
+        <Button android:id="@+id/play"
+            android:layout_gravity="center"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent" 
+            android:text="Play"
+            android:layout_below="@+id/life_adjust_root"
+            android:typeface="monospace"/>
         <EditText android:id="@+id/player_name"
             android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
+            android:layout_height="wrap_content"
             android:singleLine="True"
+            android:editable="True"
+            android:padding="1mm"
+            android:maxLength="20"
+            android:layout_alignParentTop="True"
+            android:textSize="2.5mm"
             android:textColor="#000"
-            android:textSize="6mm"
-            android:layout_weight="6"
+            android:typeface="monospace"
         />
         <Spinner android:id="@+id/player_color_spinner"
             android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
+            android:layout_height="wrap_content"
             android:drawSelectorOnTop="false"
-            android:layout_weight="6"
-        />
+            android:layout_below="@id/player_name"/>
         <Spinner android:id="@+id/player_type_spinner"
             android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
+            android:layout_height="wrap_content"
             android:drawSelectorOnTop="false"
-            android:layout_weight="6"
-        />
+            android:layout_below="@id/player_color_spinner"/>
         <LinearLayout
             android:id="@+id/life_adjust_root"
             android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:layout_weight="4"
-            android:orientation="horizontal">
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_below="@id/player_type_spinner">
             <Button
                 android:text="-"
                 android:id="@+id/player_life_minus"
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent"
-                android:layout_weight="3"
-            />
+                android:layout_weight="5"
+                android:textStyle="bold"
+                android:typeface="monospace"/>
             <EditText android:id="@+id/player_life"
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent"
+                android:layout_weight="3"
                 android:singleLine="True"
+                android:typeface="monospace"
+                android:editable="False"
                 android:textColor="#000"
-                android:textSize="6mm"
-                android:layout_weight="1"
+                android:focusable="false"
             />
             <Button
                 android:text="+"
-                android:id="@+id/player_life_minus"
+                android:id="@+id/player_life_plus"
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent"
-                android:layout_weight="3"
-            />
+                android:layout_weight="5"
+                android:typeface="monospace"
+                android:textStyle="bold"/>
         </LinearLayout>
-        <!-- Spacer -->
-        <View android:layout_width="fill_parent"
-              android:layout_height="fill_parent"
-              android:layout_weight="3"
-        />
-        <Button android:id="@+id/play"
-            android:layout_gravity="center"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:layout_weight="3"
-            android:text="Play!"/>
-    </LinearLayout>
+    </RelativeLayout>
 </LinearLayout>

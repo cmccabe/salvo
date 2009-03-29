@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/overall_terrain_spinner_item"
+    android:id="@+id/overall_game_setup_spinner_item"
     android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent">
-    <TextView android:id="@+id/terrain_type"
+    <TextView android:id="@+id/game_setup_spinner_item_text"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:textSize="3mm"
-        android:textColor="#000"/>
+        android:textColor="#000" android:typeface="monospace"/>
 </LinearLayout>

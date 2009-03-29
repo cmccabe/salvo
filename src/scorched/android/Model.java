@@ -35,6 +35,9 @@ public class Model {
     /*================= Constants =================*/
     private static final String TAG = "Model";
 
+    /** The minimum number of players we can have */
+    public static final int MIN_PLAYERS = 2;
+
     /** The maximum number of players we can have */
     public static final int MAX_PLAYERS = 9;
 
@@ -77,8 +80,8 @@ public class Model {
     };
 
     /*================= Data =================*/
-    /** A source of random numbers. TODO: seed with current time */
-    public Random mRandom = new Random();
+    /** A source of random numbers. */
+    public static Random mRandom = new Random();
 
     /** The height field determines what the playing field looks like. */
     private float mHeights[] = null;

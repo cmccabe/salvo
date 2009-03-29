@@ -1,10 +1,12 @@
 package scorched.android;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Random;
 
 import scorched.android.Model.TerrainType;
+import scorched.android.Player.PlayerColor;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -30,6 +32,15 @@ import android.widget.TextView;
  */
 public class ModelFactory {
     /*================= Types =================*/
+    /** Thrown if the current operation cannot be performed because there are
+     *  too few players */
+    public class TooFewPlayers extends RuntimeException {
+        public final static long serialVersionUID = 1;
+        public TooFewPlayers(String message) {
+            super(message);
+        }
+    }
+
     /** Represents the number of rounds in the game */
     public static enum NumRounds {
         ONE(1),
@@ -84,17 +95,30 @@ public class ModelFactory {
     /*================= Types =================*/
     public static class PlayerFactory {
 
-        private static enum PlayerType {
+        public static enum PlayerType {
             HUMAN("Human player"),
             COMPUTER_EASY("Computer: Easy"),
             COMPUTER_MEDIUM("Computer: Medium"),
             COMPUTER_HARD("Computer: Hard");
 
+            /*================= Static =================*/
+            public static String [] getStrings() {
+                PlayerType t[] = PlayerType.values();
+                String ret[] = new String[t.length];
+                for (int i = 0; i < t.length; i++) {
+                    ret[i] = t[i].toString();
+                }
+                return ret;
+            }
+
+            /*================= Data =================*/
+            private final String mName;
+
+            /*================= Access =================*/
             public String toString() { return mName; }
 
+            /*================= Lifecycle =================*/
             PlayerType(String name) { mName = name; }
-
-            private final String mName;
         }
 
         /*================= Static =================*/
@@ -103,57 +127,124 @@ public class ModelFactory {
             String name = map.getString(tag + "NAME");
             int typeInt = map.getInt(tag + "PLAYER_TYPE");
             PlayerType type = PlayerType.values()[typeInt];
-            short startingLife = map.getShort(tag + "STARTING_LIFE_PERCENT");
+            short startingLife = map.getShort(tag + "STARTING_LIFE");
             int color_ord = map.getInt(tag + "COLOR");
             Player.PlayerColor color = Player.PlayerColor.values()[color_ord];
-            return new PlayerFactory(index, name, type,
+            return new PlayerFactory(name, type,
                                      startingLife, color);
+        }
+
+        /** Gets a list of colors that aren't currently in use by a player */
+        public static LinkedList < Player.PlayerColor >
+                getAvailableColors(LinkedList < PlayerFactory > plays) {
+            HashSet < PlayerColor > used = new HashSet<PlayerColor>();
+            LinkedList < PlayerColor > unused = new LinkedList<PlayerColor>();
+            for (PlayerFactory p : plays)
+                used.add(p.getColor());
+            PlayerColor[] all = PlayerColor.values();
+            for (PlayerColor c : all) {
+                if (!used.contains(c))
+                    unused.add(c);
+            }
+            return unused;
         }
 
         /*================= Data =================*/
         private int mIndex;
         private String mName;
-        private short mStartingLifePercent;
+        private short mLife;
         private PlayerType mType;
         private Player.PlayerColor mColor;
 
         /*================= Access =================*/
-        public void saveState(Bundle map) {
-            String tag = "PLAYER_" + mIndex + "_";
+        public synchronized void saveState(int index, Bundle map) {
+            String tag = "PLAYER_" + index + "_";
             if (map != null) {
                 map.putString(tag + "NAME", mName);
                 map.putInt(tag + "PLAYER_TYPE", mType.ordinal());
-                map.putShort(tag + "STARTING_LIFE_PERCENT",
-                            mStartingLifePercent);
+                map.putShort(tag + "STARTING_LIFE",
+                            mLife);
                 map.putInt(tag + "COLOR", mColor.ordinal());
             }
         }
 
-        public String getName() {
+        public synchronized String getName() {
             return mName;
         }
 
-        public PlayerType getPlayerType() {
+        public synchronized PlayerType getType() {
             return mType;
         }
 
-        public short getStartingLifePercent() {
-            return mStartingLifePercent;
+        public synchronized short getLife() {
+            return mLife;
         }
 
-        public Player.PlayerColor getColor() {
+        public synchronized Player.PlayerColor getColor() {
             return mColor;
         }
 
+        /*================= Operations =================*/
+        public synchronized void setName(String name) {
+            mName = name;
+        }
+
+        public synchronized void setType(PlayerType t) {
+            mType = t;
+        }
+
+        public synchronized void setLife(short life) {
+            mLife = life;
+        }
+
+        public synchronized void setColor(Player.PlayerColor color) {
+            mColor = color;
+        }
+
         /*================= Lifecycle =================*/
-        public PlayerFactory(int index, String name,
+        public static String getRandomUnusedName
+                (LinkedList < PlayerFactory > plays) {
+            String ret;
+            while (true) {
+                int idx = Math.abs(Model.mRandom.nextInt()) %
+                            ModelFactory.STARTING_NAMES.length;
+                ret = ModelFactory.STARTING_NAMES[idx];
+                for (PlayerFactory p : plays) {
+                    if (ret.equals(p.getName()))
+                        continue;
+                }
+                break;
+            }
+            return ret;
+        }
+
+        public static PlayerColor getRandomUnusedColor
+                (LinkedList < PlayerFactory > plays) {
+            LinkedList < PlayerColor > unused = getAvailableColors(plays);
+            if (unused.size() == 0) {
+                throw new RuntimeException("getRandomUnusedColor(): " +
+                    "there appear to be no unused colors left!");
+            }
+            int idx = Math.abs(Model.mRandom.nextInt()) % unused.size();
+            return unused.get(idx);
+        }
+
+        public static PlayerFactory
+            createDefault(LinkedList < PlayerFactory > plays)
+        {
+            return new PlayerFactory(getRandomUnusedName(plays),
+                    PlayerType.COMPUTER_MEDIUM,
+                    (short)Player.DEFAULT_STARTING_LIFE,
+                    getRandomUnusedColor(plays));
+        }
+
+        public PlayerFactory(String name,
                              PlayerType type,
-                             short startingLifePercent,
+                             short life,
                              Player.PlayerColor color) {
-            mIndex = index;
             mName = name;
             mType = type;
-            mStartingLifePercent = startingLifePercent;
+            mLife = life;
             mColor = color;
         }
     }
@@ -223,9 +314,9 @@ public class ModelFactory {
             //upper.setTextColor(p.getColor());
             //upper.setTypeface(BOLD);
             StringBuilder b = new StringBuilder(50);
-            b.append(p.getPlayerType().toString());
+            b.append(p.getType().toString());
             b.append(": ");
-            b.append(p.getStartingLifePercent());
+            b.append(p.getLife());
             b.append("%");
 
             upper.setTextSize(TypedValue.COMPLEX_UNIT_MM, 4);
@@ -238,6 +329,39 @@ public class ModelFactory {
     }
 
     /*================= Constants =================*/
+    protected final static String STARTING_NAMES[] = {
+        "Notorious AIG",
+        "Richter",
+        "Belmont",
+        "Locutus",
+        "Silent Bob",
+        "Terminator",
+        "Kerrigan",
+        "Batman",
+        "Fat Tony",
+        "Ballmer",
+        "Sisyphus",
+        "Zeus",
+        "Hermes",
+        "Mars",
+        "Clinton",
+        "G.W.",
+        "Cheney",
+        "K.G.",
+        "Una Persona",
+        "Cornelius",
+        "Sirius",
+        "Col. Sanders",
+        "Barfy",
+        "Stewie",
+        "Robotnik",
+        "Smoochy",
+        "Kafka",
+        "Jeff",
+        "Ultros",
+        "Dio"
+    };
+
     private final static String KEY_DESIRED_TERRAIN_TYPE =
         "KEY_DESIRED_TERRAIN_TYPE";
     private final static String KEY_USE_RANDOM_PLAYER_PLACEMENT =
@@ -268,6 +392,10 @@ public class ModelFactory {
         return mNumRounds;
     }
 
+    public PlayerFactory getPlayerFactory(int index) {
+        return mPlayers.get(index);
+    }
+
     public synchronized Model toModel() {
         // return new Model(...);
         return null;
@@ -281,18 +409,31 @@ public class ModelFactory {
 
     /** Returns true if we can add another player */
     public synchronized boolean canAddPlayer() {
-        // return (mPlayers.size() + 1 < Model.MAX_PLAYERS);
-        return false;
+        return (mPlayers.size() + 1 <= Model.MAX_PLAYERS);
     }
 
     /** Returns true if all players are computers */
     public synchronized boolean everyoneIsAComputer() {
         for (PlayerFactory p: mPlayers) {
-            if (p.getPlayerType() ==
-                    PlayerFactory.PlayerType.HUMAN)
+            if (p.getType() == PlayerFactory.PlayerType.HUMAN)
                 return false;
         }
         return true;
+    }
+
+    /** Returns true if a player is already using the given color */
+    public synchronized boolean colorInUse(Player.PlayerColor color) {
+        for (PlayerFactory p: mPlayers) {
+            if (p.getColor() == color)
+                return true;
+        }
+        return false;
+    }
+
+    /** Gets a list of colors that aren't currently in use by a player */
+    public synchronized LinkedList < Player.PlayerColor >
+            getAvailableColors() {
+        return PlayerFactory.getAvailableColors(mPlayers);
     }
 
     /*================= Save / Restore =================*/
@@ -304,8 +445,8 @@ public class ModelFactory {
                         mUseRandomPlayerPlacement);
             map.putShort(KEY_NUM_ROUNDS, mNumRounds);
             map.putInt(KEY_NUMBER_OF_PLAYERS, mPlayers.size());
-            for (PlayerFactory p : mPlayers) {
-                p.saveState(map);
+            for (int i = 0; i < mPlayers.size(); i++) {
+                mPlayers.get(i).saveState(i, map);
             }
         }
     }
@@ -338,23 +479,65 @@ public class ModelFactory {
         mNumRounds = (short)numRounds;
     }
 
-    public synchronized void addPlayerFactory(PlayerFactory p) {
+    public synchronized PlayerFactory addPlayerFactory() {
+        PlayerFactory p = PlayerFactory.createDefault(mPlayers);
         mPlayers.add(p);
         if (mAdapter != null)
             mAdapter.notifyDataSetChanged();
+        return p;
     }
 
-    public synchronized void deletePlayerFactory(int pos) {
-        mPlayers.remove(pos);
+    /** Notify the ModelFactory that its data set has changed.
+     *
+     *  You must call this method after mutating a PlayerFactory in order
+     *  to see these changes reflected in the playerListAdapter
+     *
+     *  Perhaps this should be refactored so that PlayerFactory is a
+     *  non-static inner class which calls this method itself?
+     */
+    public synchronized void notifyDataSetChanged() {
         if (mAdapter != null)
             mAdapter.notifyDataSetChanged();
     }
 
-//    public synchronized void changePlayerFactory(int pos) {
-//        mPlayers.remove(pos);
-//        if (mAdapter)
-//            mAdapter.notifyDataSetChanged();
-//    }
+    /** Deletes the PlayerFactory p
+     *
+     * @return          The PlayerFactory that is now located where p used to
+     *                  be.
+     *
+     * @throws          RuntimeError if the PlayerFactory p is not found in
+     *                  our list of PlayerFactory objects
+     *
+     *                  TooFewPlayers if we have too few players to remove
+     *                  one.
+     */
+    public synchronized PlayerFactory deletePlayerFactory(PlayerFactory p) {
+        if (mPlayers.size() - 1 < Model.MIN_PLAYERS) {
+            throw new TooFewPlayers("");
+        }
+
+        int i;
+        for (i = 0; i < mPlayers.size(); i++) {
+            if (mPlayers.get(i) == p) {
+                break;
+            }
+        }
+        if (i == mPlayers.size()) {
+            StringBuilder b = new StringBuilder(80);
+            b.append("deletePlayerFactory: player named ");
+            b.append(p.getName());
+            b.append(" not found in mPlayers.");
+            throw new RuntimeException(b.toString());
+        }
+
+        mPlayers.remove(i);
+        if (mAdapter != null)
+            mAdapter.notifyDataSetChanged();
+        if (i == 0)
+            return mPlayers.get(0);
+        else
+            return mPlayers.get(i - 1);
+    }
 
     /*================= Lifecycle =================*/
     public ModelFactory(Bundle b) {
@@ -372,29 +555,10 @@ public class ModelFactory {
     /** Create some default players */
     private final void createDefaultPlayers() {
         mPlayers = new LinkedList < PlayerFactory >();
-        mPlayers.add(new PlayerFactory(0, "Red",
-                        PlayerFactory.PlayerType.HUMAN,
-                        (short)100, Player.PlayerColor.RED));
-        mPlayers.add(new PlayerFactory(1, "Yellow",
-                        PlayerFactory.PlayerType.COMPUTER_EASY,
-                        (short)100, Player.PlayerColor.YELLOW));
-        mPlayers.add(new PlayerFactory(2, "Green",
-                        PlayerFactory.PlayerType.COMPUTER_MEDIUM,
-                        (short)100, Player.PlayerColor.GREEN));
-        mPlayers.add(new PlayerFactory(3, "Cyan",
-                        PlayerFactory.PlayerType.COMPUTER_HARD,
-                        (short)90, Player.PlayerColor.CYAN));
-        mPlayers.add(new PlayerFactory(4, "Blue",
-                        PlayerFactory.PlayerType.COMPUTER_HARD,
-                        (short)100, Player.PlayerColor.BLUE));
-        mPlayers.add(new PlayerFactory(5, "Pink",
-                        PlayerFactory.PlayerType.COMPUTER_HARD,
-                        (short)75, Player.PlayerColor.PINK));
-        mPlayers.add(new PlayerFactory(6, "Purple",
-                PlayerFactory.PlayerType.COMPUTER_HARD,
-                (short)75, Player.PlayerColor.PURPLE));
-        mPlayers.add(new PlayerFactory(6, "Grey",
-                PlayerFactory.PlayerType.COMPUTER_HARD,
-                (short)75, Player.PlayerColor.GREY));
+        mPlayers.add(PlayerFactory.createDefault(mPlayers));
+        mPlayers.get(0).setType(PlayerFactory.PlayerType.HUMAN);
+        mPlayers.add(PlayerFactory.createDefault(mPlayers));
+        mPlayers.add(PlayerFactory.createDefault(mPlayers));
+        mPlayers.add(PlayerFactory.createDefault(mPlayers));
     }
 }

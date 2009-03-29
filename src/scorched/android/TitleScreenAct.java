@@ -35,6 +35,7 @@ public class TitleScreenAct extends Activity {
         Sound.instance.init(this);
 
         ////////////////// setContentView
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.title);
 
         ////////////////// Get pointers to stuff
