@@ -6,8 +6,7 @@
     <application android:icon="@drawable/icon" 
                  android:label="@string/app_name">
         <activity android:name=".TitleScreenAct"
-                  android:label="@string/app_name"
-                  android:screenOrientation="landscape">
+                  android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -16,16 +15,15 @@
 <!-- android:label=”@string/activity_dialog”
 android:theme=”@android:style/Theme.Dialog” -->
         <activity android:name=".ReadStuffAct"
-                  android:label="ReadStuffAct"
-                  android:screenOrientation="landscape">
+                  android:label="ReadStuffAct">
         </activity>
         <activity android:name=".GameSetupAct"
-                  android:label="GameSetupAct"
-                  android:screenOrientation="landscape">
+                  android:label="GameSetupAct">
         </activity>
         <activity android:name=".RunGameAct"
-                  android:label="RunGameAct"
-                  android:screenOrientation="landscape">
+                  android:label="RunGameAct">
         </activity>
     </application>
 </manifest> 
+
+                  <!-- android:screenOrientation="landscape"> -->

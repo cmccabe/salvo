@@ -31,6 +31,8 @@ public class PlayerSetupAct extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        Log.w(this.getClass().getName(), "onCreate");
+
         setContentView(R.layout.player_setup_act);
 
         mModelFactory = new ModelFactory(savedInstanceState);
@@ -40,6 +42,8 @@ public class PlayerSetupAct extends Activity {
     @Override
     public void onStart() {
         super.onStart();
+        Log.w(this.getClass().getName(), 
+            "onStart (mInitialized = " + mInitialized);
         if (mInitialized)
             return;
         else
@@ -99,7 +103,9 @@ public class PlayerSetupAct extends Activity {
     }
 
     @Override
-    protected void onSaveInstanceState(Bundle outState) { }
+    protected void onSaveInstanceState(Bundle outState) {
+        Log.w(this.getClass().getName(), "onSaveInstanceState");
+    }
 
     /** Warn about the dangers of an all-CPU world */
     private void showAreYouSureYouWantToPlayWithoutHumans() {
