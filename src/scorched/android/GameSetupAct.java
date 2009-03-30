@@ -62,11 +62,12 @@ public class GameSetupAct extends Activity {
             (Button)findViewById(R.id.choose_players);
 
         ////////////////// Initialize stuff
-        ArrayAdapter<String> terrainSpinnerA =
-            new ArrayAdapter < String >(getApplicationContext(),
+        ArrayAdapter< Model.TerrainType > terrainSpinnerA =
+            new ArrayAdapter < Model.TerrainType >
+        		(getApplicationContext(),
                 R.layout.game_setup_spinner_item,
                 R.id.game_setup_spinner_item_text,
-                Model.TerrainType.getStrings());
+                Model.TerrainType.values());
         terrainSpinner.setAdapter(terrainSpinnerA);
         terrainSpinner.setOnItemSelectedListener(
             new Spinner.OnItemSelectedListener(){
@@ -81,11 +82,12 @@ public class GameSetupAct extends Activity {
         terrainSpinner.setSelection
             (mModelFactory.getDesiredTerrainType().ordinal());
 
-        ArrayAdapter<String> numRoundsA =
-            new ArrayAdapter < String >(getApplicationContext(),
+        ArrayAdapter < ModelFactory.NumRounds > numRoundsA =
+            new ArrayAdapter < ModelFactory.NumRounds >
+        		(getApplicationContext(),
                 R.layout.game_setup_spinner_item,
                 R.id.game_setup_spinner_item_text,
-                ModelFactory.NumRounds.getStrings());
+                ModelFactory.NumRounds.values());
         numRoundsSpinner.setAdapter(numRoundsA);
         numRoundsSpinner.setOnItemSelectedListener(
             new Spinner.OnItemSelectedListener(){

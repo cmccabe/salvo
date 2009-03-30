@@ -5,6 +5,7 @@ import java.util.LinkedList;
 
 import scorched.android.ModelFactory.PlayerFactory;
 import scorched.android.ModelFactory.PlayerFactory.PlayerType;
+import scorched.android.Player.PlayerColor;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -39,7 +40,7 @@ public class PlayerSetupAct extends Activity {
     private volatile boolean mInitialized;
 
     private EditText mPlayerName;
-    private ArrayAdapter < Player.PlayerColor > mPlayerColorSpinnerA;
+    private ArrayAdapter < PlayerColor > mPlayerColorSpinnerA;
     private Spinner mPlayerColorSpinner;
     private Spinner mPlayerTypeSpinner;
     private EditText mLife;
@@ -145,7 +146,7 @@ public class PlayerSetupAct extends Activity {
         });
 
         mPlayerColorSpinnerA =
-            new ArrayAdapter < Player.PlayerColor >(getBaseContext(),
+            new ArrayAdapter < PlayerColor >(getBaseContext(),
                 R.layout.player_spinner_item,
                 R.id.player_spinner_item_text);
         mPlayerColorSpinner.setAdapter(mPlayerColorSpinnerA);
@@ -153,7 +154,7 @@ public class PlayerSetupAct extends Activity {
             new Spinner.OnItemSelectedListener(){
                 public void onItemSelected(AdapterView<?> parent,
                                     View v, int position, long id) {
-                    Player.PlayerColor color =
+                    PlayerColor color =
                         mPlayerColorSpinnerA.getItem(position);
 
                     // Strictly speaking, this check shouldn't be necessary
@@ -171,11 +172,11 @@ public class PlayerSetupAct extends Activity {
                 public void onNothingSelected(AdapterView<?> arg0) { }
             });
 
-        ArrayAdapter<String> playerTypeSpinnerA =
-            new ArrayAdapter < String >(getApplicationContext(),
+        ArrayAdapter < PlayerType > playerTypeSpinnerA =
+            new ArrayAdapter < PlayerType >(getApplicationContext(),
                 R.layout.player_spinner_item,
                 R.id.player_spinner_item_text,
-                PlayerType.getStrings());
+                PlayerType.values());
         mPlayerTypeSpinner.setAdapter(playerTypeSpinnerA);
         mPlayerTypeSpinner.setOnItemSelectedListener(
             new Spinner.OnItemSelectedListener(){
@@ -282,11 +283,11 @@ public class PlayerSetupAct extends Activity {
         mPlayerTypeSpinner.setSelection
             (mCurPlayer.getType().ordinal());
         setLifeField(mCurPlayer.getLife(), true);
-        LinkedList < Player.PlayerColor > availColors =
+        LinkedList < PlayerColor > availColors =
             mModelFactory.getAvailableColors();
         mPlayerColorSpinnerA.clear();
         mPlayerColorSpinnerA.add(mCurPlayer.getColor());
-        for (Player.PlayerColor color: availColors) {
+        for (PlayerColor color: availColors) {
             mPlayerColorSpinnerA.add(color);
         }
         mPlayerColorSpinner.setAdapter(mPlayerColorSpinnerA);

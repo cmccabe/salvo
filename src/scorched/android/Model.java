@@ -69,14 +69,6 @@ public class Model {
         Jagged,
         Hilly,
         Rolling;
-
-        public static String [] getStrings() {
-            TerrainType t[] = TerrainType.values();
-            String ret[] = new String[t.length];
-            for (int i = 0; i < t.length; i++)
-                ret[i] = t[i].toString() + " terrain";
-            return ret;
-        }
     };
 
     /*================= Data =================*/

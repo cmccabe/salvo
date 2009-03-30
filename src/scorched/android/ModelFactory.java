@@ -65,23 +65,18 @@ public class ModelFactory {
                 ("no NumRounds object with mShort = " + s);
         }
 
-        public static String [] getStrings() {
-            NumRounds t[] = NumRounds.values();
-            String ret[] = new String[t.length];
-            for (int i = 0; i < t.length; i++) {
-                StringBuilder b = new StringBuilder(10);
-                b.append(t[i].toShort()).append(" round");
-                if (t[i] != ONE)
-                    b.append("s");
-                ret[i] = b.toString();
-            }
-            return ret;
-        }
-
         /*================= Data =================*/
         private short mShort;
 
         /*================= Access =================*/
+        public String toString() {
+            StringBuilder b = new StringBuilder(10);
+            b.append(mShort).append(" round");
+            if (this != ONE)
+                b.append("s");
+            return b.toString();
+        }
+
         public short toShort() {
             return mShort;
         }
@@ -100,16 +95,6 @@ public class ModelFactory {
             COMPUTER_EASY("Computer: Easy"),
             COMPUTER_MEDIUM("Computer: Medium"),
             COMPUTER_HARD("Computer: Hard");
-
-            /*================= Static =================*/
-            public static String [] getStrings() {
-                PlayerType t[] = PlayerType.values();
-                String ret[] = new String[t.length];
-                for (int i = 0; i < t.length; i++) {
-                    ret[i] = t[i].toString();
-                }
-                return ret;
-            }
 
             /*================= Data =================*/
             private final String mName;
