@@ -39,6 +39,9 @@ public class PlayerSetupAct extends Activity {
 
     private volatile boolean mInitialized;
 
+    private Button mAddPlayerButton;
+    private Button mDeletePlayerButton;
+
     private EditText mPlayerName;
     private ArrayAdapter < PlayerColor > mPlayerColorSpinnerA;
     private Spinner mPlayerColorSpinner;
@@ -79,7 +82,8 @@ public class PlayerSetupAct extends Activity {
 
         ////////////////// Get pointers to stuff
         final ListView playerList = (ListView)findViewById(R.id.player_list);
-        final Button addPlayer = (Button)findViewById(R.id.add_player);
+        mAddPlayerButton = (Button)findViewById(R.id.add_player);
+        mDeletePlayerButton = (Button)findViewById(R.id.delete_player);
 
         mPlayerName = (EditText)findViewById(R.id.player_name);
         mPlayerColorSpinner =
@@ -91,7 +95,6 @@ public class PlayerSetupAct extends Activity {
         mLife = (EditText)findViewById(R.id.player_life);
         final Button lifePlus =
             (Button)findViewById(R.id.player_life_plus);
-        final Button deletePlayer = (Button)findViewById(R.id.delete_player);
         final Button play = (Button)findViewById(R.id.play);
 
         ////////////////// Initialize stuff
@@ -114,7 +117,7 @@ public class PlayerSetupAct extends Activity {
             }
         });
 
-        addPlayer.setOnClickListener(new View.OnClickListener() {
+        mAddPlayerButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 if (mModelFactory.canAddPlayer())
                     selectPlayer(mModelFactory.addPlayerFactory());
@@ -203,7 +206,7 @@ public class PlayerSetupAct extends Activity {
             }
         });
 
-        deletePlayer.setOnClickListener(new OnClickListener() {
+        mDeletePlayerButton.setOnClickListener(new OnClickListener() {
             public void onClick(View arg0) {
                 try {
                     mCurPlayer = mModelFactory.
@@ -294,6 +297,9 @@ public class PlayerSetupAct extends Activity {
         mPlayerColorSpinner.setSelection(0);
 
         mPlayerName.setText(mCurPlayer.getName());
+
+        mAddPlayerButton.setEnabled(mModelFactory.canAddPlayer());
+        mDeletePlayerButton.setEnabled(mModelFactory.canDeletePlayer());
     }
 
     /** Warn about the dangers of an all-CPU world */

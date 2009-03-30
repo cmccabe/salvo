@@ -442,6 +442,11 @@ public class ModelFactory {
         return (mPlayers.size() + 1 <= Model.MAX_PLAYERS);
     }
 
+    /** Returns true if we can delete a player */
+    public synchronized boolean canDeletePlayer() {
+        return (!(mPlayers.size() - 1 < Model.MIN_PLAYERS));
+    }
+
     /** Returns true if all players are computers */
     public synchronized boolean everyoneIsAComputer() {
         for (PlayerFactory p: mPlayers) {
@@ -542,9 +547,8 @@ public class ModelFactory {
      *                  one.
      */
     public synchronized PlayerFactory deletePlayerFactory(PlayerFactory p) {
-        if (mPlayers.size() - 1 < Model.MIN_PLAYERS) {
+        if (!canDeletePlayer())
             throw new TooFewPlayers("");
-        }
 
         int i;
         for (i = 0; i < mPlayers.size(); i++) {
