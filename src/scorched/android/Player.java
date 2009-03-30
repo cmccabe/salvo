@@ -36,7 +36,7 @@ public class Player {
     /*================= Constants =================*/
     public static final int MIN_STARTING_LIFE = 25;
     public static final int DEFAULT_STARTING_LIFE = 100;
-    public static final int MAX_STARTING_LIFE = 1000;
+    public static final int MAX_STARTING_LIFE = 300;
     public static final int MAX_LIFE = MAX_STARTING_LIFE;
     public static final int MAX_NAME_LENGTH = 14;
 

@@ -194,13 +194,14 @@ public class ModelFactory {
                 int idx = Math.abs(Model.mRandom.nextInt()) %
                             ModelFactory.STARTING_NAMES.length;
                 ret = ModelFactory.STARTING_NAMES[idx];
-                for (PlayerFactory p : plays) {
-                    if (ret.equals(p.getName()))
-                        continue;
+                int i;
+                for (i = 0; i < plays.size(); i++) {
+                    if (ret.equals(plays.get(i).getName()))
+                        break;
                 }
-                break;
+                if (i == plays.size())
+                    return ret;
             }
-            return ret;
         }
 
         public static PlayerColor getRandomUnusedColor
