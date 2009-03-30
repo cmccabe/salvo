@@ -27,14 +27,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Add"
+            android:text="    Add    "
             android:typeface="monospace"
             android:layout_alignParentBottom="true"/>
         <Button android:id="@+id/delete_player"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Delete"
+            android:text="   Delete   "
             android:typeface="monospace"
             android:layout_alignParentBottom="true"
         android:layout_toRightOf="@+id/add_player"/>
