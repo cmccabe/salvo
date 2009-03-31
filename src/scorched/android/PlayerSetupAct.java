@@ -39,6 +39,7 @@ public class PlayerSetupAct extends Activity {
 
     private volatile boolean mInitialized;
 
+    private ListView mPlayerList;
     private Button mAddPlayerButton;
     private Button mDeletePlayerButton;
 
@@ -81,7 +82,7 @@ public class PlayerSetupAct extends Activity {
             mInitialized = true;
 
         ////////////////// Get pointers to stuff
-        final ListView playerList = (ListView)findViewById(R.id.player_list);
+        mPlayerList = (ListView)findViewById(R.id.player_list);
         mAddPlayerButton = (Button)findViewById(R.id.add_player);
         mDeletePlayerButton = (Button)findViewById(R.id.delete_player);
 
@@ -98,8 +99,8 @@ public class PlayerSetupAct extends Activity {
         final Button play = (Button)findViewById(R.id.play);
 
         ////////////////// Initialize stuff
-        playerList.setAdapter(mModelFactory.getPlayerListAdapter());
-        playerList.setOnItemClickListener(
+        mPlayerList.setAdapter(mModelFactory.getPlayerListAdapter());
+        mPlayerList.setOnItemClickListener(
             new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view,
                                     int position, long id) {
@@ -109,7 +110,7 @@ public class PlayerSetupAct extends Activity {
                 }
                 catch (Exception e) {
                     StringBuilder b = new StringBuilder(80);
-                    b.append("playerLister.OnItemClickListener: ");
+                    b.append("mPlayerList.OnItemClickListener: ");
                     b.append("got exception: ");
                     b.append(e.toString());
                     Log.e(this.getClass().getName(), b.toString());
@@ -297,6 +298,7 @@ public class PlayerSetupAct extends Activity {
         mPlayerColorSpinner.setSelection(0);
 
         mPlayerName.setText(mCurPlayer.getName());
+        mPlayerList.setSelection(mModelFactory.getPlayerPosition(p));
 
         mAddPlayerButton.setEnabled(mModelFactory.canAddPlayer());
         mDeletePlayerButton.setEnabled(mModelFactory.canDeletePlayer());

@@ -522,6 +522,16 @@ public class ModelFactory {
         return PlayerFactory.getAvailableColors(mPlayers);
     }
 
+    /** Gets the position of a playerFactory in the list */
+    public synchronized int getPlayerPosition(PlayerFactory p) {
+        for (int i = 0; i < mPlayers.size(); i++) {
+            if (mPlayers.get(i) == p)
+                return i;
+        }
+        throw new RuntimeException("can't find player " + p + 
+                " in mPlayers");
+    }
+
     /*================= Save / Restore =================*/
     public synchronized void saveState(Bundle map) {
         if (map != null) {
