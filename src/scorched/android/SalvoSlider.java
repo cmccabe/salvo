@@ -51,8 +51,6 @@ public class SalvoSlider extends View {
     }
 
     /* ================= Constants ================= */
-    private static final String TAG = "SalvoSlider";
-
     private static final int BUTTON_PERCENT = 20;
 
     /* ================= Members ================= */
@@ -309,8 +307,9 @@ public class SalvoSlider extends View {
      */
     public void setState(SliderState state, Listener listener, int min,
             int max, int val, int color) {
-        Log.w(TAG, "setState state=" + state + ",min=" + min + ",max=" + max
-                + ",color=" + color);
+        Log.w(this.getClass().getName(),
+                "setState state=" + state + ",min=" + min + ",max=" + max +
+                ",color=" + color);
         synchronized (mState) {
             mState = state;
             mListener = listener;

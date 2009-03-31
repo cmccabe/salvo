@@ -20,7 +20,6 @@ import android.view.SurfaceView;
  */
 class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
     /*================= Constants =================*/
-    private static final String TAG = "GameControlView";
 
     /*================= Types =================*/
 
@@ -90,7 +89,8 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
         /*================= Main =================*/
         @Override
         public void run() {
-            Log.w(TAG, "run(): waiting for surface to be created.");
+            Log.w(this.getClass().getName(), "run(): waiting for surface to be created.");
+
             mRun = true;
             synchronized (mSurfaceHasBeenCreatedSem) {
                 while (!mSurfaceHasBeenCreated) {
@@ -98,16 +98,18 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
                         mSurfaceHasBeenCreatedSem.wait();
                     }
                     catch (InterruptedException e) {
-                        Log.w(TAG, "interrupted waiting for " +
-                                        "mSurfaceHasBeenCreatedSem");
+                        Log.w(this.getClass().getName(),
+                            "interrupted waiting for " +
+                            "mSurfaceHasBeenCreatedSem");
                         mRun = false;
                     }
                 }
             }
-            Log.w(TAG, "run(): surface has been created.");
+            Log.w(this.getClass().getName(),
+                "run(): surface has been created.");
 
             // main loop
-            Log.w(TAG, "run(): entering main loop.");
+            Log.w(this.getClass().getName(), "run(): entering main loop.");
             synchronized (mUserInputSem) {
                 mGameState = GameState.sTurnStartState;
                 while (true) {
@@ -137,7 +139,8 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
                         }
                         try {
                             if (!mRun) {
-                                Log.w(TAG, "mRun == false. quitting.");
+                                Log.w(this.getClass().getName(),
+                                    "mRun == false. quitting.");
                                 return;
                             }
                             mUserInputSem.wait(mGameState.
@@ -145,13 +148,14 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
                         }
                         catch (InterruptedException e) {
                             if (!mRun) {
-                                Log.w(TAG, "interrupted: quitting.");
+                                Log.w(this.getClass().getName(),
+                                    "interrupted: quitting.");
                                 return;
                             }
                         }
                     }
                     mGameState.onExit(mPowerSlider, mAngleSlider);
-                    Log.w(TAG, "transitioning from " +
+                    Log.w(this.getClass().getName(), "transitioning from " +
                             mGameState.toString() + " to " +
                             next.toString());
                     mGameState = next;
@@ -307,12 +311,14 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
         try {
             getHolder().setType(
                 android.view.SurfaceHolder.SURFACE_TYPE_HARDWARE);
-            Log.w(TAG, "GameControlView: activated hardware acceleration");
+            Log.w(this.getClass().getName(),
+                "GameControlView: activated hardware acceleration");
         }
         catch(Exception e2) {
             getHolder().setType(
                 android.view.SurfaceHolder.SURFACE_TYPE_NORMAL);
-            Log.w(TAG, "GameControlView: no acceleration");
+            Log.w(this.getClass().getName(),
+                "GameControlView: no acceleration");
         }
     }
 

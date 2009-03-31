@@ -8,7 +8,6 @@ import scorched.android.SalvoSlider.Listener;
 
 public interface GameState {
     /*================= Constants =================*/
-    public final static String TAG = "GameState";
 
     /*================= Types =================*/
     enum GameButton {
@@ -565,7 +564,6 @@ public interface GameState {
                 return sExplosionState;
             }
             mCurSample = nextSample;
-            //Log.w(TAG, "mCurSample = " + mCurSample);
             return null;
         }
 

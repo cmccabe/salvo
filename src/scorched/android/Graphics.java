@@ -23,11 +23,9 @@ public enum Graphics {
     instance;
 
     /*================= Constants =================*/
-    private final static String TAG = "Graphics";
+    private final static int PURE_RED = Color.argb(255,255,0,0);
 
-    private final static int RED = Color.argb(255,255,0,0);
-
-    private final static int ORANGE = Color.argb(255,255,140,0);
+    private final static int PURE_ORANGE = Color.argb(255,255,140,0);
 
     /*================= Types =================*/
     static public class ViewSettings {
@@ -296,7 +294,8 @@ public enum Graphics {
 
     /*================= Operations =================*/
     public void setViewSettings(ViewSettings v) {
-        //Log.w(TAG, "setViewSettings(v=" + v.toString() + ")");
+        //Log.w(this.getClass().getName(),
+        //  "setViewSettings(v=" + v.toString() + ")");
         mV.copyInPlace(v);
     }
 
@@ -452,7 +451,8 @@ public enum Graphics {
         Shader explosionShader =
             new RadialGradient(gameXtoOnscreenX(centerX),
                                gameYtoOnscreenY(centerY),
-                               1, RED, ORANGE, Shader.TileMode.REPEAT);
+                               1, PURE_RED, PURE_ORANGE,
+                               Shader.TileMode.REPEAT);
         mExplosionPaint.setShader(explosionShader);
     }
 

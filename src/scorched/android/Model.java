@@ -33,8 +33,6 @@ import android.util.Log;
  */
 public class Model {
     /*================= Constants =================*/
-    private static final String TAG = "Model";
-
     /** The minimum number of players we can have */
     public static final int MIN_PLAYERS = 2;
 
@@ -260,9 +258,9 @@ public class Model {
      *  that extends upward to 'top' and downward to 'bottom'.
      */
     private void doSlotCollision(int slot, float top, float bottom) {
-        Log.w(TAG,"doSlotCollision(slot=" + slot +
-                                ",top=" + top +
-                                ",bottom=" + bottom);
+        Log.w(this.getClass().getName(),
+            "doSlotCollision(slot=" + slot +
+           ",top=" + top + ",bottom=" + bottom);
         final float slotHeight = mHeights[slot];
         if (bottom >= slotHeight) {
             // The explosion is too far up in the air to affect the ground

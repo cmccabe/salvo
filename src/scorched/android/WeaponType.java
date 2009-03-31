@@ -4,8 +4,6 @@ import java.util.HashMap;
 
 public abstract class WeaponType {
     /*================= Constants =================*/
-    public final static String TAG = "WeaponType";
-
     public final static int UNLIMITED = -1;
 
     /*================= Types =================*/

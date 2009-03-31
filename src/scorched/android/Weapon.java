@@ -5,8 +5,6 @@ public enum Weapon
     instance;
 
     /*================= Constants =================*/
-    //private final static String TAG = "Weapon";
-
     /** The maximum number of samples we can store in our trajectory */
     public final static int MAX_SAMPLES = 500;
 
@@ -127,8 +125,9 @@ public enum Weapon
             if (distanceSquared(x, y, prevX, prevY) > MIN_UPDATE_DIST_SQ) {
                 mX[index + 1] = x;
                 mY[index + 1] = y;
-                //Log.w(TAG, "setting mX[" + (index + 1) + "] = " + x + ", " +
-                //                   "mY[" + (index + 1) + "] = " + y);
+                //Log.w(this.getClass().getName(),
+                //      "setting mX[" + (index + 1) + "] = " + x + ", " +
+                //      "mY[" + (index + 1) + "] = " + y);
                 return true;
             }
             mTotalCalculations++;
