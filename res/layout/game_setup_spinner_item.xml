@@ -8,6 +8,6 @@
     <TextView android:id="@+id/game_setup_spinner_item_text"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:textSize="3mm"
         android:textColor="#000" android:typeface="monospace"/>
 </LinearLayout>
+<!--        android:textSize="3mm" -->

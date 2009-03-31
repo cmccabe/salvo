@@ -87,9 +87,54 @@ public class ModelFactory {
         }
     };
 
-    /*================= Types =================*/
-    public static class PlayerFactory {
+    /** Represents the amount of cash players start with */
+    public static enum StartingCash {
+        C0(0),
+        C1000(1000),
+        C2000(2000),
+        C3000(3000),
+        C4000(4000),
+        C5000(5000),
+        C10000(10000);
 
+        /*================= Static =================*/
+        public static StartingCash fromShort(short cash) {
+            for (StartingCash c : StartingCash.values()) {
+                if (c.toShort() == cash)
+                    return c;
+            }
+            throw new RuntimeException
+                ("StartingCash.fromShort: no such enum " +
+                "value as " + cash);
+        }
+
+        /*================= Data =================*/
+        private short mCash;
+
+        /*================= Access =================*/
+        public String toString() {
+            if (this == C0)
+                return "starting cash: none";
+            else {
+                StringBuilder b = new StringBuilder(80);
+                b.append("starting cash: $");
+                b.append(mCash);
+                return b.toString();
+            }
+        }
+
+        public short toShort() {
+            return mCash;
+        }
+
+        /*================= Lifecycle =================*/
+        StartingCash(int amount) {
+            mCash = (short)amount;
+        }
+    };
+
+    public static class PlayerFactory
+    {
         public static enum PlayerType {
             HUMAN("Human player"),
             COMPUTER_EASY("Computer: Easy"),
@@ -397,6 +442,7 @@ public class ModelFactory {
     private final static String KEY_USE_RANDOM_PLAYER_PLACEMENT =
         "KEY_USE_RANDOM_PLAYER_PLACEMENT";
     private final static String KEY_NUM_ROUNDS = "KEY_NUM_ROUNDS";
+    private final static String KEY_STARTING_CASH = "KEY_STARTING_CASH";
     private final static String KEY_NUMBER_OF_PLAYERS =
         "KEY_NUMBER_OF_PLAYERS";
 
@@ -404,25 +450,30 @@ public class ModelFactory {
     private Model.TerrainType mDesiredTerrainType;
     private boolean mUseRandomPlayerPlacement;
     private short mNumRounds;
+    private short mStartingCash;
     private LinkedList < PlayerFactory > mPlayers;
 
     /** A helper object that helps this class talk to a Listview */
     private PlayerListAdapter mAdapter;
 
     /*================= Access =================*/
-    public Model.TerrainType getDesiredTerrainType() {
+    public synchronized Model.TerrainType getDesiredTerrainType() {
         return mDesiredTerrainType;
     }
 
-    public boolean getRandomPlayerPlacement() {
+    public synchronized boolean getRandomPlayerPlacement() {
         return mUseRandomPlayerPlacement;
     }
 
-    public short getNumRounds() {
+    public synchronized short getNumRounds() {
         return mNumRounds;
     }
 
-    public PlayerFactory getPlayerFactory(int index) {
+    public synchronized short getStartingCash() {
+        return mStartingCash;
+    }
+
+    public synchronized PlayerFactory getPlayerFactory(int index) {
         return mPlayers.get(index);
     }
 
@@ -479,6 +530,7 @@ public class ModelFactory {
             map.putBoolean(KEY_USE_RANDOM_PLAYER_PLACEMENT,
                         mUseRandomPlayerPlacement);
             map.putShort(KEY_NUM_ROUNDS, mNumRounds);
+            map.putShort(KEY_STARTING_CASH, mStartingCash);
             map.putInt(KEY_NUMBER_OF_PLAYERS, mPlayers.size());
             for (int i = 0; i < mPlayers.size(); i++) {
                 mPlayers.get(i).saveState(i, map);
@@ -493,6 +545,7 @@ public class ModelFactory {
             mUseRandomPlayerPlacement =
                 map.getBoolean(KEY_USE_RANDOM_PLAYER_PLACEMENT);
             mNumRounds = map.getShort(KEY_NUM_ROUNDS);
+            mStartingCash = map.getShort(KEY_STARTING_CASH);
             int numPlayers = map.getInt(KEY_NUMBER_OF_PLAYERS);
             mPlayers = new LinkedList < PlayerFactory >();
             for (int i = 0; i < numPlayers; ++i) {
@@ -512,6 +565,10 @@ public class ModelFactory {
 
     public synchronized void setNumRounds(short numRounds) {
         mNumRounds = (short)numRounds;
+    }
+
+    public synchronized void setStartingCash(short startingCash) {
+        mStartingCash = startingCash;
     }
 
     public synchronized PlayerFactory addPlayerFactory() {
@@ -579,6 +636,7 @@ public class ModelFactory {
         mDesiredTerrainType = Model.TerrainType.Hilly;
         mUseRandomPlayerPlacement = true;
         mNumRounds = (short)3;
+        mStartingCash = (short)0;
 
         if (b == null)
             createDefaultPlayers();

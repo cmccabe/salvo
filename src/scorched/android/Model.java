@@ -69,6 +69,10 @@ public class Model {
         Jagged,
         Hilly,
         Rolling;
+        /*================= Accessor =================*/
+        public String toString() {
+            return this.name() + " terrain";
+        }
     };
 
     /*================= Data =================*/

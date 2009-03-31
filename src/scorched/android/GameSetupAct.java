@@ -56,6 +56,8 @@ public class GameSetupAct extends Activity {
             (Spinner)findViewById(R.id.terrain_spinner);
         final Spinner numRoundsSpinner =
             (Spinner)findViewById(R.id.num_rounds_spinner);
+        final Spinner cashAmountSpinner =
+            (Spinner)findViewById(R.id.starting_cash_spinner);
         final CheckBox randPlayer =
             (CheckBox)findViewById(R.id.randomize_player_positions);
         final Button choosePlayers =
@@ -103,6 +105,29 @@ public class GameSetupAct extends Activity {
         numRoundsSpinner.setSelection
             (ModelFactory.NumRounds.fromShort
                 (mModelFactory.getNumRounds())
+                    .ordinal());
+
+        ArrayAdapter < ModelFactory.StartingCash > cashAmountSpinnerA =
+            new ArrayAdapter < ModelFactory.StartingCash >
+                (getApplicationContext(),
+                R.layout.game_setup_spinner_item,
+                R.id.game_setup_spinner_item_text,
+                ModelFactory.StartingCash.values());
+        cashAmountSpinner.setAdapter(cashAmountSpinnerA);
+        cashAmountSpinner.setOnItemSelectedListener(
+            new Spinner.OnItemSelectedListener(){
+                public void onItemSelected(AdapterView<?> parent,
+                                    View v, int position, long id) {
+                    ModelFactory.StartingCash c[] =
+                        ModelFactory.StartingCash.values();
+                    ModelFactory.StartingCash cash = c[position];
+                    mModelFactory.setStartingCash(cash.toShort());
+                }
+                public void onNothingSelected(AdapterView<?> arg0) { }
+            });
+        cashAmountSpinner.setSelection
+            (ModelFactory.StartingCash.fromShort
+                (mModelFactory.getStartingCash())
                     .ordinal());
 
         randPlayer.setOnClickListener(new OnClickListener() {
