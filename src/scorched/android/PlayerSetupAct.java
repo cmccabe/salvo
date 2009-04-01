@@ -281,6 +281,9 @@ public class PlayerSetupAct extends Activity {
 
     /** Change the selected player to playerNum */
     private void selectPlayer(PlayerFactory p) {
+        int oldPos = mModelFactory.getPlayerPosition(mCurPlayer);
+        mPlayerList.setItemChecked(oldPos, false);
+
         mCurPlayer = p;
 
         // Set the display on the right side of the screen
@@ -298,8 +301,9 @@ public class PlayerSetupAct extends Activity {
         mPlayerColorSpinner.setSelection(0);
 
         mPlayerName.setText(mCurPlayer.getName());
-        mPlayerList.setSelection(mModelFactory.getPlayerPosition(p));
-
+        int pos = mModelFactory.getPlayerPosition(p);
+        mPlayerList.setSelection(pos);
+        mPlayerList.setItemChecked(pos, true);
         mAddPlayerButton.setEnabled(mModelFactory.canAddPlayer());
         mDeletePlayerButton.setEnabled(mModelFactory.canDeletePlayer());
     }

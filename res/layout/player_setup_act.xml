@@ -19,7 +19,7 @@
             android:clickable="true"
             android:focusableInTouchMode="true"
             android:layout_above="@+id/add_player"
-            android:layout_alignParentTop="true">
+            android:layout_alignParentTop="true" android:choiceMode="singleChoice">
         <!-- android:longClickable="true" -->
         <!-- android:choiceMode="singleChoice" -->
         </ListView>
