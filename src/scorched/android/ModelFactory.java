@@ -153,15 +153,10 @@ public class ModelFactory {
 
         /*================= Static =================*/
         public static PlayerFactory fromBundle(int index, Bundle map) {
-            String tag = "PLAYER_" + index + "_";
-            String name = map.getString(tag + "NAME");
-            int typeInt = map.getInt(tag + "PLAYER_TYPE");
-            PlayerType type = PlayerType.values()[typeInt];
-            short startingLife = map.getShort(tag + "STARTING_LIFE");
-            int color_ord = map.getInt(tag + "COLOR");
-            Player.PlayerColor color = Player.PlayerColor.values()[color_ord];
-            return new PlayerFactory(name, type,
-                                     startingLife, color);
+            MyVars mV =
+                (MyVars) AutoPack.autoUnpack(map, indexToString(index),
+                                              MyVars.class);
+            return new PlayerFactory(mV);
         }
 
         /** Gets a list of colors that aren't currently in use by a player */
@@ -179,56 +174,59 @@ public class ModelFactory {
             return unused;
         }
 
+        private static String indexToString(int index) {
+            StringBuilder b = new StringBuilder(80);
+            b.append(index).append("_");
+            return b.toString();
+        }
+
         /*================= Data =================*/
-        private int mIndex;
-        private String mName;
-        private short mLife;
-        private PlayerType mType;
-        private Player.PlayerColor mColor;
+        public static class MyVars {
+            public String mName;
+            public short mLife;
+            public PlayerType mType;
+            public Player.PlayerColor mColor;
+        }
+        private MyVars mV;
 
         /*================= Access =================*/
         public synchronized void saveState(int index, Bundle map) {
-            String tag = "PLAYER_" + index + "_";
-            if (map != null) {
-                map.putString(tag + "NAME", mName);
-                map.putInt(tag + "PLAYER_TYPE", mType.ordinal());
-                map.putShort(tag + "STARTING_LIFE",
-                            mLife);
-                map.putInt(tag + "COLOR", mColor.ordinal());
-            }
+            if (map == null)
+                return;
+            AutoPack.autoPack(map, indexToString(index), mV);
         }
 
         public synchronized String getName() {
-            return mName;
+            return mV.mName;
         }
 
         public synchronized PlayerType getType() {
-            return mType;
+            return mV.mType;
         }
 
         public synchronized short getLife() {
-            return mLife;
+            return mV.mLife;
         }
 
         public synchronized Player.PlayerColor getColor() {
-            return mColor;
+            return mV.mColor;
         }
 
         /*================= Operations =================*/
         public synchronized void setName(String name) {
-            mName = name;
+            mV.mName = name;
         }
 
         public synchronized void setType(PlayerType t) {
-            mType = t;
+            mV.mType = t;
         }
 
         public synchronized void setLife(short life) {
-            mLife = life;
+            mV.mLife = life;
         }
 
         public synchronized void setColor(Player.PlayerColor color) {
-            mColor = color;
+            mV.mColor = color;
         }
 
         /*================= Lifecycle =================*/
@@ -263,20 +261,16 @@ public class ModelFactory {
         public static PlayerFactory
             createDefault(LinkedList < PlayerFactory > plays)
         {
-            return new PlayerFactory(getRandomUnusedName(plays),
-                    PlayerType.COMPUTER_MEDIUM,
-                    (short)Player.DEFAULT_STARTING_LIFE,
-                    getRandomUnusedColor(plays));
+            MyVars v = new MyVars();
+            v.mName = getRandomUnusedName(plays);
+            v.mLife = (short)Player.DEFAULT_STARTING_LIFE;
+            v.mType = PlayerType.COMPUTER_MEDIUM;
+            v.mColor = getRandomUnusedColor(plays);
+            return new PlayerFactory(v);
         }
 
-        public PlayerFactory(String name,
-                             PlayerType type,
-                             short life,
-                             Player.PlayerColor color) {
-            mName = name;
-            mType = type;
-            mLife = life;
-            mColor = color;
+        private PlayerFactory(MyVars v) {
+            mV = v;
         }
     }
 
@@ -360,20 +354,16 @@ public class ModelFactory {
     }
 
     /*================= Constants =================*/
-    private final static String KEY_DESIRED_TERRAIN_TYPE =
-        "KEY_DESIRED_TERRAIN_TYPE";
-    private final static String KEY_USE_RANDOM_PLAYER_PLACEMENT =
-        "KEY_USE_RANDOM_PLAYER_PLACEMENT";
-    private final static String KEY_NUM_ROUNDS = "KEY_NUM_ROUNDS";
-    private final static String KEY_STARTING_CASH = "KEY_STARTING_CASH";
-    private final static String KEY_NUMBER_OF_PLAYERS =
-        "KEY_NUMBER_OF_PLAYERS";
+    private final static String KEY_NUM_PLAYERS = "KEY_NUM_PLAYERS";
 
     /*================= Data =================*/
-    private Model.TerrainType mDesiredTerrainType;
-    private boolean mUseRandomPlayerPlacement;
-    private short mNumRounds;
-    private short mStartingCash;
+    public static class MyVars {
+        public Model.TerrainType mDesiredTerrainType;
+        public boolean mUseRandomPlayerPlacement;
+        public short mNumRounds;
+        public short mStartingCash;
+    }
+    private MyVars mV;
     private LinkedList < PlayerFactory > mPlayers;
 
     /** A helper object that helps this class talk to a Listview */
@@ -381,19 +371,19 @@ public class ModelFactory {
 
     /*================= Access =================*/
     public synchronized Model.TerrainType getDesiredTerrainType() {
-        return mDesiredTerrainType;
+        return mV.mDesiredTerrainType;
     }
 
     public synchronized boolean getRandomPlayerPlacement() {
-        return mUseRandomPlayerPlacement;
+        return mV.mUseRandomPlayerPlacement;
     }
 
     public synchronized short getNumRounds() {
-        return mNumRounds;
+        return mV.mNumRounds;
     }
 
     public synchronized short getStartingCash() {
-        return mStartingCash;
+        return mV.mStartingCash;
     }
 
     public synchronized PlayerFactory getPlayerFactory(int index) {
@@ -451,57 +441,45 @@ public class ModelFactory {
             if (mPlayers.get(i) == p)
                 return i;
         }
-        throw new RuntimeException("can't find player " + p + 
+        throw new RuntimeException("can't find player " + p +
                 " in mPlayers");
     }
 
     /*================= Save / Restore =================*/
     public synchronized void saveState(Bundle map) {
-        if (map != null) {
-            map.putInt(KEY_DESIRED_TERRAIN_TYPE,
-                        mDesiredTerrainType.ordinal());
-            map.putBoolean(KEY_USE_RANDOM_PLAYER_PLACEMENT,
-                        mUseRandomPlayerPlacement);
-            map.putShort(KEY_NUM_ROUNDS, mNumRounds);
-            map.putShort(KEY_STARTING_CASH, mStartingCash);
-            map.putInt(KEY_NUMBER_OF_PLAYERS, mPlayers.size());
-            for (int i = 0; i < mPlayers.size(); i++) {
-                mPlayers.get(i).saveState(i, map);
-            }
-        }
+        if (map == null)
+            return;
+        AutoPack.autoPack(map, "", mV);
+        map.putInt(KEY_NUM_PLAYERS, mPlayers.size());
+        for (int i = 0; i < mPlayers.size(); i++)
+            mPlayers.get(i).saveState(i, map);
     }
 
     public final synchronized void restoreState(Bundle map) {
-        if (map != null) {
-            int tt_ord = map.getInt(KEY_DESIRED_TERRAIN_TYPE);
-            mDesiredTerrainType = Model.TerrainType.values()[tt_ord];
-            mUseRandomPlayerPlacement =
-                map.getBoolean(KEY_USE_RANDOM_PLAYER_PLACEMENT);
-            mNumRounds = map.getShort(KEY_NUM_ROUNDS);
-            mStartingCash = map.getShort(KEY_STARTING_CASH);
-            int numPlayers = map.getInt(KEY_NUMBER_OF_PLAYERS);
-            mPlayers = new LinkedList < PlayerFactory >();
-            for (int i = 0; i < numPlayers; ++i) {
-                mPlayers.add(PlayerFactory.fromBundle(i, map));
-            }
-        }
+        if (map == null)
+            return;
+        mV = (MyVars)AutoPack.autoUnpack(map, "", MyVars.class);
+        int numPlayers = map.getInt(KEY_NUM_PLAYERS);
+        mPlayers = new LinkedList < PlayerFactory >();
+        for (int i = 0; i < numPlayers; ++i)
+            mPlayers.add(PlayerFactory.fromBundle(i, map));
     }
 
     /*================= Operations =================*/
     public synchronized void setTerrainType(TerrainType ty) {
-        mDesiredTerrainType = ty;
+        mV.mDesiredTerrainType = ty;
     }
 
     public synchronized void modifyRandomPlayerPlacement(boolean b) {
-        mUseRandomPlayerPlacement = b;
+        mV.mUseRandomPlayerPlacement = b;
     }
 
     public synchronized void setNumRounds(short numRounds) {
-        mNumRounds = (short)numRounds;
+        mV.mNumRounds = (short)numRounds;
     }
 
     public synchronized void setStartingCash(short startingCash) {
-        mStartingCash = startingCash;
+        mV.mStartingCash = startingCash;
     }
 
     public synchronized PlayerFactory addPlayerFactory() {
@@ -565,16 +543,16 @@ public class ModelFactory {
 
     /*================= Lifecycle =================*/
     public ModelFactory(Bundle b) {
-        // Some default game settings
-        mDesiredTerrainType = Model.TerrainType.Hilly;
-        mUseRandomPlayerPlacement = true;
-        mNumRounds = (short)3;
-        mStartingCash = (short)0;
+        restoreState(b);
+    }
 
-        if (b == null)
-            createDefaultPlayers();
-        else
-            restoreState(b);
+    public ModelFactory() {
+        mV = new MyVars();
+        mV.mDesiredTerrainType = Model.TerrainType.Hilly;
+        mV.mUseRandomPlayerPlacement = true;
+        mV.mNumRounds = (short)3;
+        mV.mStartingCash = (short)0;
+        createDefaultPlayers();
     }
 
     /** Create some default players */

@@ -39,7 +39,10 @@ public class GameSetupAct extends Activity {
 
         setContentView(R.layout.game_setup_act);
 
-        mModelFactory = new ModelFactory(savedInstanceState);
+        if (savedInstanceState == null)
+            mModelFactory = new ModelFactory();
+        else
+            mModelFactory = new ModelFactory(savedInstanceState);
     }
 
     /** Called when the views are ready to be displayed */

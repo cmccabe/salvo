@@ -64,7 +64,12 @@ public class PlayerSetupAct extends Activity {
         setContentView(R.layout.player_setup_act);
 
         mInitialized = false;
-        mModelFactory = new ModelFactory(savedInstanceState);
+        if (savedInstanceState == null) {
+            // long term, should be pissed here
+            mModelFactory = new ModelFactory();
+        }
+        else
+            mModelFactory = new ModelFactory(savedInstanceState);
         mCurPlayer = mModelFactory.getPlayerFactory(0);
         // Wait until onStart to hook up the callbacks and listeners.
         // We want to wait for everything to settle down.

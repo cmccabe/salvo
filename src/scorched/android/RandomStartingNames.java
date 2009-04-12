@@ -1,6 +1,6 @@
 package scorched.android;
 
-class RandomStartingNames
+public abstract class RandomStartingNames
 {
     public final static String STARTING_NAMES[] = {
         "Andrew",
