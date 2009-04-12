@@ -237,8 +237,8 @@ public class ModelFactory {
             String ret;
             while (true) {
                 int idx = Math.abs(Model.mRandom.nextInt()) %
-                            ModelFactory.STARTING_NAMES.length;
-                ret = ModelFactory.STARTING_NAMES[idx];
+                            RandomStartingNames.STARTING_NAMES.length;
+                ret = RandomStartingNames.STARTING_NAMES[idx];
                 int i;
                 for (i = 0; i < plays.size(); i++) {
                     if (ret.equals(plays.get(i).getName()))
@@ -360,83 +360,6 @@ public class ModelFactory {
     }
 
     /*================= Constants =================*/
-    protected final static String STARTING_NAMES[] = {
-        "Andrew",
-        "Art",
-        "Arthur",
-        "Athena",
-        "Ballmer",
-        "Barfy",
-        "Bart",
-        "Batman",
-        "Belmont",
-        "Ben-hur",
-        "Braddock",
-        "Caesar",
-        "Carter",
-        "Charlemagne",
-        "Cheney",
-        "Clinton",
-        "Col. Sanders",
-        "Cornelius",
-        "Dante",
-        "Dio",
-        "Donnie",
-        "Fat Tony",
-        "Franz",
-        "Frylock",
-        "Gullifty",
-        "G.W.",
-        "Hermes",
-        "Homer",
-        "Isaac",
-        "Jeff K.",
-        "Jeff",
-        "Jerry",
-        "John",
-        "Johnson",
-        "K.G.",
-        "Kafka",
-        "Katrina",
-        "Kerrigan",
-        "Leibowski",
-        "Locutus",
-        "Mammon",
-        "Manbat",
-        "Mario",
-        "Mars",
-        "Master Shake",
-        "Matthew",
-        "Meatwad",
-        "Moe",
-        "Montreal",
-        "Moriarty",
-        "Mr. Burns",
-        "Napoleon",
-        "Notorious AIG",
-        "Randal",
-        "Richter",
-        "Robotnik",
-        "Roboturkey",
-        "Shiva",
-        "Shmorky",
-        "Silent Bob",
-        "Sirius",
-        "Sisyphus",
-        "Smithers",
-        "Smoochy",
-        "Spiff",
-        "Stewie",
-        "Terminator",
-        "Ultros",
-        "Una Persona",
-        "Vishnu",
-        "Wolfe",
-        "Zardoz",
-        "Zephyr",
-        "Zeus",
-    };
-
     private final static String KEY_DESIRED_TERRAIN_TYPE =
         "KEY_DESIRED_TERRAIN_TYPE";
     private final static String KEY_USE_RANDOM_PLAYER_PLACEMENT =
