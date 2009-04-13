@@ -4,7 +4,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 
 import scorched.android.ModelFactory.PlayerFactory;
-import scorched.android.ModelFactory.PlayerFactory.PlayerType;
 import scorched.android.Player.PlayerColor;
 
 import android.app.Activity;
@@ -181,19 +180,19 @@ public class PlayerSetupAct extends Activity {
                 public void onNothingSelected(AdapterView<?> arg0) { }
             });
 
-        ArrayAdapter < PlayerType > playerTypeSpinnerA =
-            new ArrayAdapter < PlayerType >(getApplicationContext(),
+        ArrayAdapter < BrainFactory > playerTypeSpinnerA =
+            new ArrayAdapter < BrainFactory >(getApplicationContext(),
                 R.layout.player_spinner_item,
                 R.id.player_spinner_item_text,
-                PlayerType.values());
+                BrainFactory.values());
         mPlayerTypeSpinner.setAdapter(playerTypeSpinnerA);
         mPlayerTypeSpinner.setOnItemSelectedListener(
             new Spinner.OnItemSelectedListener(){
                 public void onItemSelected(AdapterView<?> parent,
                                     View v, int position, long id) {
-                    PlayerType t[] = PlayerType.values();
-                    PlayerType ty = t[position];
-                    mCurPlayer.setType(ty);
+                    BrainFactory t[] = BrainFactory.values();
+                    BrainFactory ty = t[position];
+                    mCurPlayer.setBrain(ty);
                     mModelFactory.notifyDataSetChanged();
                 }
                 public void onNothingSelected(AdapterView<?> arg0) { }
@@ -293,7 +292,7 @@ public class PlayerSetupAct extends Activity {
 
         // Set the display on the right side of the screen
         mPlayerTypeSpinner.setSelection
-            (mCurPlayer.getType().ordinal());
+            (mCurPlayer.getBrain().ordinal());
         setLifeField(mCurPlayer.getLife(), true);
         LinkedList < PlayerColor > availColors =
             mModelFactory.getAvailableColors();

@@ -74,9 +74,6 @@ public class Model {
     };
 
     /*================= Data =================*/
-    /** A source of random numbers. */
-    public static Random mRandom = new Random();
-
     /** The height field determines what the playing field looks like. */
     private float mHeights[] = null;
 
@@ -164,7 +161,7 @@ public class Model {
 
             case Flat:
                 mHeights = new float[MAX_X];
-                float level = (float) (0.6 - (mRandom.nextFloat() / 4));
+                float level = (float) (0.6 - (Util.mRandom.nextFloat() / 4));
                 for (int i = 0; i < MAX_X; i++) {
                     mHeights[i] = level;
                 }
@@ -190,7 +187,7 @@ public class Model {
     private float[] getRandomHeights() {
         float[] h = new float[MAX_X];
         for (int i = 0; i < MAX_X; i++) {
-            h[i] = mRandom.nextFloat() * MAX_ELEVATION;
+            h[i] = Util.mRandom.nextFloat() * MAX_ELEVATION;
         }
         return h;
     }

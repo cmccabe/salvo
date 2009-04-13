@@ -135,26 +135,10 @@ public class ModelFactory {
 
     public static class PlayerFactory
     {
-        public static enum PlayerType {
-            HUMAN("Human player"),
-            COMPUTER_EASY("Computer: Easy"),
-            COMPUTER_MEDIUM("Computer: Medium"),
-            COMPUTER_HARD("Computer: Hard");
-
-            /*================= Data =================*/
-            private final String mName;
-
-            /*================= Access =================*/
-            public String toString() { return mName; }
-
-            /*================= Lifecycle =================*/
-            PlayerType(String name) { mName = name; }
-        }
-
         /*================= Static =================*/
         public static PlayerFactory fromBundle(int index, Bundle map) {
             MyVars mV =
-                (MyVars) AutoPack.autoUnpack(map, indexToString(index),
+                (MyVars) AutoPack.autoUnpack(map, Util.indexToString(index),
                                               MyVars.class);
             return new PlayerFactory(mV);
         }
@@ -174,17 +158,11 @@ public class ModelFactory {
             return unused;
         }
 
-        private static String indexToString(int index) {
-            StringBuilder b = new StringBuilder(80);
-            b.append(index).append("_");
-            return b.toString();
-        }
-
         /*================= Data =================*/
         public static class MyVars {
             public String mName;
             public short mLife;
-            public PlayerType mType;
+            public BrainFactory mBrain;
             public Player.PlayerColor mColor;
         }
         private MyVars mV;
@@ -193,15 +171,15 @@ public class ModelFactory {
         public synchronized void saveState(int index, Bundle map) {
             if (map == null)
                 return;
-            AutoPack.autoPack(map, indexToString(index), mV);
+            AutoPack.autoPack(map, Util.indexToString(index), mV);
         }
 
         public synchronized String getName() {
             return mV.mName;
         }
 
-        public synchronized PlayerType getType() {
-            return mV.mType;
+        public synchronized BrainFactory getBrain() {
+            return mV.mBrain;
         }
 
         public synchronized short getLife() {
@@ -217,8 +195,8 @@ public class ModelFactory {
             mV.mName = name;
         }
 
-        public synchronized void setType(PlayerType t) {
-            mV.mType = t;
+        public synchronized void setBrain(BrainFactory fac) {
+            mV.mBrain = fac;
         }
 
         public synchronized void setLife(short life) {
@@ -234,7 +212,7 @@ public class ModelFactory {
                 (LinkedList < PlayerFactory > plays) {
             String ret;
             while (true) {
-                int idx = Math.abs(Model.mRandom.nextInt()) %
+                int idx = Math.abs(Util.mRandom.nextInt()) %
                             RandomStartingNames.STARTING_NAMES.length;
                 ret = RandomStartingNames.STARTING_NAMES[idx];
                 int i;
@@ -254,7 +232,7 @@ public class ModelFactory {
                 throw new RuntimeException("getRandomUnusedColor(): " +
                     "there appear to be no unused colors left!");
             }
-            int idx = Math.abs(Model.mRandom.nextInt()) % unused.size();
+            int idx = Math.abs(Util.mRandom.nextInt()) % unused.size();
             return unused.get(idx);
         }
 
@@ -264,7 +242,7 @@ public class ModelFactory {
             MyVars v = new MyVars();
             v.mName = getRandomUnusedName(plays);
             v.mLife = (short)Player.DEFAULT_STARTING_LIFE;
-            v.mType = PlayerType.COMPUTER_MEDIUM;
+            v.mBrain = BrainFactory.MEDIUM;
             v.mColor = getRandomUnusedColor(plays);
             return new PlayerFactory(v);
         }
@@ -339,7 +317,7 @@ public class ModelFactory {
             //upper.setTextColor(p.getColor());
             //upper.setTypeface(BOLD);
             StringBuilder b = new StringBuilder(50);
-            b.append(p.getType().toString());
+            b.append(p.getBrain().toString());
             b.append(": ");
             b.append(p.getLife());
             b.append("%");
@@ -414,7 +392,7 @@ public class ModelFactory {
     /** Returns true if all players are computers */
     public synchronized boolean everyoneIsAComputer() {
         for (PlayerFactory p: mPlayers) {
-            if (p.getType() == PlayerFactory.PlayerType.HUMAN)
+            if (p.getBrain() == BrainFactory.HUMAN)
                 return false;
         }
         return true;
@@ -559,7 +537,7 @@ public class ModelFactory {
     private final void createDefaultPlayers() {
         mPlayers = new LinkedList < PlayerFactory >();
         mPlayers.add(PlayerFactory.createDefault(mPlayers));
-        mPlayers.get(0).setType(PlayerFactory.PlayerType.HUMAN);
+        mPlayers.get(0).setBrain(BrainFactory.HUMAN);
         mPlayers.add(PlayerFactory.createDefault(mPlayers));
         mPlayers.add(PlayerFactory.createDefault(mPlayers));
         mPlayers.add(PlayerFactory.createDefault(mPlayers));
