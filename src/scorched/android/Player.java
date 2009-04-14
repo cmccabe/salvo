@@ -156,6 +156,10 @@ public class Player {
     }
 
     /*================= Operations =================*/
+    public void setId(int id) {
+        mId = id;
+    }
+
     public void setX(int x) {
         mX = x;
         assert(x >= 1);

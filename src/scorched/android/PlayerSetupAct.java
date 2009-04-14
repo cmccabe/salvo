@@ -252,7 +252,6 @@ public class PlayerSetupAct extends Activity {
 
     @Override
     protected void onSaveInstanceState(Bundle b) {
-        Log.w(this.getClass().getName(), "onSaveInstanceState");
         mModelFactory.saveState(b);
     }
 
@@ -351,10 +350,11 @@ public class PlayerSetupAct extends Activity {
 
     /** Starts the RunGameActivity */
     private void launchRunGameActivity() {
-        final Activity titleActivity = this;
-        Intent setupIntent =
-            new Intent().setClass(titleActivity,
-                RunGameAct.class);
-            startActivity(setupIntent);
+        Intent myIntent = new Intent().
+                setClass(PlayerSetupAct.this, RunGameAct.class);
+        Bundle map = new Bundle();
+        onSaveInstanceState(map);
+        myIntent.putExtra(GameSetupAct.GAME_SETUP_BUNDLE, map);
+        startActivity(myIntent);
     }
 }

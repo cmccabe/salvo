@@ -27,34 +27,27 @@ public class RunGameAct extends Activity {
     /*================= Utility =================*/
 
     /*================= Operations =================*/
-    /**
-     * Invoked when the Activity is created.
-     *
-     * @param savedInstanceState a Bundle containing state saved from
-     *        a previous execution, or null if this is a new execution
-     */
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    public void onCreate(Bundle map) {
+        super.onCreate(map);
 
-        Log.w(this.getClass().getName(), "onCreate called");
+        if (map == null) {
+            // We're starting up the game. Create the Model
+            Bundle smap =
+                getIntent().getBundleExtra(GameSetupAct.GAME_SETUP_BUNDLE);
+            ModelFactory fac = ModelFactory.fromBundle(smap);
+            mModel = fac.createModel();
+        }
+        else {
+            // Decompress saved state
+            mModel = Model.fromBundle(map);
+        }
 
-        Player players[] = new Player[5];
-        players[0] = new LocalHumanPlayer(0, "a", Player.PlayerColor.BLUE);
-        players[1] = new ComputerPlayer(1, "b", Player.PlayerColor.GREEN);
-        players[2] = new ComputerPlayer(2, "c", Player.PlayerColor.PURPLE);
-        players[3] = new ComputerPlayer(3, "d", Player.PlayerColor.RED);
-        players[4] = new LocalHumanPlayer(4, "e", Player.PlayerColor.YELLOW);
-        mModel = new Model(players);
         Graphics.instance.initialize(getApplicationContext(), mModel);
-
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        Log.w(this.getClass().getName(), "setContentView");
         setContentView(R.layout.game);
-
-        // todo: create modelFactory or model out of savedInstanceState
     }
 
     @Override

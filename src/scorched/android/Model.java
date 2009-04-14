@@ -58,6 +58,8 @@ public class Model {
       * As measured by change in downward force each sample */
     public static final float GRAVITY = 0.00006f;
 
+    public static final String KEY_NUM_PLAYERS = "KEY_NUM_PLAYERS";
+
     /** Represents the type of terrain */
     public static enum TerrainType {
         // TODO: move terrain generation functions into this enum
@@ -74,20 +76,24 @@ public class Model {
     };
 
     /*================= Data =================*/
-    /** The height field determines what the playing field looks like. */
-    private float mHeights[] = null;
+    public static class MyVars {
+        /** The height field determines what the playing field looks like. */
+        public float mHeights[] = null;
+
+        /** The index of the current player */
+        public int mCurPlayerId;
+    }
+    MyVars mV;
 
     /** The players */
     private Player mPlayers[] = null;
-
-    private int mCurPlayerId;
 
     /** Maps slots to players */
     private HashMap<Integer, Player> mSlotToPlayer;
 
     /*================= Access =================*/
     public float[] getHeights() {
-        return mHeights;
+        return mV.mHeights;
     }
 
     public Player getPlayer(int num) {
@@ -99,25 +105,25 @@ public class Model {
     }
 
     public Player getCurPlayer() {
-        return mPlayers[mCurPlayerId];
+        return mPlayers[mV.mCurPlayerId];
     }
 
     public int getCurPlayerId() {
-        return mCurPlayerId;
+        return mV.mCurPlayerId;
     }
 
     /** Sets mCurPlayerId to the next valid player id-- or to
      * INVALID_PLAYER_ID if there are none. */
     public void nextPlayer() {
-        int oldPlayer = mCurPlayerId;
-        int player = mCurPlayerId + 1;
+        int oldPlayer = mV.mCurPlayerId;
+        int player = mV.mCurPlayerId + 1;
 
         while (true) {
             if (player >= mPlayers.length) {
                 if (oldPlayer == Player.INVALID_PLAYER_ID) {
                     // We searched the whole array and didn't find any valid
                     // players.
-                    mCurPlayerId = Player.INVALID_PLAYER_ID;
+                    mV.mCurPlayerId = Player.INVALID_PLAYER_ID;
                     return;
                 }
                 else {
@@ -130,7 +136,7 @@ public class Model {
                 return;
             }
             if (mPlayers[player].isAlive()) {
-                mCurPlayerId = player;
+                mV.mCurPlayerId = player;
                 return;
             }
             else {
@@ -152,34 +158,34 @@ public class Model {
         switch (t)
         {
             case Triangular:
-                mHeights = new float[MAX_X];
+                mV.mHeights = new float[MAX_X];
                 for (int i = 0; i < MAX_X; i++) {
                     float tmp = (MAX_X - 1);
-                    mHeights[i] = (tmp - i) / (MAX_X - 1);
+                    mV.mHeights[i] = (tmp - i) / (MAX_X - 1);
                 }
                 break;
 
             case Flat:
-                mHeights = new float[MAX_X];
+                mV.mHeights = new float[MAX_X];
                 float level = (float) (0.6 - (Util.mRandom.nextFloat() / 4));
                 for (int i = 0; i < MAX_X; i++) {
-                    mHeights[i] = level;
+                    mV.mHeights[i] = level;
                 }
                 break;
 
             case Jagged:
-                mHeights = getRandomHeights();
-                mHeights = movingWindow(mHeights, 2);
+                mV.mHeights = getRandomHeights();
+                mV.mHeights = movingWindow(mV.mHeights, 2);
                 break;
 
             case Hilly:
-                mHeights = getRandomHeights();
-                mHeights = movingWindow(mHeights, 3);
+                mV.mHeights = getRandomHeights();
+                mV.mHeights = movingWindow(mV.mHeights, 3);
                 break;
 
             case Rolling:
-                mHeights = getRandomHeights();
-                mHeights = movingWindow(mHeights, MAX_X / 3);
+                mV.mHeights = getRandomHeights();
+                mV.mHeights = movingWindow(mV.mHeights, MAX_X / 3);
                 break;
         }
     }
@@ -258,54 +264,52 @@ public class Model {
         Log.w(this.getClass().getName(),
             "doSlotCollision(slot=" + slot +
            ",top=" + top + ",bottom=" + bottom);
-        final float slotHeight = mHeights[slot];
+        final float slotHeight = mV.mHeights[slot];
         if (bottom >= slotHeight) {
             // The explosion is too far up in the air to affect the ground
             return;
         }
         else if (top <= slotHeight) {
             // The explosion is completely underground
-            mHeights[slot] -= (top - bottom);
+            mV.mHeights[slot] -= (top - bottom);
         }
         else {
             // Part of the explosion is underground, but part is in the air
-            mHeights[slot] -= (slotHeight - bottom);
+            mV.mHeights[slot] -= (slotHeight - bottom);
         }
     }
 
     /*================= Save / Restore =================*/
     void saveState(Bundle map) {
-        if (map != null) {
-            /*map.putDouble(KEY_FUEL, Double.valueOf(mFuel));
-            etc... */
-        }
-    }
-
-    public synchronized void restoreState(Bundle map) {
-        /* do a bunch of stuff with savedState ... */
+        AutoPack.autoPack(map, AutoPack.EMPTY_STRING, mV);
+        map.putShort(KEY_NUM_PLAYERS, (short)mPlayers.length);
     }
 
     /*================= Lifecycle =================*/
-    public Model(Player players[]) {
-        // We have to have enough slots to be sure that no two
-        // players will get the same slot
-        if (players.length >= MAX_X) {
-            assert(false);
-        }
+    public static Model fromBundle(Bundle map) {
+        MyVars v = (MyVars) AutoPack.
+            autoUnpack(map, AutoPack.EMPTY_STRING, MyVars.class);
+        int numPlayers = map.getInt(KEY_NUM_PLAYERS);
+        // TODO: implement Player.fromBundle, etc.
+        //Player players[] = new Player[numPlayers];
+        //for (int i = 0; i < numPlayers; ++i)
+            //players.add(Player.fromBundle(i, map));
+        return new Model(v, null);
+    }
 
-        // We must have MAX_X mod 2 == 0
-        // Because of how drawScreen works
-        assert(MAX_X % 2 == 0);
-
-        initHeights(TerrainType.Hilly);
+    public Model(MyVars v, Player players[]) {
+        mV = v;
         mPlayers = players;
+
+        //////
+        initHeights(TerrainType.Hilly);
+
         for (int i = 0; i < mPlayers.length; i++) {
-            int id = mPlayers[i].getId();
-            assert (id == i);
-            mPlayers[i].setX(playerIdToSlot(id));
+            mPlayers[i].setId(i);
+            mPlayers[i].setX(playerIdToSlot(i));
             mPlayers[i].calcY(this);
         }
-        mCurPlayerId = Player.INVALID_PLAYER_ID;
+        //////
 
         mSlotToPlayer = new HashMap<Integer, Player>();
         for (int i = 0; i < mPlayers.length; i++) {

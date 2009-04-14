@@ -152,7 +152,7 @@ public class GameSetupAct extends Activity {
                         setClass(GameSetupAct.this, PlayerSetupAct.class);
                 Bundle map = new Bundle();
                 onSaveInstanceState(map);
-                myIntent.putExtra(GAME_SETUP_BUNDLE, map);
+                myIntent.putExtra(GameSetupAct.GAME_SETUP_BUNDLE, map);
                 startActivity(myIntent);
             }
         });

@@ -136,13 +136,6 @@ public class ModelFactory {
     public static class PlayerFactory
     {
         /*================= Static =================*/
-        public static PlayerFactory fromBundle(int index, Bundle map) {
-            MyVars mV =
-                (MyVars) AutoPack.autoUnpack(map, Util.indexToString(index),
-                                              MyVars.class);
-            return new PlayerFactory(mV);
-        }
-
         /** Gets a list of colors that aren't currently in use by a player */
         public static LinkedList < Player.PlayerColor >
                 getAvailableColors(LinkedList < PlayerFactory > plays) {
@@ -158,6 +151,34 @@ public class ModelFactory {
             return unused;
         }
 
+        public static String getRandomUnusedName
+                (LinkedList < PlayerFactory > plays) {
+            String ret;
+            while (true) {
+                int idx = Math.abs(Util.mRandom.nextInt()) %
+                            RandomStartingNames.STARTING_NAMES.length;
+                ret = RandomStartingNames.STARTING_NAMES[idx];
+                int i;
+                for (i = 0; i < plays.size(); i++) {
+                    if (ret.equals(plays.get(i).getName()))
+                        break;
+                }
+                if (i == plays.size())
+                    return ret;
+            }
+        }
+
+        public static PlayerColor getRandomUnusedColor
+                (LinkedList < PlayerFactory > plays) {
+            LinkedList < PlayerColor > unused = getAvailableColors(plays);
+            if (unused.size() == 0) {
+                throw new RuntimeException("getRandomUnusedColor(): " +
+                    "there appear to be no unused colors left!");
+            }
+            int idx = Math.abs(Util.mRandom.nextInt()) % unused.size();
+            return unused.get(idx);
+        }
+
         /*================= Data =================*/
         public static class MyVars {
             public String mName;
@@ -168,6 +189,11 @@ public class ModelFactory {
         private MyVars mV;
 
         /*================= Access =================*/
+        public synchronized Player createPlayer() {
+            // TODO: use MyVars construct
+            return new Player(-1, mV.mName, mV.mColor);
+        }
+
         public synchronized void saveState(int index, Bundle map) {
             if (map == null)
                 return;
@@ -208,36 +234,14 @@ public class ModelFactory {
         }
 
         /*================= Lifecycle =================*/
-        public static String getRandomUnusedName
-                (LinkedList < PlayerFactory > plays) {
-            String ret;
-            while (true) {
-                int idx = Math.abs(Util.mRandom.nextInt()) %
-                            RandomStartingNames.STARTING_NAMES.length;
-                ret = RandomStartingNames.STARTING_NAMES[idx];
-                int i;
-                for (i = 0; i < plays.size(); i++) {
-                    if (ret.equals(plays.get(i).getName()))
-                        break;
-                }
-                if (i == plays.size())
-                    return ret;
-            }
-        }
-
-        public static PlayerColor getRandomUnusedColor
-                (LinkedList < PlayerFactory > plays) {
-            LinkedList < PlayerColor > unused = getAvailableColors(plays);
-            if (unused.size() == 0) {
-                throw new RuntimeException("getRandomUnusedColor(): " +
-                    "there appear to be no unused colors left!");
-            }
-            int idx = Math.abs(Util.mRandom.nextInt()) % unused.size();
-            return unused.get(idx);
+        public static PlayerFactory fromBundle(int index, Bundle map) {
+            MyVars v = (MyVars) AutoPack.
+                autoUnpack(map, Util.indexToString(index), MyVars.class);
+            return new PlayerFactory(v);
         }
 
         public static PlayerFactory
-            createDefault(LinkedList < PlayerFactory > plays)
+            fromDefault(LinkedList < PlayerFactory > plays)
         {
             MyVars v = new MyVars();
             v.mName = getRandomUnusedName(plays);
@@ -380,9 +384,18 @@ public class ModelFactory {
         return mPlayers.get(index);
     }
 
-    public synchronized Model toModel() {
-        // return new Model(...);
-        return null;
+    public synchronized Model createModel() {
+        Model.MyVars v = new Model.MyVars();
+        v.mCurPlayerId = Player.INVALID_PLAYER_ID;
+
+        // TODO: create Terrain object
+
+        Player[] players = new Player[mPlayers.size()];
+        for (int i = 0; i < mPlayers.size(); i++) {
+            players[i] = mPlayers.get(i).createPlayer();
+        }
+
+        return new Model(v, players);
     }
 
     public synchronized PlayerListAdapter getPlayerListAdapter() {
@@ -460,7 +473,7 @@ public class ModelFactory {
     }
 
     public synchronized PlayerFactory addPlayerFactory() {
-        PlayerFactory p = PlayerFactory.createDefault(mPlayers);
+        PlayerFactory p = PlayerFactory.fromDefault(mPlayers);
         mPlayers.add(p);
         if (mAdapter != null)
             mAdapter.notifyDataSetChanged();
@@ -527,11 +540,11 @@ public class ModelFactory {
         // Create some default players
         LinkedList < PlayerFactory > players =
             new LinkedList < PlayerFactory >();
-        players.add(PlayerFactory.createDefault(players));
+        players.add(PlayerFactory.fromDefault(players));
         players.get(0).setBrain(BrainFactory.HUMAN);
-        players.add(PlayerFactory.createDefault(players));
-        players.add(PlayerFactory.createDefault(players));
-        players.add(PlayerFactory.createDefault(players));
+        players.add(PlayerFactory.fromDefault(players));
+        players.add(PlayerFactory.fromDefault(players));
+        players.add(PlayerFactory.fromDefault(players));
 
         return new ModelFactory(v, players);
     }
