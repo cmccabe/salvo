@@ -125,7 +125,6 @@ public class RunGameAct extends Activity {
     protected void onSaveInstanceState(Bundle b) {
         // just have the View's thread save its state into our Bundle
         super.onSaveInstanceState(b);
-        mGameControl.getThread().saveState(b);
         Log.w(this.getClass().getName(), "onSaveInstanceState called");
     }
 

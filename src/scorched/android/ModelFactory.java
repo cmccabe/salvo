@@ -347,6 +347,18 @@ public class ModelFactory {
     /** A helper object that helps this class talk to a Listview */
     private PlayerListAdapter mAdapter;
 
+    /*================= Static =================*/
+    public static ModelFactory fromBundle(Bundle map) {
+        MyVars v = (MyVars)AutoPack.autoUnpack(map, AutoPack.EMPTY_STRING,
+                                                MyVars.class);
+        int numPlayers = map.getInt(KEY_NUM_PLAYERS);
+        LinkedList < PlayerFactory > players =
+            new LinkedList < PlayerFactory >();
+        for (int i = 0; i < numPlayers; ++i)
+            players.add(PlayerFactory.fromBundle(i, map));
+        return new ModelFactory(v, players);
+    }
+
     /*================= Access =================*/
     public synchronized Model.TerrainType getDesiredTerrainType() {
         return mV.mDesiredTerrainType;
@@ -374,8 +386,6 @@ public class ModelFactory {
     }
 
     public synchronized PlayerListAdapter getPlayerListAdapter() {
-        if (mAdapter == null)
-            mAdapter = new PlayerListAdapter();
         return mAdapter;
     }
 
@@ -423,27 +433,16 @@ public class ModelFactory {
                 " in mPlayers");
     }
 
-    /*================= Save / Restore =================*/
+    /*================= Operations =================*/
     public synchronized void saveState(Bundle map) {
         if (map == null)
             return;
-        AutoPack.autoPack(map, "", mV);
+        AutoPack.autoPack(map, AutoPack.EMPTY_STRING, mV);
         map.putInt(KEY_NUM_PLAYERS, mPlayers.size());
         for (int i = 0; i < mPlayers.size(); i++)
             mPlayers.get(i).saveState(i, map);
     }
 
-    public final synchronized void restoreState(Bundle map) {
-        if (map == null)
-            return;
-        mV = (MyVars)AutoPack.autoUnpack(map, "", MyVars.class);
-        int numPlayers = map.getInt(KEY_NUM_PLAYERS);
-        mPlayers = new LinkedList < PlayerFactory >();
-        for (int i = 0; i < numPlayers; ++i)
-            mPlayers.add(PlayerFactory.fromBundle(i, map));
-    }
-
-    /*================= Operations =================*/
     public synchronized void setTerrainType(TerrainType ty) {
         mV.mDesiredTerrainType = ty;
     }
@@ -477,8 +476,7 @@ public class ModelFactory {
      *  non-static inner class which calls this method itself?
      */
     public synchronized void notifyDataSetChanged() {
-        if (mAdapter != null)
-            mAdapter.notifyDataSetChanged();
+        mAdapter.notifyDataSetChanged();
     }
 
     /** Deletes the PlayerFactory p
@@ -511,8 +509,7 @@ public class ModelFactory {
         }
 
         mPlayers.remove(i);
-        if (mAdapter != null)
-            mAdapter.notifyDataSetChanged();
+        mAdapter.notifyDataSetChanged();
         if (i == 0)
             return mPlayers.get(0);
         else
@@ -520,26 +517,28 @@ public class ModelFactory {
     }
 
     /*================= Lifecycle =================*/
-    public ModelFactory(Bundle b) {
-        restoreState(b);
+    public static ModelFactory fromDefaults() {
+        MyVars v = new MyVars();
+        v.mDesiredTerrainType = Model.TerrainType.Hilly;
+        v.mUseRandomPlayerPlacement = true;
+        v.mNumRounds = (short)3;
+        v.mStartingCash = (short)0;
+
+        // Create some default players
+        LinkedList < PlayerFactory > players =
+            new LinkedList < PlayerFactory >();
+        players.add(PlayerFactory.createDefault(players));
+        players.get(0).setBrain(BrainFactory.HUMAN);
+        players.add(PlayerFactory.createDefault(players));
+        players.add(PlayerFactory.createDefault(players));
+        players.add(PlayerFactory.createDefault(players));
+
+        return new ModelFactory(v, players);
     }
 
-    public ModelFactory() {
-        mV = new MyVars();
-        mV.mDesiredTerrainType = Model.TerrainType.Hilly;
-        mV.mUseRandomPlayerPlacement = true;
-        mV.mNumRounds = (short)3;
-        mV.mStartingCash = (short)0;
-        createDefaultPlayers();
-    }
-
-    /** Create some default players */
-    private final void createDefaultPlayers() {
-        mPlayers = new LinkedList < PlayerFactory >();
-        mPlayers.add(PlayerFactory.createDefault(mPlayers));
-        mPlayers.get(0).setBrain(BrainFactory.HUMAN);
-        mPlayers.add(PlayerFactory.createDefault(mPlayers));
-        mPlayers.add(PlayerFactory.createDefault(mPlayers));
-        mPlayers.add(PlayerFactory.createDefault(mPlayers));
+    private ModelFactory(MyVars v, LinkedList < PlayerFactory > players) {
+        mV = v;
+        mPlayers = players;
+        mAdapter = new PlayerListAdapter();
     }
 }

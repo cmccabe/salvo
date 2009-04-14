@@ -59,9 +59,6 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
         /** Last Y coordinate the user touched (in game coordinates) */
         private float mTouchY;
 
-        /** The object to control sound */
-        private Sound mSound;
-
         public ScorchedThread(SurfaceHolder surfaceHolder,
                             Context context,
                             Handler handler,
@@ -163,34 +160,7 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
             }
         }
 
-        /*================= Save / Restore =================*/
-        /**
-         * Dump game state to the provided Bundle. Typically called when the
-         * Activity is being suspended.
-         *
-         * @return Bundle with this view's state
-         */
-        public Bundle saveState(Bundle map) {
-            synchronized (mSurfaceHolder) {
-                mModel.saveState(map);
-            }
-            return map;
-        }
-
-        /**
-         * Restores game state from the indicated Bundle. Typically called
-         * when the Activity is being restored after having been previously
-         * destroyed.
-         *
-         * @param savedState Bundle containing the game state
-         */
-        public synchronized void restoreState(Bundle map) {
-            synchronized (mSurfaceHolder) {
-                mModel.restoreState(map);
-                mPaused = false;
-            }
-        }
-
+        /*================= Callbacks =================*/
         /** Called from GUI thread when the user presses a button.
          */
         public void onButton(GameState.GameButton b) {
@@ -217,7 +187,6 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
             }
             return true;
         }
-
     }
 
     /*================= Members =================*/

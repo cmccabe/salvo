@@ -51,8 +51,8 @@ public class PlayerSetupAct extends Activity {
     /*================= Operations =================*/
     /** Called when the activity is first created. */
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    public void onCreate(Bundle map) {
+        super.onCreate(map);
 
         Log.w(this.getClass().getName(), "onCreate");
 
@@ -63,12 +63,10 @@ public class PlayerSetupAct extends Activity {
         setContentView(R.layout.player_setup_act);
 
         mInitialized = false;
-        if (savedInstanceState == null) {
-            // long term, should be pissed here
-            mModelFactory = new ModelFactory();
-        }
+        if (map == null)
+            mModelFactory = ModelFactory.fromDefaults();
         else
-            mModelFactory = new ModelFactory(savedInstanceState);
+            mModelFactory = ModelFactory.fromBundle(map);
         mCurPlayer = mModelFactory.getPlayerFactory(0);
         // Wait until onStart to hook up the callbacks and listeners.
         // We want to wait for everything to settle down.

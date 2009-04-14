@@ -30,8 +30,8 @@ public class GameSetupAct extends Activity {
     /*================= Operations =================*/
     /** Called when the activity is first created. */
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    public void onCreate(Bundle map) {
+        super.onCreate(map);
 
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
@@ -39,10 +39,14 @@ public class GameSetupAct extends Activity {
 
         setContentView(R.layout.game_setup_act);
 
-        if (savedInstanceState == null)
-            mModelFactory = new ModelFactory();
-        else
-            mModelFactory = new ModelFactory(savedInstanceState);
+        if (map == null) {
+            // first-time initialization
+            mModelFactory = ModelFactory.fromDefaults();
+        }
+        else {
+            // restoring from saved bundle
+            mModelFactory = ModelFactory.fromBundle(map);
+        }
     }
 
     /** Called when the views are ready to be displayed */
