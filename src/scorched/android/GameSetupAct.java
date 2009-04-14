@@ -19,6 +19,7 @@ import android.widget.Spinner;
 
 public class GameSetupAct extends Activity {
     /*================= Constants =================*/
+    public static final String GAME_SETUP_BUNDLE = "GAME_SETUP_BUNDLE";
 
     /*================= Types =================*/
 
@@ -147,9 +148,11 @@ public class GameSetupAct extends Activity {
 
         choosePlayers.setOnClickListener(new OnClickListener() {
             public void onClick(View arg0) {
-                final Activity thisAct = GameSetupAct.this;
-                Intent myIntent =
-                    new Intent().setClass(thisAct, PlayerSetupAct.class);
+                Intent myIntent = new Intent().
+                        setClass(GameSetupAct.this, PlayerSetupAct.class);
+                Bundle map = new Bundle();
+                onSaveInstanceState(map);
+                myIntent.putExtra(GAME_SETUP_BUNDLE, map);
                 startActivity(myIntent);
             }
         });

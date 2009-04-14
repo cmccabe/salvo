@@ -64,9 +64,8 @@ public class PlayerSetupAct extends Activity {
 
         mInitialized = false;
         if (map == null)
-            mModelFactory = ModelFactory.fromDefaults();
-        else
-            mModelFactory = ModelFactory.fromBundle(map);
+            map = getIntent().getBundleExtra(GameSetupAct.GAME_SETUP_BUNDLE);
+        mModelFactory = ModelFactory.fromBundle(map);
         mCurPlayer = mModelFactory.getPlayerFactory(0);
         // Wait until onStart to hook up the callbacks and listeners.
         // We want to wait for everything to settle down.
