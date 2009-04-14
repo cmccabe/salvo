@@ -1,6 +1,5 @@
 package scorched.android;
 
-import scorched.android.Model.TerrainType;
 import android.graphics.Color;
 
 public class Player {
@@ -163,7 +162,7 @@ public class Player {
     public void setX(int x) {
         mX = x;
         assert(x >= 1);
-        assert(x < (Model.MAX_X - 1));
+        assert(x < (Terrain.MAX_X - 1));
     }
 
     public void calcY(Model model) {

@@ -72,25 +72,25 @@ public class GameSetupAct extends Activity {
             (Button)findViewById(R.id.choose_players);
 
         ////////////////// Initialize stuff
-        ArrayAdapter< Model.TerrainType > terrainSpinnerA =
-            new ArrayAdapter < Model.TerrainType >
+        ArrayAdapter< TerrainFactory > terrainSpinnerA =
+            new ArrayAdapter < TerrainFactory >
                 (getApplicationContext(),
                 R.layout.game_setup_spinner_item,
                 R.id.game_setup_spinner_item_text,
-                Model.TerrainType.values());
+                TerrainFactory.values());
         terrainSpinner.setAdapter(terrainSpinnerA);
         terrainSpinner.setOnItemSelectedListener(
             new Spinner.OnItemSelectedListener(){
                 public void onItemSelected(AdapterView<?> parent,
                                     View v, int position, long id) {
-                    Model.TerrainType t[] = Model.TerrainType.values();
-                    Model.TerrainType ty = t[position];
-                    mModelFactory.setTerrainType(ty);
+                    TerrainFactory t[] = TerrainFactory.values();
+                    TerrainFactory fac = t[position];
+                    mModelFactory.setTerrainFactory(fac);
                 }
                 public void onNothingSelected(AdapterView<?> arg0) { }
             });
         terrainSpinner.setSelection
-            (mModelFactory.getDesiredTerrainType().ordinal());
+            (mModelFactory.getTerrainFactory().ordinal());
 
         ArrayAdapter < ModelFactory.NumRounds > numRoundsA =
             new ArrayAdapter < ModelFactory.NumRounds >

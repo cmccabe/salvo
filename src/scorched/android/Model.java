@@ -11,25 +11,6 @@ import android.util.Log;
  *
  * The Model owns all game state-- except for state relating
  * to the user interface.
- *
- *                 The Playing Field
- *  MAX_Y +----------------------------------+
- *        |                                  |
- *        |  __                              |
- *        | _  ___             __           _|
- *        |_      _    _______   ___     ___ |
- *        |        ____             _____    |
- *    0   +----------------------------------+
- *        0                                MAX_X
- *
- * X is measured from 0 to MAX_X. The height field
- * stores the height of the terrain at each slot; intermediate values
- * are interpolated. Weapons can have a fractional (float) X, but
- * players can not.
-
- * Y is measured from 0 (floor) to MAX_Y (extremely high in the air)
- *
- * Players are assumed to be square. The size of the player is PLAYER_SIZE.
  */
 public class Model {
     /*================= Constants =================*/
@@ -39,61 +20,33 @@ public class Model {
     /** The maximum number of players we can have */
     public static final int MAX_PLAYERS = 9;
 
-    /** The highest X coordinate */
-    public static final int MAX_X = 100;
-
-    /** The highest Y coordinate */
-    public static final int MAX_Y = 10000;
-
-    /** The highest terrain point */
-    public static final float MAX_ELEVATION = 20;
-
     /** Player size */
     public static final int PLAYER_SIZE = 1;
 
     /** How long the player's turret is */
     public static final int TURRET_LENGTH = 1;
 
-    /** The force of gravity.
-      * As measured by change in downward force each sample */
-    public static final float GRAVITY = 0.00006f;
-
     public static final String KEY_NUM_PLAYERS = "KEY_NUM_PLAYERS";
-
-    /** Represents the type of terrain */
-    public static enum TerrainType {
-        // TODO: move terrain generation functions into this enum
-        Triangular,
-        Flat,
-        //Plateaus,
-        Jagged,
-        Hilly,
-        Rolling;
-        /*================= Accessor =================*/
-        public String toString() {
-            return this.name() + " terrain";
-        }
-    };
 
     /*================= Data =================*/
     public static class MyVars {
-        /** The height field determines what the playing field looks like. */
-        public float mHeights[] = null;
-
         /** The index of the current player */
         public int mCurPlayerId;
     }
     MyVars mV;
 
+    /** The playing field */
+    private Terrain mTerrain;
+
     /** The players */
-    private Player mPlayers[] = null;
+    private Player mPlayers[];
 
     /** Maps slots to players */
     private HashMap<Integer, Player> mSlotToPlayer;
 
     /*================= Access =================*/
     public float[] getHeights() {
-        return mV.mHeights;
+        return mTerrain.getHeights();
     }
 
     public Player getPlayer(int num) {
@@ -112,6 +65,7 @@ public class Model {
         return mV.mCurPlayerId;
     }
 
+    /*================= Operations =================*/
     /** Sets mCurPlayerId to the next valid player id-- or to
      * INVALID_PLAYER_ID if there are none. */
     public void nextPlayer() {
@@ -150,70 +104,10 @@ public class Model {
         return mSlotToPlayer.get(new Integer(slot));
     }
 
-    /*================= Height field stuff =================*/
-
-    /** Initialize height field with random values */
-    private void initHeights(TerrainType t) {
-        // Random height initialization
-        switch (t)
-        {
-            case Triangular:
-                mV.mHeights = new float[MAX_X];
-                for (int i = 0; i < MAX_X; i++) {
-                    float tmp = (MAX_X - 1);
-                    mV.mHeights[i] = (tmp - i) / (MAX_X - 1);
-                }
-                break;
-
-            case Flat:
-                mV.mHeights = new float[MAX_X];
-                float level = (float) (0.6 - (Util.mRandom.nextFloat() / 4));
-                for (int i = 0; i < MAX_X; i++) {
-                    mV.mHeights[i] = level;
-                }
-                break;
-
-            case Jagged:
-                mV.mHeights = getRandomHeights();
-                mV.mHeights = movingWindow(mV.mHeights, 2);
-                break;
-
-            case Hilly:
-                mV.mHeights = getRandomHeights();
-                mV.mHeights = movingWindow(mV.mHeights, 3);
-                break;
-
-            case Rolling:
-                mV.mHeights = getRandomHeights();
-                mV.mHeights = movingWindow(mV.mHeights, MAX_X / 3);
-                break;
-        }
-    }
-
-    private float[] getRandomHeights() {
-        float[] h = new float[MAX_X];
-        for (int i = 0; i < MAX_X; i++) {
-            h[i] = Util.mRandom.nextFloat() * MAX_ELEVATION;
-        }
-        return h;
-    }
-
-    private float[] movingWindow(float[] input, int windowSize) {
-        float[] h = new float[MAX_X];
-
-        for (int i = 0; i < MAX_X; i++) {
-            float acc = 0;
-            for (int j = 0; j < windowSize; ++j) {
-                acc += input[(i + j) % MAX_X];
-            }
-            h[i] = acc / windowSize;
-        }
-        return h;
-    }
-
     /** Gets the terrain slot for player number N */
     private int playerIdToSlot(int playerId) {
-        return ((MAX_X /2) + (MAX_X * playerId)) / mPlayers.length;
+        return ((Terrain.MAX_X /2) +
+                    (Terrain.MAX_X * playerId)) / mPlayers.length;
     }
 
     private float square(float x) {
@@ -223,8 +117,8 @@ public class Model {
     private int constrainSlot(int slot) {
         if (slot < 0)
             return 0;
-        else if (slot >= MAX_X)
-            return MAX_X - 1;
+        else if (slot >= Terrain.MAX_X)
+            return Terrain.MAX_X - 1;
         else
             return slot;
     }
@@ -261,27 +155,29 @@ public class Model {
      *  that extends upward to 'top' and downward to 'bottom'.
      */
     private void doSlotCollision(int slot, float top, float bottom) {
+        float[] h = mTerrain.getHeights();
         Log.w(this.getClass().getName(),
             "doSlotCollision(slot=" + slot +
            ",top=" + top + ",bottom=" + bottom);
-        final float slotHeight = mV.mHeights[slot];
+        final float slotHeight = h[slot];
         if (bottom >= slotHeight) {
             // The explosion is too far up in the air to affect the ground
             return;
         }
         else if (top <= slotHeight) {
             // The explosion is completely underground
-            mV.mHeights[slot] -= (top - bottom);
+            h[slot] -= (top - bottom);
         }
         else {
             // Part of the explosion is underground, but part is in the air
-            mV.mHeights[slot] -= (slotHeight - bottom);
+            h[slot] -= (slotHeight - bottom);
         }
     }
 
-    /*================= Save / Restore =================*/
-    void saveState(Bundle map) {
+    /*================= Save State =================*/
+    public void saveState(Bundle map) {
         AutoPack.autoPack(map, AutoPack.EMPTY_STRING, mV);
+        mTerrain.saveState(map);
         map.putShort(KEY_NUM_PLAYERS, (short)mPlayers.length);
     }
 
@@ -289,21 +185,21 @@ public class Model {
     public static Model fromBundle(Bundle map) {
         MyVars v = (MyVars) AutoPack.
             autoUnpack(map, AutoPack.EMPTY_STRING, MyVars.class);
+        Terrain terrain = Terrain.fromBundle(map);
         int numPlayers = map.getInt(KEY_NUM_PLAYERS);
         // TODO: implement Player.fromBundle, etc.
         //Player players[] = new Player[numPlayers];
         //for (int i = 0; i < numPlayers; ++i)
             //players.add(Player.fromBundle(i, map));
-        return new Model(v, null);
+        return new Model(v, terrain, null);
     }
 
-    public Model(MyVars v, Player players[]) {
+    public Model(MyVars v, Terrain terrain, Player players[]) {
         mV = v;
+        mTerrain = terrain;
         mPlayers = players;
 
         //////
-        initHeights(TerrainType.Hilly);
-
         for (int i = 0; i < mPlayers.length; i++) {
             mPlayers[i].setId(i);
             mPlayers[i].setX(playerIdToSlot(i));

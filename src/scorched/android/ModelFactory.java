@@ -5,7 +5,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Random;
 
-import scorched.android.Model.TerrainType;
 import scorched.android.Player.PlayerColor;
 
 import android.content.Context;
@@ -340,7 +339,7 @@ public class ModelFactory {
 
     /*================= Data =================*/
     public static class MyVars {
-        public Model.TerrainType mDesiredTerrainType;
+        public TerrainFactory mTerrainFac;
         public boolean mUseRandomPlayerPlacement;
         public short mNumRounds;
         public short mStartingCash;
@@ -364,8 +363,8 @@ public class ModelFactory {
     }
 
     /*================= Access =================*/
-    public synchronized Model.TerrainType getDesiredTerrainType() {
-        return mV.mDesiredTerrainType;
+    public synchronized TerrainFactory getTerrainFactory() {
+        return mV.mTerrainFac;
     }
 
     public synchronized boolean getRandomPlayerPlacement() {
@@ -388,14 +387,14 @@ public class ModelFactory {
         Model.MyVars v = new Model.MyVars();
         v.mCurPlayerId = Player.INVALID_PLAYER_ID;
 
-        // TODO: create Terrain object
+        Terrain terrain = mV.mTerrainFac.createTerrain();
 
         Player[] players = new Player[mPlayers.size()];
         for (int i = 0; i < mPlayers.size(); i++) {
             players[i] = mPlayers.get(i).createPlayer();
         }
 
-        return new Model(v, players);
+        return new Model(v, terrain, players);
     }
 
     public synchronized PlayerListAdapter getPlayerListAdapter() {
@@ -456,8 +455,8 @@ public class ModelFactory {
             mPlayers.get(i).saveState(i, map);
     }
 
-    public synchronized void setTerrainType(TerrainType ty) {
-        mV.mDesiredTerrainType = ty;
+    public synchronized void setTerrainFactory(TerrainFactory fac) {
+        mV.mTerrainFac = fac;
     }
 
     public synchronized void modifyRandomPlayerPlacement(boolean b) {
@@ -532,7 +531,7 @@ public class ModelFactory {
     /*================= Lifecycle =================*/
     public static ModelFactory fromDefaults() {
         MyVars v = new MyVars();
-        v.mDesiredTerrainType = Model.TerrainType.Hilly;
+        v.mTerrainFac = TerrainFactory.Jagged;
         v.mUseRandomPlayerPlacement = true;
         v.mNumRounds = (short)3;
         v.mStartingCash = (short)0;

@@ -61,7 +61,7 @@ public enum Weapon
         float y = mY[index];
 
         // The edges of the screen are 'hard' boundaries
-        if ((x < 0) || (x >= Model.MAX_X - 1)) {
+        if ((x < 0) || (x >= Terrain.MAX_X - 1)) {
             return true;
         }
         // The floor is hard
@@ -121,7 +121,7 @@ public enum Weapon
             x += mDeltaX;
             y += mDeltaY;
             //mDeltaX -= wind
-            mDeltaY -= Model.GRAVITY;
+            mDeltaY -= Terrain.GRAVITY;
             if (distanceSquared(x, y, prevX, prevY) > MIN_UPDATE_DIST_SQ) {
                 mX[index + 1] = x;
                 mY[index + 1] = y;

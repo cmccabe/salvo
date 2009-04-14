@@ -35,14 +35,14 @@ public enum Graphics {
         public final static float USER_ZOOM_FACTOR = 1.8f;
 
         /** The maximum X coordinate we'll ever show on the screen */
-        public final static float MAX_DISPLAYED_X = Model.MAX_X - 2;
+        public final static float MAX_DISPLAYED_X = Terrain.MAX_X - 2;
 
         /** The user cannot pan so that the top edge of the screen is greater
          * than this coordinate. However, if the screen is zoomed out, we will
          * display higher Y coordinates than this one.
          */
         public final static float MAX_PAN_Y =
-            Model.MAX_ELEVATION +
+            Terrain.MAX_ELEVATION +
                 2 * (Model.PLAYER_SIZE + Model.TURRET_LENGTH);
 
         /*================= Members =================*/
@@ -255,8 +255,8 @@ public enum Graphics {
     private static final int boundaryCheckDrawSlot(int slot) {
         if (slot < 0)
             return 0;
-        else if (slot > (Model.MAX_X - 2))
-            return Model.MAX_X - 2;
+        else if (slot > (Terrain.MAX_X - 2))
+            return Terrain.MAX_X - 2;
         else
             return slot;
     }
