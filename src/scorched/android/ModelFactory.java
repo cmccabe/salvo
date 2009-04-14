@@ -182,15 +182,23 @@ public class ModelFactory {
         public static class MyVars {
             public String mName;
             public short mLife;
-            public BrainFactory mBrain;
+            public BrainFactory mBrainFac;
             public Player.PlayerColor mColor;
         }
         private MyVars mV;
 
         /*================= Access =================*/
-        public synchronized Player createPlayer() {
-            // TODO: use MyVars construct
-            return new Player(-1, mV.mName, mV.mColor);
+        public synchronized Player createPlayer(int index) {
+            Player.MyVars v = new Player.MyVars();
+            v.mBrain = mV.mBrainFac.createBrain();
+            v.mLife = mV.mLife;
+            v.mX = -1;
+            v.mY = -1;
+            v.mAngleDeg = Player.MAX_TURRET_ANGLE / 4;
+            v.mPower = (3 * Player.MAX_POWER) / 4;
+            v.mName = mV.mName;
+            v.mColor = mV.mColor;
+            return new Player(index, v);
         }
 
         public synchronized void saveState(int index, Bundle map) {
@@ -203,8 +211,8 @@ public class ModelFactory {
             return mV.mName;
         }
 
-        public synchronized BrainFactory getBrain() {
-            return mV.mBrain;
+        public synchronized BrainFactory getBrainFactory() {
+            return mV.mBrainFac;
         }
 
         public synchronized short getLife() {
@@ -220,8 +228,8 @@ public class ModelFactory {
             mV.mName = name;
         }
 
-        public synchronized void setBrain(BrainFactory fac) {
-            mV.mBrain = fac;
+        public synchronized void setBrainFactory(BrainFactory fac) {
+            mV.mBrainFac = fac;
         }
 
         public synchronized void setLife(short life) {
@@ -245,7 +253,7 @@ public class ModelFactory {
             MyVars v = new MyVars();
             v.mName = getRandomUnusedName(plays);
             v.mLife = (short)Player.DEFAULT_STARTING_LIFE;
-            v.mBrain = BrainFactory.MEDIUM;
+            v.mBrainFac = BrainFactory.MEDIUM;
             v.mColor = getRandomUnusedColor(plays);
             return new PlayerFactory(v);
         }
@@ -320,7 +328,7 @@ public class ModelFactory {
             //upper.setTextColor(p.getColor());
             //upper.setTypeface(BOLD);
             StringBuilder b = new StringBuilder(50);
-            b.append(p.getBrain().toString());
+            b.append(p.getBrainFactory().toString());
             b.append(": ");
             b.append(p.getLife());
             b.append("%");
@@ -349,18 +357,6 @@ public class ModelFactory {
 
     /** A helper object that helps this class talk to a Listview */
     private PlayerListAdapter mAdapter;
-
-    /*================= Static =================*/
-    public static ModelFactory fromBundle(Bundle map) {
-        MyVars v = (MyVars)AutoPack.autoUnpack(map, AutoPack.EMPTY_STRING,
-                                                MyVars.class);
-        int numPlayers = map.getInt(KEY_NUM_PLAYERS);
-        LinkedList < PlayerFactory > players =
-            new LinkedList < PlayerFactory >();
-        for (int i = 0; i < numPlayers; ++i)
-            players.add(PlayerFactory.fromBundle(i, map));
-        return new ModelFactory(v, players);
-    }
 
     /*================= Access =================*/
     public synchronized TerrainFactory getTerrainFactory() {
@@ -391,7 +387,7 @@ public class ModelFactory {
 
         Player[] players = new Player[mPlayers.size()];
         for (int i = 0; i < mPlayers.size(); i++) {
-            players[i] = mPlayers.get(i).createPlayer();
+            players[i] = mPlayers.get(i).createPlayer(i);
         }
 
         return new Model(v, terrain, players);
@@ -414,7 +410,7 @@ public class ModelFactory {
     /** Returns true if all players are computers */
     public synchronized boolean everyoneIsAComputer() {
         for (PlayerFactory p: mPlayers) {
-            if (p.getBrain() == BrainFactory.HUMAN)
+            if (p.getBrainFactory() == BrainFactory.HUMAN)
                 return false;
         }
         return true;
@@ -446,15 +442,6 @@ public class ModelFactory {
     }
 
     /*================= Operations =================*/
-    public synchronized void saveState(Bundle map) {
-        if (map == null)
-            return;
-        AutoPack.autoPack(map, AutoPack.EMPTY_STRING, mV);
-        map.putInt(KEY_NUM_PLAYERS, mPlayers.size());
-        for (int i = 0; i < mPlayers.size(); i++)
-            mPlayers.get(i).saveState(i, map);
-    }
-
     public synchronized void setTerrainFactory(TerrainFactory fac) {
         mV.mTerrainFac = fac;
     }
@@ -528,7 +515,28 @@ public class ModelFactory {
             return mPlayers.get(i - 1);
     }
 
+    /*================= Save =================*/
+    public synchronized void saveState(Bundle map) {
+        if (map == null)
+            return;
+        AutoPack.autoPack(map, AutoPack.EMPTY_STRING, mV);
+        map.putInt(KEY_NUM_PLAYERS, mPlayers.size());
+        for (int i = 0; i < mPlayers.size(); i++)
+            mPlayers.get(i).saveState(i, map);
+    }
+
     /*================= Lifecycle =================*/
+    public static ModelFactory fromBundle(Bundle map) {
+        MyVars v = (MyVars)AutoPack.autoUnpack(map, AutoPack.EMPTY_STRING,
+                                                MyVars.class);
+        int numPlayers = map.getInt(KEY_NUM_PLAYERS);
+        LinkedList < PlayerFactory > players =
+            new LinkedList < PlayerFactory >();
+        for (int i = 0; i < numPlayers; ++i)
+            players.add(PlayerFactory.fromBundle(i, map));
+        return new ModelFactory(v, players);
+    }
+
     public static ModelFactory fromDefaults() {
         MyVars v = new MyVars();
         v.mTerrainFac = TerrainFactory.Jagged;
@@ -540,7 +548,7 @@ public class ModelFactory {
         LinkedList < PlayerFactory > players =
             new LinkedList < PlayerFactory >();
         players.add(PlayerFactory.fromDefault(players));
-        players.get(0).setBrain(BrainFactory.HUMAN);
+        players.get(0).setBrainFactory(BrainFactory.HUMAN);
         players.add(PlayerFactory.fromDefault(players));
         players.add(PlayerFactory.fromDefault(players));
         players.add(PlayerFactory.fromDefault(players));

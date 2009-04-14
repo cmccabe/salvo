@@ -179,6 +179,8 @@ public class Model {
         AutoPack.autoPack(map, AutoPack.EMPTY_STRING, mV);
         mTerrain.saveState(map);
         map.putShort(KEY_NUM_PLAYERS, (short)mPlayers.length);
+        for (int i = 0; i < mPlayers.length; ++i)
+            mPlayers[i].saveState(i, map);
     }
 
     /*================= Lifecycle =================*/
@@ -187,11 +189,10 @@ public class Model {
             autoUnpack(map, AutoPack.EMPTY_STRING, MyVars.class);
         Terrain terrain = Terrain.fromBundle(map);
         int numPlayers = map.getInt(KEY_NUM_PLAYERS);
-        // TODO: implement Player.fromBundle, etc.
-        //Player players[] = new Player[numPlayers];
-        //for (int i = 0; i < numPlayers; ++i)
-            //players.add(Player.fromBundle(i, map));
-        return new Model(v, terrain, null);
+        Player players[] = new Player[numPlayers];
+        for (int i = 0; i < numPlayers; ++i)
+            players[i] = Player.fromBundle(i, map);
+        return new Model(v, terrain, players);
     }
 
     public Model(MyVars v, Terrain terrain, Player players[]) {
@@ -201,7 +202,6 @@ public class Model {
 
         //////
         for (int i = 0; i < mPlayers.length; i++) {
-            mPlayers[i].setId(i);
             mPlayers[i].setX(playerIdToSlot(i));
             mPlayers[i].calcY(this);
         }

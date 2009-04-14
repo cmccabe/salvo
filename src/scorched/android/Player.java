@@ -1,6 +1,8 @@
 package scorched.android;
 
+import scorched.android.ModelFactory.MyVars;
 import android.graphics.Color;
+import android.os.Bundle;
 
 public class Player {
     /*================= Types =================*/
@@ -49,40 +51,48 @@ public class Player {
     public static final int INVALID_PLAYER_ID = -1;
 
     /*================= Members =================*/
-    private int mId;
+    public static class MyVars {
+        /** The brain that controls this player */
+        public Brain mBrain;
 
-    /** How much life we have. If this is 0 then we're dead. */
-    private int mLife;
+        /** How much life we have. If this is 0 then we're dead. */
+        public int mLife;
 
-    /** The horizontal 'slot' that the tank occupies on the playing field. */
-    private int mX = -1;
+        /** The horizontal 'slot' that the tank occupies on the playing
+         * field. */
+        public int mX;
 
-    /** Current y-position of the bottom of the tank. */
-    private float mY;
+        /** Current y-position of the bottom of the tank. */
+        public float mY;
 
-    /** Current turret angle, in degrees. Turret angles are represented
-     * like this:
-     *            90
-     *       135  |   45
-     *         \  |  /
-     *          \ | /
-     *   180 =========== 0
-     */
-    private int mAngleDeg;
+        /** Current turret angle, in degrees. Turret angles are represented
+         * like this:
+         *            90
+         *       135  |   45
+         *         \  |  /
+         *          \ | /
+         *   180 =========== 0
+         */
+        public int mAngleDeg;
 
-    /** Current turret angle in radians. You always need the angle in radians
-     * for doing math */
+        /** The power that we're firing with. Measured on the same
+         * scale as life. */
+        public int mPower;
+
+        /** Player name */
+        public String mName;
+
+        /** Our color */
+        public PlayerColor mColor;
+    }
+    private MyVars mV;
+
+    /** The index of this player in the players array */
+    public int mId;
+
+    /** Cached value of the current turret angle in radians.
+     * You always need the angle in radians for doing math */
     private float mAngleRad;
-
-    /** The power that we're firing with. Measured on the same
-     * scale as life. */
-    private int mPower;
-
-    /** Player name */
-    private String mName;
-
-    /** Our color */
-    private PlayerColor mColor;
 
     /*================= Static =================*/
 
@@ -93,16 +103,16 @@ public class Player {
 
     /** Get the x-coordinate of the center of the tank */
     public int getX() {
-        return mX;
+        return mV.mX;
     }
 
     /** Get the y-coordinate of the bottom of the tank */
     public float getY() {
-        return mY;
+        return mV.mY;
     }
 
     public int getAngleDeg() {
-        return mAngleDeg;
+        return mV.mAngleDeg;
     }
 
     public float getAngleRad() {
@@ -110,13 +120,13 @@ public class Player {
     }
 
     public int getPower() {
-        return mPower;
+        return mV.mPower;
     }
 
-    public Player.PlayerColor getColor() { return mColor; }
+    public Player.PlayerColor getColor() { return mV.mColor; }
 
     public boolean isAlive() {
-        return mLife > 0;
+        return mV.mLife > 0;
     }
 
     public GameState getGameState() {
@@ -126,9 +136,9 @@ public class Player {
     /** Initialize the Weapon singleton with what we're firing */
     public void fireWeapon() {
         float dx = (float)Math.cos(mAngleRad);
-        dx = (dx * mPower) / 10000.0f;
+        dx = (dx * mV.mPower) / 10000.0f;
         float dy = (float)Math.sin(mAngleRad);
-        dy = (dy * mPower) / 10000.0f;
+        dy = (dy * mV.mPower) / 10000.0f;
         Weapon.instance.initialize(getTurretX(), getTurretY(), dx, dy,
                                    WeaponType.sBabyMissile);
     }
@@ -136,14 +146,14 @@ public class Player {
     /** Return a float representing the X position of the end of the
      *  gun turret */
     private float getTurretX() {
-        return (float)mX +
+        return (float)mV.mX +
             ((float)Math.cos(mAngleRad) * Model.TURRET_LENGTH);
     }
 
     /** Return a float representing the Y position of the end of the
      *  gun turret */
     private float getTurretY() {
-        return (float)mY +
+        return (float)mV.mY +
             ((float)Model.PLAYER_SIZE / 2f) +
             ((float)Math.sin(mAngleRad) * Model.TURRET_LENGTH);
     }
@@ -151,28 +161,24 @@ public class Player {
     /** Get view settings focused on this player */
     public void getIdealViewSettings(Graphics.ViewSettings out) {
         Graphics.instance.getEnclosingViewSettings
-            (mX - 6, mY - 2, mX + 6, mY + 2, 1, out);
+            (mV.mX - 6, mV.mY - 2, mV.mX + 6, mV.mY + 2, 1, out);
     }
 
     /*================= Operations =================*/
-    public void setId(int id) {
-        mId = id;
-    }
-
     public void setX(int x) {
-        mX = x;
+        mV.mX = x;
         assert(x >= 1);
         assert(x < (Terrain.MAX_X - 1));
     }
 
     public void calcY(Model model) {
         float h[] = model.getHeights();
-        mY = h[mX];
+        mV.mY = h[mV.mX];
     }
 
     /** set turret power. */
     public void setPower(int val) {
-        mPower = val;
+        mV.mPower = val;
     }
 
     /** set turret angle.
@@ -184,42 +190,51 @@ public class Player {
         if (angleDeg < MIN_TURRET_ANGLE) {
             angleDeg = MIN_TURRET_ANGLE;
         }
-        mAngleDeg = angleDeg;
+        mV.mAngleDeg = angleDeg;
         mAngleRad = (float)Math.toRadians(angleDeg);
     }
 
     /** Move turret left by one degree */
     public void turretLeft() {
-        setAngleDeg(mAngleDeg + 1);
+        setAngleDeg(mV.mAngleDeg + 1);
     }
 
     /** Move turret right by one degree */
     public void turretRight() {
-        setAngleDeg(mAngleDeg - 1);
+        setAngleDeg(mV.mAngleDeg - 1);
     }
 
     public void powerUp() {
-        mPower += 1;
-        if (mPower > MAX_POWER) {
-            mPower = MAX_POWER;
+        mV.mPower += 1;
+        if (mV.mPower > MAX_POWER) {
+            mV.mPower = MAX_POWER;
         }
     }
 
     public void powerDown() {
-        mPower -= 1;
-        if (mPower < MIN_POWER) {
-            mPower = MIN_POWER;
+        mV.mPower -= 1;
+        if (mV.mPower < MIN_POWER) {
+            mV.mPower = MIN_POWER;
         }
     }
 
-    /*================= Lifecycle =================*/
-    public Player(int id, String name, PlayerColor color) {
-        mId = id;
-        mName = name;
-        mColor = color;
+    /*================= Save =================*/
+    public void saveState(int index, Bundle map) {
+        AutoPack.autoPack(map, Util.indexToString(index), mV);
+    }
 
-        mLife = MAX_LIFE;
-        setAngleDeg(MAX_TURRET_ANGLE / 4);
-        mPower = (3 * MAX_POWER) / 4;
+    /*================= Lifecycle =================*/
+    public static Player fromBundle(int index, Bundle map) {
+        MyVars v = (MyVars)AutoPack.autoUnpack(map,
+                        Util.indexToString(index), MyVars.class);
+        return new Player(index, v);
+    }
+
+    public Player(int index, MyVars v) {
+        mV = v;
+        mId = index;
+
+        // update cached value of mAngleRad
+        setAngleDeg(mV.mAngleDeg);
     }
 }

@@ -189,7 +189,7 @@ public class PlayerSetupAct extends Activity {
                                     View v, int position, long id) {
                     BrainFactory t[] = BrainFactory.values();
                     BrainFactory ty = t[position];
-                    mCurPlayer.setBrain(ty);
+                    mCurPlayer.setBrainFactory(ty);
                     mModelFactory.notifyDataSetChanged();
                 }
                 public void onNothingSelected(AdapterView<?> arg0) { }
@@ -288,7 +288,7 @@ public class PlayerSetupAct extends Activity {
 
         // Set the display on the right side of the screen
         mPlayerTypeSpinner.setSelection
-            (mCurPlayer.getBrain().ordinal());
+            (mCurPlayer.getBrainFactory().ordinal());
         setLifeField(mCurPlayer.getLife(), true);
         LinkedList < PlayerColor > availColors =
             mModelFactory.getAvailableColors();

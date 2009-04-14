@@ -22,7 +22,7 @@ public enum BrainFactory {
         return mName;
     }
 
-    public Brain toBrain() {
+    public Brain createBrain() {
         try {
             return (Brain)mClass.newInstance();
         }
