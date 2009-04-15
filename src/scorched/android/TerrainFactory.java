@@ -68,10 +68,118 @@ public enum TerrainFactory {
         }
     }
 
+    private static class SplineSet {
+        /*================= Types =================*/
+        private class Spline {
+            /*================= Data =================*/
+            /** The x coordinate of the leftmost control point of this
+             * spline */
+            private float mX;
+
+            /** The y coordinates of the control points */
+            private float mY0, mY1, mY2;
+
+            /*================= Access =================*/
+            public float getX() {
+                return mX;
+            }
+
+            public float getVal(int x) {
+                final float t = x - mX;
+                final float iv = splineXSize();
+                final float c = iv * iv;
+
+                // contribution of the first control point
+                // B[0,2](t) = (1 - t)^2
+                float contrib0 = ((iv - t) * (iv - t)) / c;
+
+                // contribution of the second control point
+                // B[1,2](t) = 2 * (1 - t) * t
+                float contrib1 = (2 * (iv - t) * t) / c;
+
+                // contribution of the third control point
+                // B[2,2](t) = t^2
+                float contrib2 = (t * t) / c;
+
+                return (contrib0 * mY0) +
+                        (contrib1 * mY1) +
+                        (contrib2 * mY2);
+            }
+
+            /*================= Lifecycle =================*/
+            public Spline(float x,
+                          float y0, float y1, float y2) {
+                mX = x;
+                mY0 = y0;
+                mY1 = y1;
+                mY2 = y2;
+            }
+        }
+
+        /*================= Data =================*/
+        /** The spacing between adjacent control points */
+        private float mS;
+
+        /** The splines in this set */
+        private Spline mSplines[];
+
+        /*================= Access =================*/
+        /** The size of each individual spline.
+         *  Since we're using cubic splines, this is equal to three times the
+         *  space between control points. */
+        private final float splineXSize() {
+            return 3.0f * mS;
+        }
+
+        /** Finds the spline which includes x.
+         *  This could be optimized a bit more through binary search or
+         *  something. */
+        private Spline getSpline(int x) {
+            for (Spline spline: mSplines) {
+                float sx = spline.getX();
+                if ((x >= sx) && (x < (sx + splineXSize())))
+                    return spline;
+            }
+            throw new RuntimeException("getStartingSpline: can't find a " +
+                "spline which includes x = " + x);
+        }
+
+        /** Return the value of the SplineSet at x */
+        public short getVal(int x) {
+            Spline spline = getSpline(x);
+            return (short)spline.getVal(x);
+        }
+
+        /*================= Lifecycle =================*/
+        public SplineSet(int boardSize, int numSplines) {
+            if (numSplines < 1)
+                throw new RuntimeException("can't have numSplines < 1");
+
+            int numControlPts = 1 + (2 * numSplines);
+
+            mS = boardSize / (numControlPts - 2);
+
+            mSplines = new Spline[numSplines];
+            float x = -mS;
+            float prevX = Util.mRandom.nextInt(Terrain.MAX_Y);
+            for (int i = 0; i < numSplines; i++) {
+                float nextX = Util.mRandom.nextInt(Terrain.MAX_Y);
+                mSplines[i] = new Spline(x,
+                                 prevX,
+                                 Util.mRandom.nextInt(Terrain.MAX_Y),
+                                 nextX);
+                prevX = nextX;
+                x += splineXSize();
+            }
+        }
+    }
+
     public static class RollingStrat implements TerrainStrategy {
         public Terrain toTerrain() {
-            short[] h = getRandomHeights();
-            h = movingWindow(h, 20);
+            short[] h = new short[Terrain.MAX_X];
+            SplineSet splines = new SplineSet(Terrain.MAX_X, 4);
+            for (int i = 0; i < h.length; i++)
+                h[i] = splines.getVal(i);
             Terrain.MyVars v = new Terrain.MyVars();
             v.mBoard = h;
             return new Terrain(v);
