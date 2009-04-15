@@ -115,15 +115,10 @@ public class RunGameAct extends Activity {
      *        state
      */
     @Override
-    protected void onSaveInstanceState(Bundle b) {
-        // just have the View's thread save its state into our Bundle
-        super.onSaveInstanceState(b);
-        Log.w(this.getClass().getName(), "onSaveInstanceState called");
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Bundle b) {
-        Log.w(this.getClass().getName(), "onRestoreInstanceState called");
+    protected void onSaveInstanceState(Bundle map) {
+        super.onSaveInstanceState(map);
+        Log.w(this.getClass().getName(), "RunGameAct.onSaveInstanceState");
+        mModel.saveState(map);
     }
 
     @Override

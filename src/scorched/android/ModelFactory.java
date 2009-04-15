@@ -383,11 +383,34 @@ public class ModelFactory {
         Model.MyVars v = new Model.MyVars();
         v.mCurPlayerId = Player.INVALID_PLAYER_ID;
 
+        // Create terrain
         Terrain terrain = mV.mTerrainFac.createTerrain();
 
+        // Create players
         Player[] players = new Player[mPlayers.size()];
         for (int i = 0; i < mPlayers.size(); i++) {
             players[i] = mPlayers.get(i).createPlayer(i);
+        }
+
+        // Place players
+        int slots = mPlayers.size() + 2;
+        LinkedList < Short > positions = new LinkedList < Short >();
+        for (int i = 1; i < slots - 1; i++) {
+            int yVal = (i * Terrain.MAX_X) / slots;
+            positions.add(new Short((short)yVal));
+        }
+        if (mV.mUseRandomPlayerPlacement) {
+            for (int i = 0; i < players.length; i++) {
+                int r = Util.mRandom.nextInt(positions.size());
+                short p = positions.remove(r).shortValue();
+                players[i].setX(p, terrain);
+            }
+        }
+        else {
+            for (int i = 0; i < players.length; i++) {
+                short p = positions.remove(0).shortValue();
+                players[i].setX(p, terrain);
+            }
         }
 
         return new Model(v, terrain, players);

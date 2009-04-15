@@ -10,49 +10,52 @@ import android.util.Log;
  * Represents the game terrain.
  *
  *                 The Playing Field
- *  MAX_Y +----------------------------------+
+ * -65535
+ *        +----------------------------------+
+ *        |                                  |
+ *       ...                                ...
+ *        |                                  |
+ *        |     negative Y zone              |
+ *        |     (not visible onscreen)       |
+ *        |                                  |
+ *    0   +----------------------------------+
  *        |                                  |
  *        |  __                              |
  *        | _  ___             __           _|
  *        |_      _    _______   ___     ___ |
  *        |        ____             _____    |
- *    0   +----------------------------------+
+ *  MAX_Y +----------------------------------+
  *        0                                MAX_X
  *
- * X is measured from 0 to MAX_X. The height field
- * stores the height of the terrain at each slot; intermediate values
- * are interpolated. Weapons can have a fractional (float) X, but
- * players can not.
+ * X is measured from 0 to MAX_X. For each X value, there is an associated
+ * height field value, measured in pixels.
 
- * Y is measured from 0 (floor) to MAX_Y (extremely high in the air)
- *
- * Players are assumed to be square. The size of the player is PLAYER_SIZE.
+ * The lowest point has Y = MAX_Y.
+ * If a missile's Y coordinate is less than 0, it will not be visible
+ * onscreen.
  *
  */
 public class Terrain {
     /*================= Constants =================*/
     /** The highest X coordinate */
-    public static final int MAX_X = 100; //320;
+    public static final int MAX_X = 480;
 
     /** The highest displayable Y coordinate */
-    public static final int MAX_DISPLAYABLE_Y = 240;
+    public static final int MAX_Y = 240;
 
     /** The force of gravity.
       * As measured by change in downward force each sample */
     public static final float GRAVITY = 0.00006f;
 
-    /** The highest terrain point */
-    public static final float MAX_ELEVATION = 20;
-
     /*================= Data =================*/
     public static class MyVars {
         /** The playing field */
-        public float mBoard[];
+        public short mBoard[];
     }
     private MyVars mV;
 
     /*================= Access =================*/
-    public float[] getHeights() {
+    public short[] getHeights() {
         return mV.mBoard;
     }
 

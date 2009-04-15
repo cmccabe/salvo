@@ -123,7 +123,9 @@ public class Player {
         return mV.mPower;
     }
 
-    public Player.PlayerColor getColor() { return mV.mColor; }
+    public Player.PlayerColor getColor() {
+        return mV.mColor;
+    }
 
     public boolean isAlive() {
         return mV.mLife > 0;
@@ -158,22 +160,12 @@ public class Player {
             ((float)Math.sin(mAngleRad) * Model.TURRET_LENGTH);
     }
 
-    /** Get view settings focused on this player */
-    public void getIdealViewSettings(Graphics.ViewSettings out) {
-        Graphics.instance.getEnclosingViewSettings
-            (mV.mX - 6, mV.mY - 2, mV.mX + 6, mV.mY + 2, 1, out);
-    }
-
     /*================= Operations =================*/
-    public void setX(int x) {
+    public void setX(int x, Terrain terrain) {
         mV.mX = x;
-        assert(x >= 1);
-        assert(x < (Terrain.MAX_X - 1));
-    }
-
-    public void calcY(Model model) {
-        float h[] = model.getHeights();
-        mV.mY = h[mV.mX];
+        // TODO: use averaging mechanism here to set tank height
+        short h[] = terrain.getHeights();
+        mV.mY = h[x];
     }
 
     /** set turret power. */

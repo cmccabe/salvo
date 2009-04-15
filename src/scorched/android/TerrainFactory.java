@@ -26,10 +26,10 @@ public enum TerrainFactory {
 
     public static class TriangularStrat implements TerrainStrategy {
         public Terrain toTerrain() {
-            float h[] = new float[Terrain.MAX_X];
+            short h[] = new short[Terrain.MAX_X];
             for (int i = 0; i < Terrain.MAX_X; i++) {
                 int tmp = (Terrain.MAX_X - 1);
-                h[i] = (float)((tmp - i) / tmp);
+                h[i] = (short)((Terrain.MAX_Y * i) / Terrain.MAX_X);
             }
             Terrain.MyVars v = new Terrain.MyVars();
             v.mBoard = h;
@@ -39,9 +39,9 @@ public enum TerrainFactory {
 
     public static class FlatStrat implements TerrainStrategy {
         public Terrain toTerrain() {
-            float[] h = new float[Terrain.MAX_X];
+            short[] h = new short[Terrain.MAX_X];
             for (int i = 0; i < Terrain.MAX_X; i++)
-                h[i] = (float)(Terrain.MAX_DISPLAYABLE_Y / 2);
+                h[i] = (short)(Terrain.MAX_Y / 2);
             Terrain.MyVars v = new Terrain.MyVars();
             v.mBoard = h;
             return new Terrain(v);
@@ -50,7 +50,7 @@ public enum TerrainFactory {
 
     public static class JaggedStrat implements TerrainStrategy {
         public Terrain toTerrain() {
-            float[] h = getRandomHeights();
+            short[] h = getRandomHeights();
             h = movingWindow(h, 3);
             Terrain.MyVars v = new Terrain.MyVars();
             v.mBoard = h;
@@ -60,7 +60,7 @@ public enum TerrainFactory {
 
     public static class HillyStrat implements TerrainStrategy {
         public Terrain toTerrain() {
-            float[] h = getRandomHeights();
+            short[] h = getRandomHeights();
             h = movingWindow(h, 10);
             Terrain.MyVars v = new Terrain.MyVars();
             v.mBoard = h;
@@ -70,7 +70,7 @@ public enum TerrainFactory {
 
     public static class RollingStrat implements TerrainStrategy {
         public Terrain toTerrain() {
-            float[] h = getRandomHeights();
+            short[] h = getRandomHeights();
             h = movingWindow(h, 20);
             Terrain.MyVars v = new Terrain.MyVars();
             v.mBoard = h;
@@ -79,22 +79,22 @@ public enum TerrainFactory {
     }
 
     /*================= Utility =================*/
-    private static float[] getRandomHeights() {
-        float[] h = new float[Terrain.MAX_X];
+    private static short[] getRandomHeights() {
+        short[] h = new short[Terrain.MAX_X];
         for (int i = 0; i < Terrain.MAX_X; i++) {
-            h[i] = (float)(Util.mRandom.nextInt() * Terrain.MAX_ELEVATION);
+            h[i] = (short)Util.mRandom.nextInt(Terrain.MAX_Y);
         }
         return h;
     }
 
-    private static float[] movingWindow(float[] input, int windowSize) {
-        float[] h = new float[input.length];
+    private static short[] movingWindow(short[] input, int windowSize) {
+        short[] h = new short[input.length];
         for (int i = 0; i < Terrain.MAX_X; i++) {
-            float acc = 0;
+            short acc = 0;
             for (int j = 0; j < windowSize; ++j) {
                 acc += input[(i + j) % Terrain.MAX_X];
             }
-            h[i] = acc / windowSize;
+            h[i] = (short)(acc / windowSize);
         }
         return h;
     }

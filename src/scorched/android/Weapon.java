@@ -69,7 +69,7 @@ public enum Weapon
             return true;
 
         // Use linear interpolation to check if we're under the ground
-        float h[] = model.getHeights();
+        short h[] = model.getHeights();
         int ix = (int)x;
         float xSlop = x - (float)ix;
         float interpolatedY = ((1.0f - xSlop) * h[ix]) + (xSlop * h[ix + 1]);

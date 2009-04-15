@@ -284,8 +284,6 @@ public interface GameState {
                 // If the previous player was "invalid player," that means
                 // that this is the first turn that anyone has had.
                 // Skip the intro animation.
-                model.getCurPlayer().getIdealViewSettings(mInitViewSettings);
-                Graphics.instance.setViewSettings(mInitViewSettings);
                 mCurAnimationStep = MAX_ANIMATION_STEP;
             }
             else if (newPlayer == oldPlayer) {
@@ -302,20 +300,10 @@ public interface GameState {
             }
 
             Player curPlayer = model.getCurPlayer();
-            Graphics.instance.getViewSettings(mInitViewSettings);
-            curPlayer.getIdealViewSettings(mFinalViewSettings);
             mNextGameState = curPlayer.getGameState();
         }
 
         public GameState main(Model model) {
-            if (mCurAnimationStep >= MAX_ANIMATION_STEP)
-                return mNextGameState;
-            mCurAnimationStep++;
-
-            mCurViewSettings.interpolate(
-                mInitViewSettings, mFinalViewSettings,
-                mCurAnimationStep, MAX_ANIMATION_STEP);
-            Graphics.instance.setViewSettings(mCurViewSettings);
             return null;
         }
 
@@ -345,18 +333,9 @@ public interface GameState {
         }
 
         public TurnStartState() {
-            mInitViewSettings = new Graphics.ViewSettings(0,0,0);
-            mCurViewSettings = new Graphics.ViewSettings(0,0,0);
-            mFinalViewSettings = new Graphics.ViewSettings(0,0,0);
         }
 
         private int mCurAnimationStep;
-
-        Graphics.ViewSettings mInitViewSettings;
-
-        Graphics.ViewSettings mCurViewSettings;
-
-        Graphics.ViewSettings mFinalViewSettings;
 
         private GameState mNextGameState;
     }
@@ -396,7 +375,7 @@ public interface GameState {
         }
 
         public GameState main(Model model) {
-            return (mFired) ? sBallisticsState : null;
+            return null; //(mFired) ? sBallisticsState : null;
         }
 
         public void onExit(SalvoSlider powerSlider,
@@ -414,35 +393,6 @@ public interface GameState {
         }
 
         public boolean onButton(GameButton b) {
-            switch (b) {
-                case OK:
-                    return false;
-                case DONE:
-                    return false;
-                case WEAP:
-                    // TODO: display the user's armory and allow him to
-                    // choose another weapon.  Probably want to create a
-                    // ListView programmatically and fiddle around with it.
-                    // Maybe needs a new State to handle.
-                    return false;
-                case FIRE:
-                    mFired = true;
-                    return true;
-                case ZOOM_IN:
-                    if (Graphics.instance.userZoomIn()) {
-                        mNeedRedraw = true;
-                        return true;
-                    }
-                    else
-                        return false;
-                case ZOOM_OUT:
-                    if (Graphics.instance.userZoomOut()) {
-                        mNeedRedraw = true;
-                        return true;
-                    }
-                    else
-                        return false;
-            }
             return false;
         }
 
@@ -467,21 +417,10 @@ public interface GameState {
                 Graphics gfx = Graphics.instance;
                 if (mFingerDown == false) {
                     mFingerDown = true;
-                    gfx.getViewSettings(mTouchViewSettings);
-                    mTouchX = gfx.onscreenXtoGameX
-                                (me.getX(), mTouchViewSettings);
-                    mTouchY = gfx.onscreenYtoGameY
-                                (me.getY(), mTouchViewSettings);
+                    //...
                 }
                 else {
-                    float x = gfx.onscreenXtoGameX
-                                (me.getX(), mTouchViewSettings);
-                    float y = gfx.onscreenYtoGameY
-                                (me.getY(), mTouchViewSettings);
-                    if (gfx.userScrollBy(mTouchX - x, -(mTouchY - y)))
-                        notify = true;
-                    mTouchX = x;
-                    mTouchY = y;
+                    //
                 }
             }
             // TODO: do edgeflags?
@@ -506,7 +445,7 @@ public interface GameState {
         public HumanMoveState() {
             mNeedRedraw = true;
             mFingerDown = false;
-            mTouchViewSettings = new Graphics.ViewSettings(0,0,0);
+            //mTouchViewSettings = new Graphics.ViewSettings(0,0,0);
             mTouchX = 0;
             mTouchY = 0;
             mFired = false;
@@ -520,7 +459,7 @@ public interface GameState {
 
         /** The zoom, pan settings that were in effect when the user started
          * pressing on the screen */
-        private Graphics.ViewSettings mTouchViewSettings;
+        //private Graphics.ViewSettings mTouchViewSettings;
 
         /** Last X coordinate the user touched (in game coordinates) */
         private float mTouchX;
@@ -532,149 +471,149 @@ public interface GameState {
         private boolean mFired;
     }
 
-    /** Draw missiles flying through the sky. The fun state. */
-    class BallisticsState implements GameState {
-        public String toString() {
-            return "BallisticsState";
-        }
-
-        public void onEnter(Model model,
-                            SalvoSlider powerSlider, SalvoSlider angleSlider,
-                            Listener powerAdaptor, Listener angleAdaptor) {
-            Graphics gfx = Graphics.instance;
-            Weapon wpn = Weapon.instance;
-
-            model.getCurPlayer().fireWeapon();
-            wpn.calculateTrajectory(model);
-
-            float x[] = wpn.getX();
-            float y[] = wpn.getY();
-            int total = wpn.getTotalSamples();
-            gfx.getEnclosingViewSettings
-                    (x[0], y[0], x[total-1], y[total-1], 1,
-                    mViewSettingsTemp);
-            gfx.setViewSettings(mViewSettingsTemp);
-            mCurSample = 0;
-            // todo: zoom so that start and end points are both visible
-        }
-
-        public GameState main(Model model) {
-            short nextSample = (short)(mCurSample + 1);
-            if (nextSample >= Weapon.instance.getTotalSamples()) {
-                return sExplosionState;
-            }
-            mCurSample = nextSample;
-            return null;
-        }
-
-        public void onExit(SalvoSlider powerSlider,
-                           SalvoSlider angleSlider) {
-        }
-
-        public int getBlockingDelay() {
-            return 10;
-        }
-
-        public boolean onButton(GameButton b) { return false; }
-
-        public boolean onSlider(Model model, boolean isPower, int val) {
-            return false;
-        }
-
-        public boolean onTouchEvent(MotionEvent me) {
-            return false;
-        }
-
-        public boolean needRedraw() {
-            return true;
-        }
-
-        public void redraw(Canvas canvas, Model model) {
-            Graphics gfx = Graphics.instance;
-            gfx.drawScreen(canvas, model);
-            gfx.drawTrajectory(canvas, model.getCurPlayer(), mCurSample);
-        }
-
-        public BallisticsState() {
-            mViewSettingsTemp = new Graphics.ViewSettings(0,0,0);
-        }
-
-        Graphics.ViewSettings mViewSettingsTemp;
-
-        short mCurSample;
-    }
-
-    /** Do explosions.
-     * Subtract from players' life points if necessary.
-     * Make craters if necessary.
-     */
-    class ExplosionState implements GameState {
-        public String toString() {
-            return "ExplosionState";
-        }
-
-        public void onEnter(Model model,
-                            SalvoSlider powerSlider, SalvoSlider angleSlider,
-                            Listener powerAdaptor, Listener angleAdaptor) {
-            Weapon wpn = Weapon.instance;
-            WeaponType wtp = wpn.getWeaponType();
-            mMaxExplosionSize = wtp.getExplosionSize();
-            mCurExplosionSize = 0;
-            Graphics.instance.initializeExplosion();
-            Sound.instance.playBoom(powerSlider.getContext().getApplicationContext());
-        }
-
-        public GameState main(Model model) {
-            if (mCurExplosionSize > mMaxExplosionSize) {
-                // TODO: explosion retreating animation
-                Weapon wpn = Weapon.instance;
-                model.doExplosion(wpn.getFinalX(), wpn.getFinalY(),
-                                mMaxExplosionSize);
-                return sTurnStartState;
-            }
-            mCurExplosionSize += 0.01;
-            return null;
-        }
-
-        public void onExit(SalvoSlider powerSlider,
-                           SalvoSlider angleSlider) {
-             // examine Weapon.instance to find out where the boom is,
-             // then modify the terrain in the model
-        }
-
-        public int getBlockingDelay() {
-            return 10;
-        }
-
-        public boolean onButton(GameButton b) { return false; }
-
-        public boolean onSlider(Model model, boolean isPower, int val) {
-            return false;
-        }
-
-        public boolean onTouchEvent(MotionEvent me) {
-            return false;
-        }
-
-        public boolean needRedraw() {
-            return true;
-        }
-
-        public void redraw(Canvas canvas, Model model) {
-            Graphics gfx = Graphics.instance;
-            gfx.drawScreen(canvas, model);
-                // TODO: scrollBy view randomly to make it look
-                // like it's shaking
-            gfx.drawExplosion(canvas, model.getCurPlayer(),
-                              mCurExplosionSize);
-        }
-
-        public ExplosionState() { }
-
-        private float mMaxExplosionSize;
-
-        private float mCurExplosionSize;
-    }
+//    /** Draw missiles flying through the sky. The fun state. */
+//    class BallisticsState implements GameState {
+//        public String toString() {
+//            return "BallisticsState";
+//        }
+//
+//        public void onEnter(Model model,
+//                            SalvoSlider powerSlider, SalvoSlider angleSlider,
+//                            Listener powerAdaptor, Listener angleAdaptor) {
+//            Graphics gfx = Graphics.instance;
+//            Weapon wpn = Weapon.instance;
+//
+//            model.getCurPlayer().fireWeapon();
+//            wpn.calculateTrajectory(model);
+//
+//            float x[] = wpn.getX();
+//            float y[] = wpn.getY();
+//            int total = wpn.getTotalSamples();
+//            gfx.getEnclosingViewSettings
+//                    (x[0], y[0], x[total-1], y[total-1], 1,
+//                    mViewSettingsTemp);
+//            gfx.setViewSettings(mViewSettingsTemp);
+//            mCurSample = 0;
+//            // todo: zoom so that start and end points are both visible
+//        }
+//
+//        public GameState main(Model model) {
+//            short nextSample = (short)(mCurSample + 1);
+//            if (nextSample >= Weapon.instance.getTotalSamples()) {
+//                return sExplosionState;
+//            }
+//            mCurSample = nextSample;
+//            return null;
+//        }
+//
+//        public void onExit(SalvoSlider powerSlider,
+//                           SalvoSlider angleSlider) {
+//        }
+//
+//        public int getBlockingDelay() {
+//            return 10;
+//        }
+//
+//        public boolean onButton(GameButton b) { return false; }
+//
+//        public boolean onSlider(Model model, boolean isPower, int val) {
+//            return false;
+//        }
+//
+//        public boolean onTouchEvent(MotionEvent me) {
+//            return false;
+//        }
+//
+//        public boolean needRedraw() {
+//            return true;
+//        }
+//
+//        public void redraw(Canvas canvas, Model model) {
+//            Graphics gfx = Graphics.instance;
+//            gfx.drawScreen(canvas, model);
+//            gfx.drawTrajectory(canvas, model.getCurPlayer(), mCurSample);
+//        }
+//
+//        public BallisticsState() {
+//            mViewSettingsTemp = new Graphics.ViewSettings(0,0,0);
+//        }
+//
+//        Graphics.ViewSettings mViewSettingsTemp;
+//
+//        short mCurSample;
+//    }
+//
+//    /** Do explosions.
+//     * Subtract from players' life points if necessary.
+//     * Make craters if necessary.
+//     */
+//    class ExplosionState implements GameState {
+//        public String toString() {
+//            return "ExplosionState";
+//        }
+//
+//        public void onEnter(Model model,
+//                            SalvoSlider powerSlider, SalvoSlider angleSlider,
+//                            Listener powerAdaptor, Listener angleAdaptor) {
+//            Weapon wpn = Weapon.instance;
+//            WeaponType wtp = wpn.getWeaponType();
+//            mMaxExplosionSize = wtp.getExplosionSize();
+//            mCurExplosionSize = 0;
+//            Graphics.instance.initializeExplosion();
+//            Sound.instance.playBoom(powerSlider.getContext().getApplicationContext());
+//        }
+//
+//        public GameState main(Model model) {
+//            if (mCurExplosionSize > mMaxExplosionSize) {
+//                // TODO: explosion retreating animation
+//                Weapon wpn = Weapon.instance;
+//                model.doExplosion(wpn.getFinalX(), wpn.getFinalY(),
+//                                mMaxExplosionSize);
+//                return sTurnStartState;
+//            }
+//            mCurExplosionSize += 0.01;
+//            return null;
+//        }
+//
+//        public void onExit(SalvoSlider powerSlider,
+//                           SalvoSlider angleSlider) {
+//             // examine Weapon.instance to find out where the boom is,
+//             // then modify the terrain in the model
+//        }
+//
+//        public int getBlockingDelay() {
+//            return 10;
+//        }
+//
+//        public boolean onButton(GameButton b) { return false; }
+//
+//        public boolean onSlider(Model model, boolean isPower, int val) {
+//            return false;
+//        }
+//
+//        public boolean onTouchEvent(MotionEvent me) {
+//            return false;
+//        }
+//
+//        public boolean needRedraw() {
+//            return true;
+//        }
+//
+//        public void redraw(Canvas canvas, Model model) {
+//            Graphics gfx = Graphics.instance;
+//            gfx.drawScreen(canvas, model);
+//                // TODO: scrollBy view randomly to make it look
+//                // like it's shaking
+//            gfx.drawExplosion(canvas, model.getCurPlayer(),
+//                              mCurExplosionSize);
+//        }
+//
+//        public ExplosionState() { }
+//
+//        private float mMaxExplosionSize;
+//
+//        private float mCurExplosionSize;
+//    }
 
     /*================= Static =================*/
     // We use static storage for the game states. This avoid dynamic memory
@@ -690,10 +629,10 @@ public interface GameState {
         sHumanMoveState = new HumanMoveState();
     //public ComputerMoveState
     //  sComputerMoveState = new ComputerMoveState();
-    public static BallisticsState
-        sBallisticsState = new BallisticsState();
-    public static ExplosionState
-        sExplosionState = new ExplosionState();
+//    public static BallisticsState
+//        sBallisticsState = new BallisticsState();
+//    public static ExplosionState
+//        sExplosionState = new ExplosionState();
 
     /*================= Constants =================*/
     /*================= Types =================*/
