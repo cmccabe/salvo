@@ -52,8 +52,9 @@ public enum TerrainFactory {
     public static class FlatStrat implements TerrainStrategy {
         public Terrain toTerrain() {
             short[] h = new short[Terrain.MAX_X];
+            short e = randElevation(0.4f, 0.6f);
             for (int i = 0; i < Terrain.MAX_X; i++)
-                h[i] = (short)(Terrain.MAX_Y / 2);
+                h[i] = e;
             Terrain.MyVars v = new Terrain.MyVars();
             v.mBoard = h;
             return new Terrain(v);
