@@ -19,6 +19,18 @@ public enum TerrainFactory {
     Hilly(new HillyStrat()),
     Rolling(new RollingStrat());
 
+    /*================= Static =================*/
+    /** Return a random elevation
+     *
+     * @param bot    Minimum percentage from the bottom
+     * @param top    Maximum percentage from the bottom
+     */
+    private static short randElevation(float bot, float top) {
+        int rand = Util.mRandom.nextInt((int)(Terrain.MAX_Y * (top - bot)));
+        int midRand = (int)(rand + (bot * Terrain.MAX_Y));
+        return (short)(Terrain.MAX_Y - midRand);
+    }
+
     /*================= Types =================*/
     private interface TerrainStrategy {
         public abstract Terrain toTerrain();
@@ -151,24 +163,23 @@ public enum TerrainFactory {
         }
 
         /*================= Lifecycle =================*/
-        public SplineSet(int boardSize, int numSplines) {
-            if (numSplines < 1)
-                throw new RuntimeException("can't have numSplines < 1");
+        public SplineSet(int boardSize, short[] controlPoints) {
+            if (controlPoints.length % 2 != 1) {
+                throw new RuntimeException("must give an odd number of " +
+                                           "control points");
+            }
 
-            int numControlPts = 1 + (2 * numSplines);
+            mS = boardSize / (controlPoints.length - 2);
 
-            mS = boardSize / (numControlPts - 2);
-
-            mSplines = new Spline[numSplines];
+            mSplines = new Spline[controlPoints.length / 2];
             float x = -mS;
-            float prevX = Util.mRandom.nextInt(Terrain.MAX_Y);
-            for (int i = 0; i < numSplines; i++) {
-                float nextX = Util.mRandom.nextInt(Terrain.MAX_Y);
+            int i = 0;
+            for (int c = 0; c < controlPoints.length - 2; c+=2) {
                 mSplines[i] = new Spline(x,
-                                 prevX,
-                                 Util.mRandom.nextInt(Terrain.MAX_Y),
-                                 nextX);
-                prevX = nextX;
+                                 controlPoints[c],
+                                 controlPoints[c+1],
+                                 controlPoints[c+2]);
+                i++;
                 x += splineXSize();
             }
         }
@@ -177,7 +188,13 @@ public enum TerrainFactory {
     public static class RollingStrat implements TerrainStrategy {
         public Terrain toTerrain() {
             short[] h = new short[Terrain.MAX_X];
-            SplineSet splines = new SplineSet(Terrain.MAX_X, 4);
+            short[] controlPoints = new short[5];
+            controlPoints[0] = randElevation(0f, 1f);
+            for (int i = 0; i < controlPoints.length - 1; i++)
+                controlPoints[i] = randElevation(0.1f, 0.8f);
+            controlPoints[controlPoints.length - 1] = randElevation(0f, 1f);
+
+            SplineSet splines = new SplineSet(Terrain.MAX_X, controlPoints);
             for (int i = 0; i < h.length; i++)
                 h[i] = splines.getVal(i);
             Terrain.MyVars v = new Terrain.MyVars();
