@@ -75,23 +75,6 @@ public class RunGameAct extends Activity {
 
         ////////////////// Initialize stuff
         mGameControl.initialize(mModel, powerSlider, angleSlider);
-        fireButton.setOnClickListener(new OnClickListener() {
-            public void onClick(View arg0) {
-                mGameControl.getThread().onButton(GameState.GameButton.FIRE);
-            }
-        });
-        zoomIn.setOnClickListener(new OnClickListener() {
-            public void onClick(View arg0) {
-                mGameControl.getThread().onButton(
-                    GameState.GameButton.ZOOM_IN);
-            }
-        });
-        zoomOut.setOnClickListener(new OnClickListener() {
-            public void onClick(View arg0) {
-                mGameControl.getThread().onButton(
-                    GameState.GameButton.ZOOM_OUT);
-            }
-        });
     }
 
     /**

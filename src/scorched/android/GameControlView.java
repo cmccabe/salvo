@@ -231,6 +231,8 @@ class GameControlView extends SurfaceView implements SurfaceHolder.Callback {
     /** Callback invoked when the surface dimensions change. */
     public void surfaceChanged(SurfaceHolder holder, int format, int width,
             int height) {
+    	Log.w(this.getClass().getName(),
+    			"surfaceChanged: width = " + width + ", height = " + height + ".");
         synchronized (mSurfaceHasBeenCreatedSem) {
             if (!mSurfaceHasBeenCreated) {
                 Graphics.instance.setSurfaceSize(width, height);
