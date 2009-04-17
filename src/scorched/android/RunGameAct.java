@@ -67,13 +67,11 @@ public class RunGameAct extends Activity {
     private void initialize() {
         ////////////////// Get pointers to stuff
         mGameControl = (GameControlView)findViewById(R.id.game_control_view);
-        final SalvoSlider powerSlider =
-            (SalvoSlider)findViewById(R.id.PowerSlider);
-        final SalvoSlider angleSlider =
-            (SalvoSlider)findViewById(R.id.AngleSlider);
-        final Button fireButton = (Button)findViewById(R.id.FireButton);
-        final ZoomButton zoomIn = (ZoomButton)findViewById(R.id.ZoomIn);
-        final ZoomButton zoomOut = (ZoomButton)findViewById(R.id.ZoomOut);
+        final SalvoSlider powerSlider = null;
+        final SalvoSlider angleSlider = null;
+        final Button fireButton = null; 
+        final ZoomButton zoomIn = null;
+        final ZoomButton zoomOut = null;
 
         ////////////////// Initialize stuff
         mGameControl.initialize(mModel, powerSlider, angleSlider);
