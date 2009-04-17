@@ -3,6 +3,8 @@ package scorched.android;
 import java.util.Iterator;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -35,6 +37,8 @@ public enum Graphics {
     /*================= Types =================*/
 
     /*================= Members =================*/
+    private Bitmap mBackgroundImage;
+
     private RectF mScratchRect;
 
     /** Current height of the surface/canvas. */
@@ -95,8 +99,8 @@ public enum Graphics {
 
     /** Draws the playing field */
     public void drawScreen(Canvas canvas, Model model) {
-        // TODO: draw patterned background
-        canvas.drawColor(Color.BLACK);
+        //canvas.drawColor(Color.BLACK);
+        canvas.drawBitmap(mBackgroundImage, 0, 0, null);
 
         short h[] = model.getHeights();
         for (int x = 0; x < Terrain.MAX_X; x += LINE_TEMP_SIZE) {
@@ -250,5 +254,8 @@ public enum Graphics {
         mTrajTemp = new float[Weapon.MAX_SAMPLES * 4];
 
         mLineTemp = new float[LINE_TEMP_SIZE * COORDS_PER_LINE];
+
+        mBackgroundImage = BitmapFactory.decodeResource
+            (context.getResources(), R.drawable.foggy_buffalo_s);
     }
 }
