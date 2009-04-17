@@ -41,7 +41,7 @@ public class Terrain {
     public static final int MAX_X = 480;
 
     /** The highest displayable Y coordinate */
-    public static final int MAX_Y = 240;
+    public static final int MAX_Y = 320;
 
     /** The force of gravity.
       * As measured by change in downward force each sample */

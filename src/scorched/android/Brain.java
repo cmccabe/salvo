@@ -4,18 +4,23 @@ import scorched.android.ModelFactory.MyVars;
 import android.os.Bundle;
 
 /**
- * Controls a player
+ * Controls a player.
  */
 public class Brain {
-    /*================= Types =================*/
+    /*================= Access =================*/
+    public abstract GameState getPlayerGameState() {
+
+    /*================= Operations =================*/
+
+    /*================= Brains =================*/
     public static class HumanBrain extends Brain {
         /*================= Constants =================*/
         public static final short ID = 1;
 
         /*================= Static =================*/
         public static HumanBrain fromBundle(int index, Bundle map) {
-            MyVars v = (MyVars)AutoPack.autoUnpack(map, Util.indexToString(index),
-                                                    MyVars.class);
+            MyVars v = (MyVars)AutoPack.
+                autoUnpack(map, Util.indexToString(index), MyVars.class);
             return new HumanBrain(v);
         }
 
@@ -23,6 +28,11 @@ public class Brain {
         public static class MyVars {
         }
         private MyVars mV;
+
+        /*================= Access =================*/
+        public GameState getPlayerGameState() {
+            return GameState.sHumanMoveState;
+        }
 
         /*================= Operations =================*/
         public void saveState(int index, Bundle map) {
@@ -51,6 +61,11 @@ public class Brain {
             return new EasyBrain();
         }
 
+        /*================= Access =================*/
+        public GameState getPlayerGameState() {
+            return GameState.sHumanMoveState; //TODO: change to comp state
+        }
+
         /*================= Lifecycle =================*/
         public EasyBrain() {
             super();
@@ -66,6 +81,11 @@ public class Brain {
             return new MediumBrain();
         }
 
+        /*================= Access =================*/
+        public GameState getPlayerGameState() {
+            return GameState.sHumanMoveState; //TODO: change to comp state
+        }
+
         /*================= Lifecycle =================*/
         public MediumBrain() {
             super();
@@ -79,6 +99,11 @@ public class Brain {
         /*================= Static =================*/
         public static HardBrain fromBundle(int i, Bundle b) {
             return new HardBrain();
+        }
+
+        /*================= Access =================*/
+        public GameState getPlayerGameState() {
+            return GameState.sHumanMoveState; //TODO: change to comp state
         }
 
         /*================= Lifecycle =================*/

@@ -1,66 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/OverallLayout"
-    android:orientation="vertical"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent">
-    <FrameLayout android:layout_width="fill_parent" android:layout_height="fill_parent" android:layout_weight="1">
+    android:layout_height="fill_parent"
+    android:layout_weight="5"
+    android:orientation="vertical"
+    android:layout_margin="1mm">
     <scorched.android.GameControlView
         android:id="@+id/game_control_view" 
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:layout_weight="1"
     />
-            <LinearLayout android:id="@+id/ZoomLayout"
-                      android:orientation="vertical"
-                      android:layout_gravity="right"
-                      android:layout_width="wrap_content"
-                      android:layout_height="fill_parent">
-            <ZoomButton android:id="@+id/ZoomIn"
-                        android:background="@drawable/btn_plus_np"
-                        android:layout_gravity="right"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"/>
-            <ZoomButton android:id="@+id/ZoomOut"
-                        android:background="@drawable/btn_minus_np"
-                        android:layout_gravity="right"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"/>
-        </LinearLayout>
-
-    </FrameLayout>
-    <LinearLayout
-        android:id="@+id/TopSliderRow"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:layout_weight="6"
-        android:orientation="horizontal">
-        <Button
-            android:text="WEAP"
-            android:id="@+id/WeapButton"
+    <LinearLayout android:layout_width="fill_parent"
+                  android:layout_height="64px"
+                  android:layout_alignParentBottom="true">
+        <TextView
+            android:text="45d"
+            android:id="@+id/angle_text"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:layout_weight="8"
+            android:layout_weight="2"
         />
-        <Button
-            android:text="FIRE"
-            android:id="@+id/FireButton"
+        <scorched.android.WeaponPickerView
+            android:id="@+id/weapon_picker_view"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:layout_weight="8"
+            android:layout_weight="1"
         />
-        <scorched.android.SalvoSlider 
-            android:id="@+id/PowerSlider"
+        <scorched.android.FireButton
+            android:id="@+id/fire_button"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:layout_weight="6"
-        />
-        <scorched.android.SalvoSlider 
-            android:id="@+id/AngleSlider"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:layout_weight="6"
+            android:layout_weight="2"
         />
     </LinearLayout>
-</LinearLayout>
+</RelativeLayout>
+
+<!--
+-->
