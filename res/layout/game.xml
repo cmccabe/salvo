@@ -17,8 +17,9 @@
                   >
         <TextView
             android:text="45°"
+            android:gravity="center"
+            android:textSize="40px"
             android:id="@+id/angle_text"
-            android:text_size="32"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
             android:layout_weight="2"
