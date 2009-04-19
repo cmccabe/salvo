@@ -12,7 +12,9 @@
     />
     <LinearLayout android:layout_width="fill_parent"
                   android:layout_height="50px"
-                  android:layout_alignParentBottom="true">
+                  android:layout_alignParentBottom="true"
+                  android:background="@drawable/transparent_grey"
+                  >
         <TextView
             android:text="45d"
             android:id="@+id/angle_text"
