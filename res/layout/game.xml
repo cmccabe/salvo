@@ -24,13 +24,39 @@
             android:layout_height="fill_parent"
             android:layout_weight="2"
         />
- <!--scorched.android.WeaponPickerView -->
-        <Button
-            android:id="@+id/weapon_picker_view"
+        <RelativeLayout
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:layout_weight="1"
-        />
+            android:layout_weight="1">
+            
+            <TextView
+                android:text="[-"
+                android:layout_width="wrap_content"
+                android:layout_height="fill_parent" 
+                android:gravity="center"
+                android:textSize="40px"
+                android:id="@+id/weapon_picker_left"    
+                android:layout_alignParentLeft="true"
+            />
+            <TextView
+                android:text="foo bar baz"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent" 
+                android:layout_gravity="center"
+                android:textSize="40px"
+                android:id="@+id/weapon_picker_left"
+                android:layout_toLeftOf="@id/weapon_picker_left"
+            />
+            <TextView
+                android:text="-]"
+                android:layout_width="wrap_content"
+                android:layout_height="fill_parent" 
+                android:gravity="center"
+                android:textSize="40px"
+                android:id="@+id/weapon_picker_right"
+                android:layout_alignParentRight="true"
+            />
+        </RelativeLayout>
         <Button
             android:id="@+id/fire_button"
             android:text="FIRE"
