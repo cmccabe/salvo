@@ -33,8 +33,12 @@
         />
         <Button
             android:id="@+id/fire_button"
+            android:text="FIRE"
+            android:gravity="center"
+            android:textSize="40px"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
+            android:background="@drawable/clear"
             android:layout_weight="2"
         />
     </LinearLayout>

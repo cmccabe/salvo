@@ -1,5 +1,7 @@
 <resources>
 <drawable name="transparent_grey">#88888888</drawable>
+<drawable name="clear">#00000000</drawable>
+
 <!-- <string-array name="player_colors">
     <item>#ef2929</item>
     <item>#8ae2e4</item>

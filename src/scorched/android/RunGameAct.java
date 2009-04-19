@@ -6,10 +6,12 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.ZoomButton;
 
 import scorched.android.Model;
@@ -67,12 +69,29 @@ public class RunGameAct extends Activity {
     private void initialize() {
         ////////////////// Get pointers to stuff
         mGameControl = (GameControlView)findViewById(R.id.game_control_view);
+        final TextView angleText = (TextView)findViewById(R.id.angle_text);
         final SalvoSlider powerSlider = null;
         final SalvoSlider angleSlider = null;
-        final Button fireButton = null; 
+        final Button fireButton = (Button)findViewById(R.id.fire_button);
         final ZoomButton zoomIn = null;
         final ZoomButton zoomOut = null;
 
+        fireButton.setOnTouchListener(new View.OnTouchListener() {
+            public boolean onTouch(View v, MotionEvent event) {
+                int act = event.getAction();
+                if (act == MotionEvent.ACTION_DOWN) {
+                    long downTime = event.getDownTime();
+                    long eventTime = event.getEventTime();
+                    long diff = eventTime - downTime;
+                    angleText.setText("" + diff);
+                }
+                else if (act == MotionEvent.ACTION_UP) {
+                    angleText.setText("released.");
+                }
+
+                return true;
+            }
+        });
         ////////////////// Initialize stuff
         mGameControl.initialize(mModel, powerSlider, angleSlider);
     }
