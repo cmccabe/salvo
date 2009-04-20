@@ -42,7 +42,7 @@ public enum Graphics {
     private Background mBackground;
 
     private Foreground mForeground;
-    
+
     private RectF mScratchRect;
 
     /** Current height of the surface/canvas. */

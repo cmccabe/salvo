@@ -4,7 +4,7 @@ package scorched.android;
 /**
  * Represents a game background.
  *
- * 
+ *
  */
 public enum Background {
     foggy_buffalo_s(R.drawable.foggy_buffalo_s),
