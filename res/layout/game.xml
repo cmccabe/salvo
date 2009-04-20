@@ -13,20 +13,23 @@
     <LinearLayout android:layout_width="fill_parent"
                   android:layout_height="50px"
                   android:layout_alignParentBottom="true"
-                  android:background="@drawable/transparent_grey"
                   >
         <TextView
             android:text="45°"
             android:gravity="center"
             android:textSize="40px"
+            android:background="@drawable/transparent_grey"
+            android:textColor="@drawable/game_text_grey"
             android:id="@+id/angle_text"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
             android:layout_weight="2"
+            android:layout_marginRight="5px"
         />
         <RelativeLayout
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
+            android:background="@drawable/transparent_grey"
             android:layout_weight="1">
             
             <Button
@@ -37,17 +40,33 @@
                 android:layout_alignParentLeft="true"
             />
             <TextView
-                android:layout_width="fill_parent"
-                android:id="@+id/weapon_picker_center"
+                android:id="@+id/weapon_picker_center_kind"
                 android:gravity="center"
-                android:text="Hi there"
-                android:layout_toRightOf="@id/weapon_picker_left"
-                android:textSize="25px"
+                android:textSize="22px"
+                android:textColor="@drawable/game_text_grey"
                 android:layout_centerVertical="true"
                 android:layout_height="wrap_content"
                 android:paddingLeft="5px"
                 android:paddingRight="5px"
-            />
+                android:layout_alignParentTop="true"
+                android:maxLines="1"
+                android:layout_centerHorizontal="true"
+                android:text="Mega"
+                android:layout_width="wrap_content"/>
+            <TextView
+                android:id="@+id/weapon_picker_center_amt"
+                android:gravity="center"
+                android:text="[5]"
+                android:textSize="14px"
+                android:textColor="@drawable/game_text_grey"
+                android:layout_height="wrap_content"
+                android:paddingLeft="5px"
+                android:paddingRight="5px"
+                android:layout_below="@id/weapon_picker_center_kind"
+                android:layout_alignParentBottom="true"
+                android:layout_centerHorizontal="true"
+                android:layout_width="wrap_content"/>
+            
             <Button
                 android:background="@drawable/right_arrow"
                 android:layout_width="wrap_content"
@@ -57,15 +76,19 @@
             />
         </RelativeLayout>
         <Button
+            android:textColor="@drawable/game_text_grey"
+            android:layout_marginLeft="5px"
+            android:background="@drawable/transparent_grey"
             android:id="@+id/fire_button"
             android:text="FIRE"
             android:gravity="center"
             android:textSize="40px"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:background="@drawable/clear"
             android:layout_weight="2"
         />
+        <!-- android:background="@drawable/clear" -->
+        
     </LinearLayout>
 </RelativeLayout>
 
