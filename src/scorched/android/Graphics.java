@@ -41,6 +41,8 @@ public enum Graphics {
 
     private Background mBackground;
 
+    private Foreground mForeground;
+    
     private RectF mScratchRect;
 
     /** Current height of the surface/canvas. */
@@ -50,7 +52,7 @@ public enum Graphics {
     private int mCanvasWidth = 0;
 
     /** Paint to draw the lines on screen. */
-    private Paint mClear, mTerrainPaint;
+    private Paint mClear, mForegroundPaint;
 
     /** Thin paint to draw the players */
     private Paint mPlayerThinPaint[];
@@ -118,7 +120,7 @@ public enum Graphics {
                 j++;
             }
             canvas.drawLines(mLineTemp, 0, LINE_TEMP_SIZE * COORDS_PER_LINE,
-                             mTerrainPaint);
+                             mForegroundPaint);
         }
 
 //        for (Player p : model.getPlayers()) {
@@ -221,10 +223,6 @@ public enum Graphics {
         mClear.setAntiAlias(false);
         mClear.setARGB(255, 0, 0, 0);
 
-        mTerrainPaint = new Paint();
-        mTerrainPaint.setAntiAlias(false);
-        mTerrainPaint.setARGB(255, 0, 255, 0);
-
         // get player colors
         Player players[] = model.getPlayers();
         int playerColors[] = new int[players.length];
@@ -258,8 +256,12 @@ public enum Graphics {
         mLineTemp = new float[LINE_TEMP_SIZE * COORDS_PER_LINE];
 
         mBackground = Background.getRandomBackground();
-
         mBackgroundImage = BitmapFactory.decodeResource
             (context.getResources(), mBackground.getResId());
+
+        mForeground = Foreground.getRandomForeground(mBackground);
+        mForegroundPaint = new Paint();
+        mForegroundPaint.setColor(mForeground.getColor());
+        mForegroundPaint.setAntiAlias(false);
     }
 }

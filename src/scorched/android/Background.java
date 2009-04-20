@@ -24,7 +24,7 @@ public enum Background {
     }
 
     /*================= Data =================*/
-    private int mResId;
+    private final int mResId;
 
     /*================= Access =================*/
     public int getResId() {
