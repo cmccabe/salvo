@@ -39,6 +39,8 @@ public enum Graphics {
     /*================= Members =================*/
     private Bitmap mBackgroundImage;
 
+    private Background mBackground;
+
     private RectF mScratchRect;
 
     /** Current height of the surface/canvas. */
@@ -255,7 +257,9 @@ public enum Graphics {
 
         mLineTemp = new float[LINE_TEMP_SIZE * COORDS_PER_LINE];
 
+        mBackground = Background.getRandomBackground();
+
         mBackgroundImage = BitmapFactory.decodeResource
-            (context.getResources(), R.drawable.foggy_buffalo_s);
+            (context.getResources(), mBackground.getResId());
     }
 }
