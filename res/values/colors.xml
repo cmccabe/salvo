@@ -1,13 +1,10 @@
 <resources>
-<drawable name="color_red">#000f00</drawable>
-<string-array name="player_colors">
-    <item>#ef2929</item>  <!-- red -->
-    <item>#8ae2e4</item>  <!-- green -->
-    <item>#fce94f</item>  <!-- yellow -->
-    <item>#729fcf</item>  <!-- blue -->
-    <item>#ad7fa8</item>  <!-- purple -->
-    <item>#06989a</item>  <!-- dark_cyan -->
-    <item>#d3d7cf</item>  <!-- light grey -->
-    <item>#ff83e9</item>  <!-- pink -->
-</string-array>
+<drawable name="transparent_grey">#88888888</drawable>
+<drawable name="clear">#00000000</drawable>
+<drawable name="game_text_grey">#ffaaaaaa</drawable>
+
+<!-- <string-array name="player_colors">
+    <item>#ef2929</item>
+    <item>#8ae2e4</item>
+</string-array> -->
 </resources>

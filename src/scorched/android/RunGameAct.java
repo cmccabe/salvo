@@ -6,10 +6,12 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.ZoomButton;
 
 import scorched.android.Model;
@@ -256,7 +258,6 @@ public class RunGameAct extends Activity {
         }
     }
 
-
     /*================= Operations =================*/
     /**
      * Invoked when the Activity loses user focus.
@@ -352,15 +353,26 @@ public class RunGameAct extends Activity {
         ////////////////// Get pointers to stuff
         mGameControlView = (GameControlView)
             findViewById(R.id.game_control_view);
-        final TextView mAngleView =
-            (SalvoSlider)findViewById(R.id.PowerSlider);
-        final SalvoSlider angleSlider =
-            (SalvoSlider)findViewById(R.id.AngleSlider);
-        final Button fireButton = (Button)findViewById(R.id.FireButton);
-        final ZoomButton zoomIn = (ZoomButton)findViewById(R.id.ZoomIn);
-        final ZoomButton zoomOut = (ZoomButton)findViewById(R.id.ZoomOut);
+        final TextView angleText = (TextView)findViewById(R.id.angle_text);
+        final Button fireButton = (Button)findViewById(R.id.fire_button);
 
         ////////////////// Initialize stuff
+        fireButton.setOnTouchListener(new View.OnTouchListener() {
+            public boolean onTouch(View v, MotionEvent event) {
+                int act = event.getAction();
+                if (act == MotionEvent.ACTION_DOWN) {
+                    long downTime = event.getDownTime();
+                    long eventTime = event.getEventTime();
+                    long diff = eventTime - downTime;
+                    angleText.setText("" + diff);
+                }
+                else if (act == MotionEvent.ACTION_UP) {
+                    angleText.setText("released.");
+                }
+
+                return true;
+            }
+        });
 
         mGameControl.initialize(mModel, powerSlider, angleSlider);
         fireButton.setOnClickListener(new OnClickListener() {

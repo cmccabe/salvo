@@ -3,6 +3,8 @@ package scorched.android;
 import java.util.Iterator;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -35,6 +37,12 @@ public enum Graphics {
     /*================= Types =================*/
 
     /*================= Members =================*/
+    private Bitmap mBackgroundImage;
+
+    private Background mBackground;
+
+    private Foreground mForeground;
+
     private RectF mScratchRect;
 
     /** Current height of the surface/canvas. */
@@ -44,7 +52,7 @@ public enum Graphics {
     private int mCanvasWidth = 0;
 
     /** Paint to draw the lines on screen. */
-    private Paint mClear, mTerrainPaint;
+    private Paint mClear, mForegroundPaint;
 
     /** Thin paint to draw the players */
     private Paint mPlayerThinPaint[];
@@ -95,8 +103,8 @@ public enum Graphics {
 
     /** Draws the playing field */
     public void drawScreen(Canvas canvas, Model model) {
-        // TODO: draw patterned background
-        canvas.drawColor(Color.BLACK);
+        //canvas.drawColor(Color.BLACK);
+        canvas.drawBitmap(mBackgroundImage, 0, 0, null);
 
         short h[] = model.getHeights();
         for (int x = 0; x < Terrain.MAX_X; x += LINE_TEMP_SIZE) {
@@ -112,7 +120,7 @@ public enum Graphics {
                 j++;
             }
             canvas.drawLines(mLineTemp, 0, LINE_TEMP_SIZE * COORDS_PER_LINE,
-                             mTerrainPaint);
+                             mForegroundPaint);
         }
 
 //        for (Player p : model.getPlayers()) {
@@ -215,10 +223,6 @@ public enum Graphics {
         mClear.setAntiAlias(false);
         mClear.setARGB(255, 0, 0, 0);
 
-        mTerrainPaint = new Paint();
-        mTerrainPaint.setAntiAlias(false);
-        mTerrainPaint.setARGB(255, 0, 255, 0);
-
         // get player colors
         Player players[] = model.getPlayers();
         int playerColors[] = new int[players.length];
@@ -250,5 +254,14 @@ public enum Graphics {
         mTrajTemp = new float[Weapon.MAX_SAMPLES * 4];
 
         mLineTemp = new float[LINE_TEMP_SIZE * COORDS_PER_LINE];
+
+        mBackground = Background.getRandomBackground();
+        mBackgroundImage = BitmapFactory.decodeResource
+            (context.getResources(), mBackground.getResId());
+
+        mForeground = Foreground.getRandomForeground(mBackground);
+        mForegroundPaint = new Paint();
+        mForegroundPaint.setColor(mForeground.getColor());
+        mForegroundPaint.setAntiAlias(false);
     }
 }
