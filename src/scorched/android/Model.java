@@ -28,6 +28,54 @@ public class Model {
 
     public static final String KEY_NUM_PLAYERS = "KEY_NUM_PLAYERS";
 
+    /*================= Types =================*/
+    /** Represents information about who should move next in a given round.
+     *
+     * I would love to make this class immutable. However, due to VM
+     * crapitude, we have to minimize memory allocations at all costs.
+     * So this is mutable...
+     */
+    public static class NextTurnInfo {
+        /*================= Data =================*/
+        private int mNextPlayerId;
+        private boolean mCurPlayerHasWon;
+
+        /*================= Access =================*/
+        /** Returns true if the game is a draw (nobody can win) */ 
+        public boolean isDraw() {
+            return (mNextPlayerId == Player.INVALID_PLAYER_ID);
+        }
+
+        /** Returns true if the current player has won */
+        public boolean curPlayerHasWon() {
+            if (isDraw()) {
+                throw new RuntimeException("NextTurnInfo: round is a draw; "
+                                           "nobody has won");
+            }
+            return mCurPlayerHasWon;
+        }
+
+        /** Returns the player who should move next. */
+        public int getNextPlayerId() {
+            if (isDraw()) {
+                throw new RuntimeException("NextTurnInfo: round is a draw; "
+                                           "there is no next player");
+            }
+            return mNextPlayerId;
+        }
+
+        /*================= Lifecycle =================*/
+        public void initialize(int nextPlayerId, boolean curPlayerHasWon) {
+            mNextPlayerId = nextPlayerId;
+            mCurPlayerHasWon = curPlayerHasWon;
+        }
+
+        public NextTurnInfo() {
+            mCurPlayerId = Player.INVALID_PLAYER_ID;
+            mNextPlayerId = Player.INVALID_PLAYER_ID;
+        }
+    }
+
     /*================= Data =================*/
     public static class MyVars {
         /** The index of the current player */
@@ -59,38 +107,41 @@ public class Model {
         return mV.mCurPlayerId;
     }
 
-    /*================= Operations =================*/
-    /** Sets mCurPlayerId to the next valid player id-- or to
-     * INVALID_PLAYER_ID if there are none. */
-    public void nextPlayer() {
-        int oldPlayer = mV.mCurPlayerId;
-        int player = mV.mCurPlayerId + 1;
+    /** Gets information about who should move next. */
+    public void getNextPlayerInfo(NextTurnInfo info) {
+        int nextPlayerId = Player.INVALID_PLAYER_ID;
 
-        while (true) {
-            if (player >= mPlayers.length) {
-                if (oldPlayer == Player.INVALID_PLAYER_ID) {
-                    // We searched the whole array and didn't find any valid
-                    // players.
-                    mV.mCurPlayerId = Player.INVALID_PLAYER_ID;
-                    return;
+        for (int i = 1; i <= mPlayers.length; i++) {
+            int index = (mV.mCurPlayerId + i) % mPlayers.length;
+            if (mPlayers[index].isAlive()) {
+                if (nextPlayerId == Player.INVALID_PLAYER_ID) {
+                    nextPlayerId = index;
                 }
                 else {
-                    player = 0;
+                    info.initialize(nextPlayerId, false);
+                    return;
                 }
             }
-            if (player == oldPlayer) {
-                // We're back at the player we started at.
-                // I guess he's the only valid one.
-                return;
-            }
-            if (mPlayers[player].isAlive()) {
-                mV.mCurPlayerId = player;
-                return;
-            }
-            else {
-                player++;
-            }
         }
+        if (nextPlayerId == Player.INVALID_PLAYER_ID) {
+            // Nobody is still alive
+            info.initialize(Player.INVALID_PLAYER_ID, false);
+            return;
+        }
+        else {
+            // Only one player is still standing. He's the winner.
+            info.initialize(nextPlayerId, true);
+            return;
+        }
+    }
+
+    /*================= Operations =================*/
+    public void setCurPlayerId(int id) {
+        if (id == Player.INVALID_PLAYER_ID) {
+            throw new IllegalArgumentException("setNextPlayerId: " +
+                "can't use INVALID_PLAYER_ID");
+        }
+        mCurPlayerId = id;
     }
 
 //    private float square(float x) {

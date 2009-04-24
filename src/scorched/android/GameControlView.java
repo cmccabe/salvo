@@ -15,17 +15,19 @@ import android.view.SurfaceView;
 /**
  * Controller for the Scorched Android game.
  *
- * GameControlView takes input from the user and forwards it to
- * parts of the system, and presents them to Graphics and mModel.
+ * GameControlView is the biggest view on the main game screen. The game
+ * control view is the big display that contains almost all game graphics.
+ *
+ * This class contains mostly graphics code.
+ * We forward all user input and important events up to RunGame.java and the
+ * state machine so that they can be handled in a centralized and consistent
+ * way.
  */
 class GameControlView extends SurfaceView  {
     /*================= Operations =================*/
-    //@Override
-    //protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-    //}
-
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
+        // Forward key events to state machine
         Activity runGameAct = (Activity)getContext();
         if (! runGameAct.onKeyDown())
             return super.onKeyDown(keyCode, event);
@@ -33,26 +35,14 @@ class GameControlView extends SurfaceView  {
 
     @Override
     public boolean onTouchEvent(MotionEvent me) {
+        // Forward touch events to state machine
         Activity runGameAct = (Activity)getContext();
-        return runGameAct.gameControlTouchEvent(me);
+        runGameAct.gameControlTouchEvent(me);
+        return true;
     }
 
-    /**
-     * Standard window-focus override. Notice focus lost so we can pause on
-     * focus lost. e.g. user switches to take a call.
-     */
-    @Override
-    public void onWindowFocusChanged(boolean hasWindowFocus) {
-        // TODO: figure out what we should do here, if anything
-    }
-
-    /*================= Lifecycle =================*/
-    public GameControlView(Context context, AttributeSet attrs) {
-        super(context, attrs);
-
-        setFocusable(false); // make sure we get key events
-
-        // Try to get hardware acceleration
+    /** Try to enable hardware acceleration */
+    private void enableHardwareAcceleration() {
         try {
             getHolder().setType(
                 android.view.SurfaceHolder.SURFACE_TYPE_HARDWARE);
@@ -67,5 +57,24 @@ class GameControlView extends SurfaceView  {
             b.append("(error: ").append(e.toString()).append(")");
             Log.w(this.getClass().getName(), b.toString());
         }
+    }
+
+    //@Override
+    //protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+    //}
+
+    //@Override
+    //public void onWindowFocusChanged(boolean hasWindowFocus) {
+        // Standard window-focus override. Notice focus lost so we can pause on
+        // focus lost. e.g. user switches to take a call.
+        // TODO: figure out what we should do here, if anything
+    //}
+
+    /*================= Lifecycle =================*/
+    public GameControlView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+
+        setFocusable(false); // make sure we get key events
+        enableHardwareAcceleration();
     }
 }

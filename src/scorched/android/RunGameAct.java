@@ -20,22 +20,38 @@ import android.view.View.OnClickListener;
 public class RunGameAct extends Activity {
     /*================= Constants =================*/
 
-    /*================= Temporary Data =================*/
+    /*================= Handles to Views =================*/
     /** A view representing the part of the screen where most of the graphics
      * are drawn */
     private GameControlView mGameControlView;
 
+    /** Displays the current angle */
+    private TextView mAngleText;
+
+    /** The button you press to choose the previous weapon in your armory */
+    private Button mArmoryLeftButton;
+
+    /** The button you press to choose the next weapon in your armory */
+    private Button mArmoryRightButton;
+
+    /** The button you press to choose the previous weapon in your armory */
+    private Button mWeapSelLeftButton
+
+    /** The button the user presses to fire */
+    private Button mFireButton;
+
+    /*================= Temporary Data =================*/
     /** Lock that protects game state */
     private Object mStateLock;
 
     /** Provides access to RunGameAct internals */
-    private RunGameActAccessor myRunGameActAccessor;
+    private RunGameActAccessor mAcc;
 
     /** Observes changes in the GameControlView */
     private GameControlViewObserver mGameControlViewObserver;
 
     /** The main thread */
-    private RunGameThread mRunGameThread;
+    private RunGameThread mThread;
 
     /*================= Permanent Data =================*/
     /** The important game data */
@@ -52,6 +68,8 @@ public class RunGameAct extends Activity {
      * accessor.
      *
      * If Java allowed "friend" classes, this code would be a lot shorter.
+     *
+     * This class contains no locking
      */
     private class RunGameActAccessor {
         /*================= Access =================*/
@@ -67,13 +85,17 @@ public class RunGameAct extends Activity {
     }
 
     /** Observes changes in the GameControlView.
+     *
+     * This class does its own locking with mStateLock
      */
     private class GameControlViewObserver implements SurfaceHolder.Callback {
         /*================= Operations =================*/
         /** Callback invoked when the Surface has been created and is
          * ready to be used. */
         public void surfaceCreated(SurfaceHolder holder) {
-            // TODO: start the thread
+            synchronized (mStateLock) {
+                mThread.getStateController().setSurfaceAvailable();
+            }
         }
 
         //public void surfaceChanged(SurfaceHolder holder,
@@ -86,210 +108,178 @@ public class RunGameAct extends Activity {
          *
          * WARNING: after this method returns, the Surface/Canvas must
          * never be touched again! */
-        public void surfaceDestroyed(SurfaceHolder holder) {
-            Activity runGameAct = (Activity)getContext();
-            runGameAct.gameControlViewDestroyed();
+        //public void surfaceDestroyed(SurfaceHolder holder) {
+            // TODO: figure out what to do here, if anything.
+
+            // The confusing thing is that before this callback, we should
+            // receive onPause() or similar, which should already have led us
+            // to pause the thread. So what remains to do here anyway?
+        //}
+    }
+
+    /** Controls the state of the RunGameThread.
+     *
+     * This class contains no locking
+     */
+    private class RunGameThreadStateController {
+        /*================= Data =================*/
+        /** GameControlView has been created; we can access its
+         * data without crashing and burning. */
+        private boolean mSurfaceAvailable;
+
+        /** RunGameAct is done initializing itself. */
+        private boolean mInitializationComplete;
+
+        /** mRunGameThread has been told to stop; it either is
+         * blocking on mStateLock or is about to do so. */
+        private boolean mStopRequested;
+
+        /** mRunGameThread has been told to terminate itself */
+        private boolean mTerminateRequested;
+
+        /*================= Access =================*/
+        public boolean getStopRequested() {
+            return mStopRequested;
+        }
+
+        public boolean getTerminateRequested() {
+            return mTerminateRequested;
+        }
+
+        /*================= Operations =================*/
+        public void setInitializationComplete() {
+            assert (Thread.holdsLock(mStateLock));
+            if (mInitializationComplete)
+                return;
+            mInitializationComplete = true;
+            if (mSurfaceAvailable)
+                mRunGameThread.start();
+        }
+
+        public void setSurfaceAvailable() {
+            assert (Thread.holdsLock(mStateLock));
+            if (mSurfaceAvailable)
+                return;
+            mSurfaceAvailable = true;
+            if (mInitializationComplete)
+                mRunGameThread.start();
+        }
+
+        public void changeStopRequested(boolean stopRequested) {
+            assert (Thread.holdsLock(mStateLock));
+            mStopRequested = stopRequested;
+        }
+
+        public void changeTerminateRequested(boolean terminateRequested) {
+            assert (Thread.holdsLock(mStateLock));
+            mTerminateRequested = terminateRequested;
+        }
+
+        /*================= Lifecycle =================*/
+        public RunGameThreadStateController() {
+            mSurfaceAvailable = false;
+            mInitializationComplete = false;
         }
     }
 
     /** The main game thread.
      *
-     *  RunGameThread executes the game state machine.
+     * RunGameThread executes the game state machine.
+     *
+     * State transitions can only happen in the main thread.
+     *
+     * The main thread also draws everything on the screen.
+     *
+     * If you have done anything that might require a screen redraw, or
+     * cause a transition to another game state, be sure to use notify() to
+     * wake up the main thread.
      */
     public class RunGameThread extends Thread {
-        /** The semaphore representing user input during a player's turn */
-        private Object mUserInputSem = new Object();
+        /*================= Data =================*/
+        private RunGameThreadStateController mStateController;
 
-        /** True if the game is running */
-        private boolean mRun = true;
-
-        /** Indicate whether or not the game is paused */
-        private boolean mPaused = false;
-
-        /** Handle to the surface manager object we interact with */
-        private SurfaceHolder mSurfaceHolder;
-
-        /** Handle to the application context;
-         *  used to (for example) fetch Drawables. */
-        private Context mContext;
-
-        /** Message handler used by thread to interact with TextView */
-        private Handler mHandler;
-
-        /** The slider representing power */
-        private SalvoSlider mPowerSlider;
-
-        /** The slider representing angle */
-        private SalvoSlider mAngleSlider;
-
-        /** Last X coordinate the user touched (in game coordinates) */
-        private float mTouchX;
-
-        /** Last Y coordinate the user touched (in game coordinates) */
-        private float mTouchY;
-
-        public ScorchedThread(SurfaceHolder surfaceHolder,
-                            Context context,
-                            Handler handler,
-                            SalvoSlider powerSlider,
-                            SalvoSlider angleSlider) {
-            mState = null;
-            mSurfaceHolder = surfaceHolder;
-            mContext = context;
-            mHandler = handler;
-            mPowerSlider = powerSlider;
-            mAngleSlider = angleSlider;
+        /*================= Access =================*/
+        public RunGameThreadStateController getStateController() {
+            return mStateController;
         }
 
         /*================= Operations =================*/
-        /** Shut down the thread */
-        public void suicide() {
-            synchronized (mUserInputSem) {
-                mRun = false;
-            }
-
-            // interrupt anybody in wait()
-            this.interrupt();
-        }
-
-        /*================= Main =================*/
         @Override
         public void run() {
-            Log.w(this.getClass().getName(), "run(): waiting for surface to be created.");
+            Log.w(this.getClass().getName(), "Starting RunGameThread...");
 
-            mRun = true;
-            synchronized (mSurfaceHasBeenCreatedSem) {
-                while (!mSurfaceHasBeenCreated) {
-                    try {
-                        mSurfaceHasBeenCreatedSem.wait();
-                    }
-                    catch (InterruptedException e) {
-                        Log.w(this.getClass().getName(),
-                            "interrupted waiting for " +
-                            "mSurfaceHasBeenCreatedSem");
-                        mRun = false;
-                    }
+            while (true) {
+                // Enter the state
+                synchronized (mStateLock) {
+                    stateLog("onEnter", mState);
+                    mState.onEnter(mAcc);
                 }
-            }
-            Log.w(this.getClass().getName(),
-                "run(): surface has been created.");
 
-            // main loop
-            Log.w(this.getClass().getName(), "run(): entering main loop.");
-            synchronized (mUserInputSem) {
-                mState = GameState.sTurnStartState;
-                while (true) {
-                    mState.onEnter(mModel,
-                                    mPowerSlider, mAngleSlider,
-                                    mPowerAdaptor, mAngleAdaptor);
-                    GameState next = null;
+                // Execute the state's main loop
+                GameState next = null;
+                synchronized (mStateLock) {
+                    stateLog("starting main", mState);
                     while (true) {
-                        next = mState.main(mModel);
+                        if (doCancellationPoint())
+                            return;
+                        next = mState.main(mAcc);
                         if (next != null)
                             break;
-                        // redraw whatever needs to be redrawn
-                        if (mState.needRedraw()) {
-                            Canvas canvas = null;
-                            try {
-                                canvas = mSurfaceHolder.lockCanvas(null);
-                                mState.redraw(canvas, mModel);
-                            }
-                            finally {
-                                if (canvas != null) {
-                                    // Don't leave the Surface in an
-                                    // inconsistent state
-                                    mSurfaceHolder.
-                                        unlockCanvasAndPost(canvas);
-                                }
-                            }
-                        }
-                        try {
-                            if (!mRun) {
-                                Log.w(this.getClass().getName(),
-                                    "mRun == false. quitting.");
-                                return;
-                            }
-                            mUserInputSem.wait(mState.
-                                getBlockingDelay());
-                        }
-                        catch (InterruptedException e) {
-                            if (!mRun) {
-                                Log.w(this.getClass().getName(),
-                                    "interrupted: quitting.");
-                                return;
-                            }
-                        }
+                        // Delay until the next call to main()
+                        // If getBlockingDelay == 0, then we delay until
+                        // someone calls notify() on mStateLock
+                        mStateLock.wait(mState.getBlockingDelay());
                     }
-                    mState.onExit(mPowerSlider, mAngleSlider);
-                    Log.w(this.getClass().getName(), "transitioning from " +
-                            mState.toString() + " to " +
-                            next.toString());
+                    if (doCancellationPoint())
+                        return;
+                }
+
+                synchronized (mStateLock) {
+                    stateLog("onExit", mState);
+                    mState.onExit();
                     mState = next;
                 }
             }
         }
 
-        /*================= Callbacks =================*/
-        /** Called from GUI thread when the user presses a button.
-         */
-        public void onButton(GameState.GameButton b) {
-            synchronized (mUserInputSem) {
-                if (mState.onButton(b))
-                    mUserInputSem.notify();
-            }
+        /** Print out state logging information */
+        private void stateLog(String text, GameState state) {
+            StringBuilder b = new StringBuilder(80);
+            b.append("onEnter(").append(mState.toString());
+            b.append(")");
+            Log.w(this.getClass().getName(), b.toString());
         }
 
-        /** Called (from the GUI thread) when the user moves a slider
+        /** Process requests that the main thread sleep or exit.
+         *
+         * This function checks to see if someone has requested that the
+         * main thread go to sleep or terminate itself.
+         *
+         * In the event that someone has requested sleep, we sleep using
+         * wait().
+         * In the event that someone has requested termination, we return
+         * true.
+         *
+         * @return      true if we should exit run(), false otherwise
          */
-        public void onSliderChange(boolean isPowerSlider, int val) {
-            synchronized (mUserInputSem) {
-                if (mState.onSlider(mModel, isPowerSlider, val))
-                    mUserInputSem.notify();
+        private boolean doCancellationPoint() {
+            assert (Thread.holdsLock(mStateLock));
+            if (mStateController.getTerminateRequested())
+                return true;
+            if (mStateController.getStopRequested()) {
+                mStateLock.wait();
             }
+            return false;
         }
 
-        /** Handles a touchscreen event */
-        public boolean onTouchEvent(MotionEvent me) {
-            synchronized (mUserInputSem) {
-                if (mState.onTouchEvent(me))
-                    mUserInputSem.notify();
-            }
-            return true;
+        /*================= Lifecycle =================*/
+        public RunGameThread() {
+            mStateController = new RunGameThreadStateController();
         }
     }
 
     /*================= Operations =================*/
-    /**
-     * Invoked when the Activity loses user focus.
-     */
-    @Override
-    protected void onPause() {
-        super.onPause();
-        Log.w(this.getClass().getName(), "onPause called");
-        //mGameControl.getThread().pause(); // pause game when
-                                                // Activity pauses
-    }
-
-    /**
-     * Notification that something is about to happen, to give the Activity a
-     * chance to save state.
-     *
-     * @param outState a Bundle into which this Activity should save its
-     *        state
-     */
-    @Override
-    protected void onSaveInstanceState(Bundle map) {
-        super.onSaveInstanceState(map);
-        Log.w(this.getClass().getName(), "RunGameAct.onSaveInstanceState");
-        mModel.saveState(map);
-    }
-
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        Log.w(this.getClass().getName(),
-            "onWindowFocusChanged(" + hasFocus + ") called");
-    }
-
+    /** Called from GameControlView to handle keystrokes */
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         switch(keyCode) {
             case KeyEvent.KEYCODE_BACK:
@@ -297,6 +287,15 @@ public class RunGameAct extends Activity {
                 return true;
         }
         return false;
+    }
+
+    /** Called from GameControlView to handle touch events */
+    public void onTouchEvent(MotionEvent me) {
+        synchronized (mStateLock) {
+            if (mState.onTouchEvent(mAcc, me)) {
+                mStateLock.notify();
+            }
+        }
     }
 
     private void showAreYouSureYouWantToQuit() {
@@ -353,109 +352,122 @@ public class RunGameAct extends Activity {
         ////////////////// Get pointers to stuff
         mGameControlView = (GameControlView)
             findViewById(R.id.game_control_view);
-        final TextView angleText = (TextView)findViewById(R.id.angle_text);
-        final Button fireButton = (Button)findViewById(R.id.fire_button);
+        mAngleText = (TextView)findViewById(R.id.angle_text);
+        mArmoryLeftButton = (Button)findViewById(R.id.armory_left_button);
+        mArmoryMainText = (TextView)findViewById(R.id.armory_main_text);
+        mArmorySecondaryText = (TextView)
+            findViewById(R.id.armory_secondary_text);
+        mArmoryRightButton = (Button)findViewById(R.id.armory_right_button);
+        mFireButton = (Button)findViewById(R.id.fire_button);
 
         ////////////////// Initialize stuff
+        mArmoryLeftButton.setOnClickListener(new OnClickListener() {
+            public void onClick(View arg0) {
+                synchronized (mStateLock) {
+                    if (mState.onButton(mAcc,
+                            GameState.GameButton.ARMORY_LEFT)) {
+                        mStateLock.notify();
+                    }
+                }
+            }
+        });
+
+        mArmoryRightButton.setOnClickListener(new OnClickListener() {
+            public void onClick(View arg0) {
+                synchronized (mStateLock) {
+                    if (mState.onButton(mAcc,
+                            GameState.GameButton.ARMORY_RIGHT)) {
+                        mStateLock.notify();
+                    }
+                }
+            }
+        });
+
         fireButton.setOnTouchListener(new View.OnTouchListener() {
             public boolean onTouch(View v, MotionEvent event) {
                 int act = event.getAction();
                 if (act == MotionEvent.ACTION_DOWN) {
-                    long downTime = event.getDownTime();
-                    long eventTime = event.getEventTime();
-                    long diff = eventTime - downTime;
-                    angleText.setText("" + diff);
+                    synchronized (mStateLock) {
+                        if (mState.onButton(mAcc,
+                                GameState.GameButton.PRESS_FIRE)) {
+                            mStateLock.notify();
+                        }
+                    }
                 }
                 else if (act == MotionEvent.ACTION_UP) {
-                    angleText.setText("released.");
+                    synchronized (mStateLock) {
+                        if (mState.onButton(mAcc,
+                                GameState.GameButton.RELEASE_FIRE)) {
+                            mStateLock.notify();
+                        }
+                    }
                 }
-
                 return true;
             }
         });
 
-        mGameControl.initialize(mModel, powerSlider, angleSlider);
-        fireButton.setOnClickListener(new OnClickListener() {
-            public void onClick(View arg0) {
-                mGameControl.getThread().onButton(GameState.GameButton.FIRE);
-            }
-        });
-        zoomIn.setOnClickListener(new OnClickListener() {
-            public void onClick(View arg0) {
-                mGameControl.getThread().onButton(
-                    GameState.GameButton.ZOOM_IN);
-            }
-        });
-        zoomOut.setOnClickListener(new OnClickListener() {
-            public void onClick(View arg0) {
-                mGameControl.getThread().onButton(
-                    GameState.GameButton.ZOOM_OUT);
-            }
-        });
-
-
-        mGameControl.getHolder().addCallback(mGameControlViewObserver);
+        mGameControlView.getHolder().addCallback(mGameControlViewObserver);
+        synchronized (mStateLock) {
+            mThread.getStateController().setInitializationComplete();
+        }
     }
 
     @Override
-    public void onStart() {
-        super.onStart();
+    protected void onPause() {
+        // The game is no longer in the foreground
+        super.onPause();
+        synchronized (mStateLock) {
+            Log.w(this.getClass().getName(), "onPause called");
+            mThread.getStateController().changeStopRequested(true);
+            mState.notify();
+        }
     }
 
+    @Override
+    public void onResume() {
+        // The game is back in the foreground
+        super.onResume();
+        synchronized (mStateLock) {
+            Log.w(this.getClass().getName(), "onResume called");
+            mThread.getStateController().changeStopRequested(false);
+            mState.notify();
+        }
+    }
 
-    /** Hook up the various views to each other.
-     * Must be called after all views are finished being constructed-- i.e.
-     * in onStart, not onCreate. */
-    private void initialize() {
+    /**
+     * Notification that something is about to happen, to give the Activity a
+     * chance to save state.
+     *
+     * @param outState a Bundle into which this Activity should save its
+     *        state
+     */
+    @Override
+    protected void onSaveInstanceState(Bundle map) {
+        super.onSaveInstanceState(map);
+        synchronized (mStateLock) {
+            Log.w(this.getClass().getName(),
+                    "RunGameAct.onSaveInstanceState");
+            mModel.saveState(map);
+            mState.saveState(map);
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy(map);
+        synchronized (mStateLock) {
+            Log.w(this.getClass().getName(),
+                    "RunGameAct.onDestroy");
+            mThread.getStateController().changeTerminateRequested(true);
+            mStateLock.notify()
+        }
     }
 
     public RunGameAct() {
         super();
-        myRunGameActAccessor = new RunGameActAccessor();
+        mStateLock = new Object();
+        mAcc = new RunGameActAccessor();
         mGameControlViewObserver = new GameControlViewObserver();
-        mRunGameThread = new RunGameThread();
+        mThread = new RunGameThread();
     }
 }
-
-/////////////
-
-    /*================= ScorchedThread =================*/
-
-        public void gameControlViewDestroyed() {
-            // we have to tell thread to shut down & wait for it to finish,
-            // or else it might touch the Surface after we return and explode
-            mThread.suicide();
-
-            while (true) {
-                try {
-                    mThread.join();
-                    break;
-                }
-                catch (InterruptedException e) {
-                }
-            }
-        }
-
-        create thread
-        // Create game controller thread
-        mThread = new ScorchedThread(holder, getContext(),
-            new Handler() {
-                @Override
-                public void handleMessage(Message m) {
-                    //mStatusText.setVisibility(m.getData().getInt("viz"));
-                    //mStatusText.setText(m.getData().getString("text"));
-                }
-            },
-            powerSlider,
-            angleSlider);
-
-        mPowerAdaptor = new SalvoSlider.Listener() {
-            public void onPositionChange(int val) {
-                mThread.onSliderChange(true, val);
-            }
-        };
-        mAngleAdaptor = new SalvoSlider.Listener() {
-            public void onPositionChange(int val) {
-                mThread.onSliderChange(false, val);
-            }
-        };

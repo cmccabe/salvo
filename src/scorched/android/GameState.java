@@ -49,12 +49,11 @@ public abstract class GameState {
 
     /*================= Types =================*/
     enum GameButton {
+        ARMORY_LEFT,
+        ARMORY_RIGHT,
         OK,
-        DONE,
-        FIRE,
-        WEAP,
-        ZOOM_IN,
-        ZOOM_OUT,
+        PRESS_FIRE,
+        RELEASE_FIRE
     }
 
     public class DomainException extends RuntimeException {
@@ -71,13 +70,10 @@ public abstract class GameState {
      */
     public abstract void saveState(Bundle map);
 
-    /** Unpack this GameState from a Bundle.
-     *
-     * This method should call the class-specific initializer
-     */
-    public void fromBundle(Bundle map) { }
-
     /** Called when we enter the state.
+     *
+     * Any "side effects" to entering the state should be performed here,
+     * rather than in the initialization function.
      */
     public void onEnter(RunGameActAccessor game) { }
 
@@ -102,7 +98,7 @@ public abstract class GameState {
      *
      * @return  true if the main thread needs to be notified of a change
      */
-    public boolean onButton(RunGameActAccessor game) {
+    public boolean onButton(RunGameActAccessor game, GameButton b) {
         return false;
     }
 
@@ -110,7 +106,9 @@ public abstract class GameState {
      *
      * @return  true if the main thread needs to be notified of a change
      */
-    public boolean onGameControlViewTouchEvent(MotionEvent me) { }
+    public boolean onTouchEvent(RunGameActAccessor game, MotionEvent me) {
+        return false;
+    }
 
     /*================= Game States =================*/
     //         +-------------------------+        no more rounds left
@@ -173,16 +171,18 @@ public abstract class GameState {
         /*================= Constants =================*/
         public static final byte ID = 0;
 
+        /*================= Static =================*/
+        private static LeaderboardState sMe = new LeaderboardState();
+
+        /*================= Data =================*/
+        private boolean mFinished;
+
         /*================= Operations =================*/
         public void saveState() {
             map.putByte(ID, GAME_STATE_ID);
         }
 
-        public void onEnter(Model model,
-                            SalvoSlider powerSlider, SalvoSlider angleSlider,
-                            Listener powerAdaptor, Listener angleAdaptor) {
-            mFinished = false;
-
+        public void onEnter(RunGameActAccessor game) {
             // TODO: give a reward to the 'surviving' player
             // use: int newPlayer = model.getCurPlayerId();, etc.
 
@@ -190,18 +190,15 @@ public abstract class GameState {
             // TODO: set leaderboard menus...
         }
 
-        public GameState main(Model model) {
+        public GameState main(RunGameActAccessor game) {
             return (mFinished) ? sBuyWeaponsState : null;
         }
-
-        public void onExit(SalvoSlider powerSlider,
-                           SalvoSlider angleSlider) { }
 
         public int getBlockingDelay() {
             return 0;
         }
 
-        public boolean onButton(GameButton b) {
+        public boolean onButton(RunGameActAccessor game, GameButton b) {
             if (b == GameButton.OK) {
                 mFinished = true;
                 return true;
@@ -211,21 +208,22 @@ public abstract class GameState {
             }
         }
 
-        public boolean onSlider(Model model, boolean isPower, int val) {
-            return false;
+        /*================= Lifecycle =================*/
+        private void initialize() {
+            mFinished = false;
         }
 
-        public boolean onTouchEvent(MotionEvent me) {
-            return false;
+        public static LeaderboardState create() {
+            sLeaderBoardState.initialize();
+            return sLeaderBoardState;
         }
 
-        public boolean needRedraw() { return false; }
+        public static LeaderboardState createFromBundle(Bundle map) {
+            sLeaderBoardState.initialize();
+            return sLeaderBoardState;
+        }
 
-        public void redraw(Canvas canvas, Model model) { }
-
-        public LeaderboardState() { }
-
-        private boolean mFinished;
+        private LeaderboardState() { }
     }
 
     /** Allows the user to buy weapons */
@@ -233,20 +231,24 @@ public abstract class GameState {
         /*================= Constants =================*/
         public static final byte ID = 5;
 
+        /*================= Static =================*/
+        private static BuyWeaponsState sMe = new BuyWeaponsState();
+
+        /*================= Data =================*/
+        private boolean mFinished;
+
         /*================= Operations =================*/
         public void saveState() {
             map.putByte(ID, GAME_STATE_ID);
         }
 
-        public void onEnter(Model model,
-                            SalvoSlider powerSlider, SalvoSlider angleSlider,
-                            Listener powerAdaptor, Listener angleAdaptor) {
+        public void onEnter(RunGameActAccessor game) {
             mFinished = false;
             // TODO: implement weapons layout...
             // TODO: implement weapons menus...
         }
 
-        public GameState main(Model model) {
+        public GameState main(RunGameActAccessor game) {
             return (mFinished) ? sBuyWeaponsState : null;
         }
 
@@ -260,30 +262,32 @@ public abstract class GameState {
             return 0;
         }
 
-        public boolean onButton(GameButton b) {
+        public boolean onButton(RunGameActAccessor game, GameButton b) {
             if (b == GameButton.DONE) {
                 mFinished = true;
                 return true;
             }
-            else
+            else {
                 return false;
+            }
         }
 
-        public boolean onSlider(Model model, boolean isPower, int val) {
-            return false;
+        /*================= Lifecycle =================*/
+        private void initialize() {
+            mFinished = false;
         }
 
-        public boolean onTouchEvent(MotionEvent me) {
-            return false;
+        public static BuyWeaponsState create() {
+            sMe.initialize();
+            return sMe;
         }
 
-        public boolean needRedraw() { return false; }
+        public static BuyWeaponsState createFromBundle(Bundle map) {
+            sMe.initialize();
+            return sMe;
+        }
 
-        public void redraw(Canvas canvas, Model model) { }
-
-        public BuyWeaponsState() { }
-
-        private boolean mFinished;
+        private BuyWeaponsState() { }
     }
 
     /** The start of a turn. */
@@ -291,57 +295,60 @@ public abstract class GameState {
         /*================= Constants =================*/
         public static final byte ID = 10;
 
-        private static final int MAX_ANIMATION_STEP = 100;
+        /*================= Static =================*/
+        private TurnStartState sMe = new TurnStartState();
+
+        /*================= Data =================*/
+        private Model.NextTurnInfo mInfo;
 
         /*================= Operations =================*/
         public void saveState() {
             map.putByte(ID, GAME_STATE_ID);
         }
 
-        public GameState main(Model model) {
-            // Determine next game state
-            int oldPlayer = model.getCurPlayerId();
-            model.nextPlayer();
-            int newPlayer = model.getCurPlayerId();
-            if (newPlayer == Player.INVALID_PLAYER_ID) {
-                // Everyone died. It was a draw.
+        public void onEnter(RunGameActAccessor game) {
+            game.getModel().getNextPlayerInfo(mInfo);
+            // TODO: set location of floating arrow thing to current player
+        }
+
+        public GameState main(RunGameActAccessor game) {
+            if (mInfo.isDraw()) {
                 // TODO: display "it was a draw!" or similar
                 return GameState.sLeaderBoardState;
             }
-            else if (newPlayer == oldPlayer) {
+            else if (mInfo.nextPlayerHasWon()) {
                 // Someone won the round.
                 // TODO: display "foo wins" or similar
+                // TODO: add gold to account, or whatever
                 return GameState.sLeaderBoardState;
             }
             else {
+                game.setCurPlayerId(mInfo.getNextPlayerId());
                 return model.getCurPlayer().getPlayerGameState();
             }
         }
 
         public int getBlockingDelay() {
-            return 10;
+            throw new RuntimeException("unreachable");
         }
 
-        public boolean onSlider(Model model, boolean isPower, int val) {
-            return false;
+        /*================= Lifecycle =================*/
+        private void initialize() {
         }
 
-        public boolean onTouchEvent(MotionEvent me) {
-            return false;
+        public static TurnStartState create() {
+            sMe.initialize();
+            return sMe;
         }
 
-        public boolean needRedraw() {
-            return true;
+        public static LeaderboardState createFromBundle(Bundle map) {
+            sMe.initialize();
+            return sMe;
         }
 
-        public void redraw(Canvas canvas, Model model) {
-            Graphics.instance.drawScreen(canvas, model);
+        private TurnStartState() {
+            mInfo = new Model.NextTurnInfo();
         }
-
-        public TurnStartState() {
-        }
-
-        private GameState mNextGameState;
     }
 
     /** A human turn. We will accept input from the touchscreen and do all
@@ -350,73 +357,75 @@ public abstract class GameState {
         /*================= Constants =================*/
         public static final byte ID = 15;
 
+        /*================= Static =================*/
+        private static HumanMoveState sMe = new HumanMoveState();
+
+        /*================= Data =================*/
+//        /** True if we need a screen refresh */
+//        private boolean mNeedRedraw;
+//
+//        /** True while the user's finger is down on the touch screen */
+//        private boolean mFingerDown;
+//
+//        /** The zoom, pan settings that were in effect when the user started
+//         * pressing on the screen */
+//        //private Graphics.ViewSettings mTouchViewSettings;
+//
+//        /** Last X coordinate the user touched (in game coordinates) */
+//        private float mTouchX;
+//
+//        /** Last Y coordinate the user touched (in game coordinates) */
+//        private float mTouchY;
+//
+//        /** True if the user has just fired his weapon */
+//        private boolean mFired;
+
         /*================= Operations =================*/
         public void saveState() {
             map.putByte(ID, GAME_STATE_ID);
         }
 
-        public void onEnter(Model model,
-                            SalvoSlider powerSlider, SalvoSlider angleSlider,
-                            Listener powerAdaptor, Listener angleAdaptor)
-        {
-            mNeedRedraw = true;
-            mFingerDown = false;
-            mTouchX = 0;
-            mTouchY = 0;
-            mFired = false;
-
-            // Activate sliders
-            // TODO: look up sliders by layout
-            Player curPlayer = model.getCurPlayer();
-            int myColor = curPlayer.getColor().toInt();
-
-            powerSlider.setState(SalvoSlider.SliderState.BAR,
-                        powerAdaptor,
-                        Player.MIN_POWER, Player.MAX_POWER,
-                        curPlayer.getPower(),
-                        myColor);
-            angleSlider.setState(SalvoSlider.SliderState.ANGLE,
-                        angleAdaptor,
-                        Player.MAX_TURRET_ANGLE, Player.MIN_TURRET_ANGLE,
-                        curPlayer.getAngleDeg(),
-                        myColor);
+        public void onEnter(RunGameActAccessor game) {
+//            mNeedRedraw = true;
+//            mFingerDown = false;
+//            mTouchX = 0;
+//            mTouchY = 0;
+//            mFired = false;
+//
+//            // Activate sliders
+//            // TODO: look up sliders by layout
+//            Player curPlayer = model.getCurPlayer();
+//            int myColor = curPlayer.getColor().toInt();
+//
+//            powerSlider.setState(SalvoSlider.SliderState.BAR,
+//                        powerAdaptor,
+//                        Player.MIN_POWER, Player.MAX_POWER,
+//                        curPlayer.getPower(),
+//                        myColor);
+//            angleSlider.setState(SalvoSlider.SliderState.ANGLE,
+//                        angleAdaptor,
+//                        Player.MAX_TURRET_ANGLE, Player.MIN_TURRET_ANGLE,
+//                        curPlayer.getAngleDeg(),
+//                        myColor);
         }
 
-        public GameState main(Model model) {
+        public GameState main(RunGameActAccessor game) {
             return null; //(mFired) ? sBallisticsState : null;
         }
 
         public void onExit(SalvoSlider powerSlider,
                            SalvoSlider angleSlider) {
-            // Deactivate sliders
-            // TODO: look up sliders by layout
-            powerSlider.setState(SalvoSlider.SliderState.DISABLED,
-                        null, 0, 0, 0, 0);
-            angleSlider.setState(SalvoSlider.SliderState.DISABLED,
-                        null, 0, 0, 0, 0);
+            // TODO: grey out buttons and whatnot
         }
 
         public int getBlockingDelay() {
             return 0;
         }
 
-        public boolean onButton(GameButton b) {
-            return false;
-        }
+        public boolean onTouchEvent(RunGameActAccessor game, MotionEvent me) {
+            // TODO: implement touch-to-angle
 
-        public boolean onSlider(Model model, boolean isPower, int val) {
-            // TODO: have setPower and setAngleDeg return true only if the
-            // value was changed
-            if (isPower)
-                model.getCurPlayer().setPower(val);
-            else
-                model.getCurPlayer().setAngleDeg(val);
-            mNeedRedraw = true;
-            return true;
-        }
-
-        public boolean onTouchEvent(MotionEvent me) {
-            int action = me.getAction();
+            /*int action = me.getAction();
             boolean notify = false;
             if ((action == MotionEvent.ACTION_DOWN) ||
                 (action == MotionEvent.ACTION_MOVE) ||
@@ -438,45 +447,32 @@ public abstract class GameState {
             }
             if (notify)
                 mNeedRedraw = true;
-            return notify;
+            return notify;*/
+
+            return false;
         }
 
-        public boolean needRedraw() {
-            return mNeedRedraw;
-        }
-
-        public void redraw(Canvas canvas, Model model) {
-            Graphics.instance.drawScreen(canvas, model);
-            mNeedRedraw = false;
-        }
-
-        public HumanMoveState() {
-            mNeedRedraw = true;
-            mFingerDown = false;
+        /*================= Lifecycle =================*/
+        private void initialize() {
+            //mNeedRedraw = true;
+            //mFingerDown = false;
             //mTouchViewSettings = new Graphics.ViewSettings(0,0,0);
-            mTouchX = 0;
-            mTouchY = 0;
-            mFired = false;
+            //mTouchX = 0;
+            //mTouchY = 0;
+            //mFired = false;
         }
 
-        /** True if we need a screen refresh */
-        private boolean mNeedRedraw;
+        public static HumanMoveState create() {
+            sMe.initialize();
+            return sMe;
+        }
 
-        /** True while the user's finger is down on the touch screen */
-        private boolean mFingerDown;
+        public static HumanMoveState createFromBundle(Bundle map) {
+            sMe.initialize();
+            return sMe;
+        }
 
-        /** The zoom, pan settings that were in effect when the user started
-         * pressing on the screen */
-        //private Graphics.ViewSettings mTouchViewSettings;
-
-        /** Last X coordinate the user touched (in game coordinates) */
-        private float mTouchX;
-
-        /** Last Y coordinate the user touched (in game coordinates) */
-        private float mTouchY;
-
-        /** True if the user has just fired his weapon */
-        private boolean mFired;
+        public HumanMoveState() { }
     }
 
     /** Draw missiles flying through the sky. The fun state. */
@@ -484,14 +480,18 @@ public abstract class GameState {
         /*================= Constants =================*/
         public static final byte ID = 20;
 
+        /*================= Static =================*/
+        private static BallisticsState sMe = new BallisticsState();
+
+        /*================= Data =================*/
+        //private short mCurSample;
+
         /*================= Operations =================*/
         public void saveState() {
             map.putByte(ID, GAME_STATE_ID);
         }
 
-        public void onEnter(Model model,
-                            SalvoSlider powerSlider, SalvoSlider angleSlider,
-                            Listener powerAdaptor, Listener angleAdaptor) {
+        public void onEnter(RunGameActAccessor game) {
             Graphics gfx = Graphics.instance;
             Weapon wpn = Weapon.instance;
 
@@ -509,7 +509,7 @@ public abstract class GameState {
             // todo: zoom so that start and end points are both visible
         }
 
-        public GameState main(Model model) {
+        public GameState main(RunGameActAccessor game) {
             short nextSample = (short)(mCurSample + 1);
             if (nextSample >= Weapon.instance.getTotalSamples()) {
                 return sExplosionState;
@@ -518,41 +518,25 @@ public abstract class GameState {
             return null;
         }
 
-        public void onExit(SalvoSlider powerSlider,
-                           SalvoSlider angleSlider) {
-        }
-
         public int getBlockingDelay() {
             return 10;
         }
 
-        public boolean onButton(GameButton b) { return false; }
-
-        public boolean onSlider(Model model, boolean isPower, int val) {
-            return false;
+        /*================= Lifecycle =================*/
+        private void initialize() {
         }
 
-        public boolean onTouchEvent(MotionEvent me) {
-            return false;
+        public static BallisticsState create() {
+            sMe.initialize();
+            return sMe;
         }
 
-        public boolean needRedraw() {
-            return true;
+        public static BallisticsState createFromBundle(Bundle map) {
+            sMe.initialize();
+            return sMe;
         }
 
-        public void redraw(Canvas canvas, Model model) {
-            Graphics gfx = Graphics.instance;
-            gfx.drawScreen(canvas, model);
-            gfx.drawTrajectory(canvas, model.getCurPlayer(), mCurSample);
-        }
-
-        public BallisticsState() {
-            mViewSettingsTemp = new Graphics.ViewSettings(0,0,0);
-        }
-
-        Graphics.ViewSettings mViewSettingsTemp;
-
-        short mCurSample;
+        private BallisticsState() { }
     }
 
     /** Do explosions.
@@ -563,36 +547,41 @@ public abstract class GameState {
         /*================= Constants =================*/
         public static final byte ID = 25;
 
+        /*================= Static =================*/
+        private static ExplosionState sMe = new ExplosionState();
+
+        /*================= Data =================*/
+        //private float mMaxExplosionSize;
+        //private float mCurExplosionSize;
+
         /*================= Operations =================*/
         public void saveState() {
             map.putByte(ID, GAME_STATE_ID);
         }
 
-        public void onEnter(Model model,
-                            SalvoSlider powerSlider, SalvoSlider angleSlider,
-                            Listener powerAdaptor, Listener angleAdaptor) {
-            Weapon wpn = Weapon.instance;
-            WeaponType wtp = wpn.getWeaponType();
-            mMaxExplosionSize = wtp.getExplosionSize();
-            mCurExplosionSize = 0;
-            Graphics.instance.initializeExplosion();
-            Sound.instance.playBoom(powerSlider.getContext().getApplicationContext());
+        public void onEnter(RunGameActAccessor game) {
+//            Weapon wpn = Weapon.instance;
+//            WeaponType wtp = wpn.getWeaponType();
+//            mMaxExplosionSize = wtp.getExplosionSize();
+//            mCurExplosionSize = 0;
+//            Graphics.instance.initializeExplosion();
+//            Sound.instance.playBoom(
+//                powerSlider.getContext().getApplicationContext());
         }
 
-        public GameState main(Model model) {
-            if (mCurExplosionSize > mMaxExplosionSize) {
-                // TODO: explosion retreating animation
-                Weapon wpn = Weapon.instance;
-                model.doExplosion(wpn.getFinalX(), wpn.getFinalY(),
-                                mMaxExplosionSize);
-                return sTurnStartState;
-            }
-            mCurExplosionSize += 0.01;
+        public GameState main(RunGameActAccessor game) {
+//            if (mCurExplosionSize > mMaxExplosionSize) {
+//                // TODO: explosion retreating animation
+//                Weapon wpn = Weapon.instance;
+//                model.doExplosion(wpn.getFinalX(), wpn.getFinalY(),
+//                                mMaxExplosionSize);
+//                return sTurnStartState;
+//            }
+//            mCurExplosionSize += 0.01;
             return null;
         }
 
-        public void onExit(SalvoSlider powerSlider,
-                           SalvoSlider angleSlider) {
+        public void onExit(RunGameActAccessor game) {
              // examine Weapon.instance to find out where the boom is,
              // then modify the terrain in the model
         }
@@ -601,70 +590,42 @@ public abstract class GameState {
             return 10;
         }
 
-        public boolean onButton(GameButton b) { return false; }
-
-        public boolean onSlider(Model model, boolean isPower, int val) {
-            return false;
+        /*================= Lifecycle =================*/
+        private void initialize() {
         }
 
-        public boolean onTouchEvent(MotionEvent me) {
-            return false;
+        public static ExplosionState create() {
+            sMe.initialize();
+            return sMe;
         }
 
-        public boolean needRedraw() {
-            return true;
+        public static ExplosionState createFromBundle(Bundle map) {
+            sMe.initialize();
+            return sMe;
         }
 
-        public void redraw(Canvas canvas, Model model) {
-            Graphics gfx = Graphics.instance;
-            gfx.drawScreen(canvas, model);
-                // TODO: scrollBy view randomly to make it look
-                // like it's shaking
-            gfx.drawExplosion(canvas, model.getCurPlayer(),
-                              mCurExplosionSize);
-        }
-
-        public ExplosionState() { }
-
-        private float mMaxExplosionSize;
-
-        private float mCurExplosionSize;
+        private ExplosionState() { }
     }
 
     /*================= Static =================*/
-    public static LeaderboardState
-        sLeaderBoardState = new LeaderboardState();
-    public static BuyWeaponsState
-        sBuyWeaponsState = new BuyWeaponsState();
-    public static TurnStartState
-        sTurnStartState = new TurnStartState();
-    public static HumanMoveState
-        sHumanMoveState = new HumanMoveState();
-    public ComputerMoveState
-      sComputerMoveState = new ComputerMoveState();
-    public static BallisticsState
-        sBallisticsState = new BallisticsState();
-    public static ExplosionState
-        sExplosionState = new ExplosionState();
-
     /** Initialize and return a game state object from a Bundle */
     public static GameState fromBundle(Bundle map) {
         byte id = getByte(map, GAME_STATE_ID);
         switch (id) {
             case LeaderboardState.ID:
-                return sLeaderBoardState.fromBundle(map);
+                return sLeaderBoardState.createFromBundle(map);
             case BuyWeaponsState.ID:
-                return sBuyWeaponsState.fromBundle(map);
+                return sBuyWeaponsState.createFromBundle(map);
             case TurnStartState.ID:
-                return sTurnStartState.fromBundle(map);
+                return sTurnStartState.createFromBundle(map);
             case HumanMoveState.ID:
-                return sHumanMoveState.fromBundle(map);
+                return sHumanMoveState.createFromBundle(map);
             case ComputerMoveState.ID:
-                return sComputerMoveState.fromBundle(map);
+                return sComputerMoveState.createFromBundle(map);
             case BallisticsState.ID:
-                return sBallisticsState.fromBundle(map);
+                return sBallisticsState.createFromBundle(map);
             case ExplosionState.ID:
-                return sExplosionState.fromBundle(map);
+                return sExplosionState.createFromBundle(map);
         }
     }
 
@@ -672,3 +633,21 @@ public abstract class GameState {
         return sTurnStartState;
     }
 }
+
+// HOWTO: draw stuff on the canvas
+                        // redraw whatever needs to be redrawn
+//                        if (mState.needRedraw()) {
+//                            Canvas canvas = null;
+//                            try {
+//                                canvas = mSurfaceHolder.lockCanvas(null);
+//                                mState.redraw(canvas, mModel);
+//                            }
+//                            finally {
+//                                if (canvas != null) {
+//                                    // Don't leave the Surface in an
+//                                    // inconsistent state
+//                                    mSurfaceHolder.
+//                                        unlockCanvasAndPost(canvas);
+//                                }
+//                            }
+//                        }
