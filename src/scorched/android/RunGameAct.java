@@ -105,18 +105,32 @@ public class RunGameAct extends Activity {
             }
         }
 
-		public void surfaceChanged(SurfaceHolder arg0, int arg1, int arg2,
-				int arg3) {
-	        // Callback invoked when the surface dimensions change.			
-		}
+        public void surfaceChanged(SurfaceHolder arg0, int arg1, int arg2,
+                int arg3) {
+            // Callback invoked when the surface dimensions change.
+        }
 
-		public void surfaceDestroyed(SurfaceHolder arg0) {
-            // TODO: figure out what to do here, if anything.
-
-            // The confusing thing is that before this callback, we should
-            // receive onPause() or similar, which should already have led us
-            // to pause the thread. So what remains to do here anyway?
-		}
+        public void surfaceDestroyed(SurfaceHolder arg0) {
+            // We have to tell thread to shut down and wait for it to finish,
+            // or else it might touch the Surface after we return and explode
+            boolean retry = true;
+            synchronized (mStateLock) {
+                mThread.getStateController().changeTerminateRequested(true);
+                // Get the thread out of blocking state.
+                // If we ever start doing old-style IO or using sockets, will
+                // have to do some additional rain dances here to get the
+                // thread out of blocking state.
+                mThread.interrupt();
+            }
+            while (retry) {
+                try {
+                    mThread.join();
+                    retry = false;
+                }
+                catch (InterruptedException e) {
+                }
+            }
+        }
     }
 
     /** Controls the state of the RunGameThread.
@@ -210,43 +224,43 @@ public class RunGameAct extends Activity {
         public void run() {
             Log.w(this.getClass().getName(), "Starting RunGameThread...");
 
-            try {           	
-	            while (true) {
-	                // Enter the state
-	                synchronized (mStateLock) {
-	                    stateLog("onEnter", mState);
-	                    mState.onEnter(mAcc);
-	                }
-	
-	                // Execute the state's main loop
-	                GameState next = null;
-	                synchronized (mStateLock) {
-	                    stateLog("starting main", mState);
-	                    while (true) {
-	                        if (doCancellationPoint())
-	                            return;
-	                        next = mState.main(mAcc);
-	                        if (next != null)
-	                            break;
-	                        // Delay until the next call to main()
-	                        // If getBlockingDelay == 0, then we delay until
-	                        // someone calls notify() on mStateLock
-	                        mStateLock.wait(mState.getBlockingDelay());
-	                    }
-	                    if (doCancellationPoint())
-	                        return;
-	                }
-	
-	                synchronized (mStateLock) {
-	                    stateLog("onExit", mState);
-	                    mState.onExit(mAcc);
-	                    mState = next;
-	                }
-	            }
+            try {
+                while (true) {
+                    // Enter the state
+                    synchronized (mStateLock) {
+                        stateLog("onEnter", mState);
+                        mState.onEnter(mAcc);
+                    }
+
+                    // Execute the state's main loop
+                    GameState next = null;
+                    synchronized (mStateLock) {
+                        stateLog("starting main", mState);
+                        while (true) {
+                            if (doCancellationPoint())
+                                return;
+                            next = mState.main(mAcc);
+                            if (next != null)
+                                break;
+                            // Delay until the next call to main()
+                            // If getBlockingDelay == 0, then we delay until
+                            // someone calls notify() on mStateLock
+                            mStateLock.wait(mState.getBlockingDelay());
+                        }
+                        if (doCancellationPoint())
+                            return;
+                    }
+
+                    synchronized (mStateLock) {
+                        stateLog("onExit", mState);
+                        mState.onExit(mAcc);
+                        mState = next;
+                    }
+                }
             }
             catch (InterruptedException e) {
-            	Log.e(getClass().getName(), 
-            		  "caught InterruptedException: quitting.");
+                Log.e(getClass().getName(),
+                      "caught InterruptedException: quitting.");
             }
         }
 
@@ -269,7 +283,7 @@ public class RunGameAct extends Activity {
          * true.
          *
          * @return      true if we should exit run(), false otherwise
-         * @throws InterruptedException 
+         * @throws InterruptedException
          */
         private boolean doCancellationPoint() throws InterruptedException {
             assert (Thread.holdsLock(mStateLock));
@@ -431,7 +445,7 @@ public class RunGameAct extends Activity {
         synchronized (mStateLock) {
             Log.w(this.getClass().getName(), "onPause called");
             mThread.getStateController().changeStopRequested(true);
-            mState.notify();
+            mStateLock.notify();
         }
     }
 
@@ -442,7 +456,7 @@ public class RunGameAct extends Activity {
         synchronized (mStateLock) {
             Log.w(this.getClass().getName(), "onResume called");
             mThread.getStateController().changeStopRequested(false);
-            mState.notify();
+            mStateLock.notify();
         }
     }
 
@@ -467,12 +481,8 @@ public class RunGameAct extends Activity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        synchronized (mStateLock) {
-            Log.w(this.getClass().getName(),
-                    "RunGameAct.onDestroy");
-            mThread.getStateController().changeTerminateRequested(true);
-            mStateLock.notify();
-        }
+        // note: GameControlViewObserver.surfaceDestroyed() cleans up the
+        // thread-- so we don't have to do it here.
     }
 
     public RunGameAct() {

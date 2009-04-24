@@ -258,12 +258,12 @@ public abstract class GameState {
         }
 
         public GameState main(RunGameActAccessor game) {
-        	if (mFinished) {
-        		return BuyWeaponsState.create();
-        	}
-        	else {
-        		return null;
-        	}
+            if (mFinished) {
+                return BuyWeaponsState.create();
+            }
+            else {
+                return null;
+            }
         }
 
         public void onExit(SalvoSlider powerSlider,
@@ -338,7 +338,7 @@ public abstract class GameState {
                 return LeaderboardState.create();
             }
             else {
-            	Model model = game.getModel();
+                Model model = game.getModel();
                 model.setCurPlayerId(mInfo.getNextPlayerId());
                 return model.getCurPlayer().getGameState();
             }
@@ -511,8 +511,8 @@ public abstract class GameState {
         }
 
         public void onEnter(RunGameActAccessor game) {
-        	/*
-        	Graphics gfx = Graphics.instance;
+            /*
+            Graphics gfx = Graphics.instance;
             Weapon wpn = Weapon.instance;
 
             model.getCurPlayer().fireWeapon();
@@ -527,11 +527,11 @@ public abstract class GameState {
             gfx.setViewSettings(mViewSettingsTemp);
             mCurSample = 0;
             // todo: zoom so that start and end points are both visible
-			*/
+            */
         }
 
         public GameState main(RunGameActAccessor game) {
-        	return null;
+            return null;
         }
 
         public int getBlockingDelay() {
@@ -644,8 +644,8 @@ public abstract class GameState {
             case ExplosionState.ID:
                 return ExplosionState.createFromBundle(map);
             default:
-            	throw new RuntimeException("can't recognize state with ID = "
-            								+ id);
+                throw new RuntimeException("can't recognize state with ID = "
+                                            + id);
         }
     }
 

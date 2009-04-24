@@ -12,6 +12,7 @@ public abstract class Brain {
     public abstract GameState getPlayerGameState();
 
     /*================= Operations =================*/
+    public abstract void saveState(int index, Bundle map);
 
     /*================= Brains =================*/
     public static class HumanBrain extends Brain {
@@ -66,6 +67,11 @@ public abstract class Brain {
         public GameState getPlayerGameState() {
             return HumanMoveState.create(); //TODO: change to comp state
         }
+        /*================= Operations =================*/
+        public void saveState(int index, Bundle map) {
+            map.putShort(Util.indexToString(index, KEY_BRAIN_TYPE_ID), ID);
+            //AutoPack.autoPack(map, Util.indexToString(index), mV);
+        }
 
         /*================= Lifecycle =================*/
         public EasyBrain() {
@@ -87,6 +93,12 @@ public abstract class Brain {
             return HumanMoveState.create(); //TODO: change to comp state
         }
 
+        /*================= Operations =================*/
+        public void saveState(int index, Bundle map) {
+            map.putShort(Util.indexToString(index, KEY_BRAIN_TYPE_ID), ID);
+            //AutoPack.autoPack(map, Util.indexToString(index), mV);
+        }
+
         /*================= Lifecycle =================*/
         public MediumBrain() {
             super();
@@ -105,6 +117,12 @@ public abstract class Brain {
         /*================= Access =================*/
         public GameState getPlayerGameState() {
             return HumanMoveState.create(); //TODO: change to comp state
+        }
+
+        /*================= Operations =================*/
+        public void saveState(int index, Bundle map) {
+            map.putShort(Util.indexToString(index, KEY_BRAIN_TYPE_ID), ID);
+            //AutoPack.autoPack(map, Util.indexToString(index), mV);
         }
 
         /*================= Lifecycle =================*/

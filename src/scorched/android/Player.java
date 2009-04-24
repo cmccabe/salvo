@@ -52,9 +52,6 @@ public class Player {
 
     /*================= Members =================*/
     public static class MyVars {
-        /** The brain that controls this player */
-        public Brain mBrain;
-
         /** How much life we have. If this is 0 then we're dead. */
         public int mLife;
 
@@ -86,6 +83,9 @@ public class Player {
         public PlayerColor mColor;
     }
     private MyVars mV;
+
+    /** The brain that controls this player */
+    public Brain mBrain;
 
     /** The index of this player in the players array */
     public int mId;
@@ -213,18 +213,21 @@ public class Player {
     /*================= Save =================*/
     public void saveState(int index, Bundle map) {
         AutoPack.autoPack(map, Util.indexToString(index), mV);
+        mBrain.saveState(index, map);
     }
 
     /*================= Lifecycle =================*/
     public static Player fromBundle(int index, Bundle map) {
         MyVars v = (MyVars)AutoPack.autoUnpack(map,
                         Util.indexToString(index), MyVars.class);
-        return new Player(index, v);
+        Brain brain = Brain.fromBundle(index, map);
+        return new Player(index, v, brain);
     }
 
-    public Player(int index, MyVars v) {
+    public Player(int index, MyVars v, Brain brain) {
         mV = v;
         mId = index;
+        mBrain = brain;
 
         // update cached value of mAngleRad
         setAngleDeg(mV.mAngleDeg);

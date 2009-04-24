@@ -190,7 +190,6 @@ public class ModelFactory {
         /*================= Access =================*/
         public synchronized Player createPlayer(int index) {
             Player.MyVars v = new Player.MyVars();
-            v.mBrain = mV.mBrainFac.createBrain();
             v.mLife = mV.mLife;
             v.mX = -1;
             v.mY = -1;
@@ -198,7 +197,8 @@ public class ModelFactory {
             v.mPower = (3 * Player.MAX_POWER) / 4;
             v.mName = mV.mName;
             v.mColor = mV.mColor;
-            return new Player(index, v);
+            Brain brain = mV.mBrainFac.createBrain();
+            return new Player(index, v, brain);
         }
 
         public synchronized void saveState(int index, Bundle map) {
