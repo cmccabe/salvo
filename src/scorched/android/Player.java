@@ -97,6 +97,13 @@ public class Player {
     /*================= Static =================*/
 
     /*================= Access =================*/
+    public String getIntroductionString() {
+        StringBuilder b = new StringBuilder(80);
+        b.append(mV.mName);
+        b.append("'s turn");
+        return b.toString();
+    }
+
     public int getId() {
         return mId;
     }

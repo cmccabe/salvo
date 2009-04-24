@@ -1,9 +1,12 @@
 package scorched.android;
 
+import android.content.Context;
 import android.graphics.Canvas;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.MotionEvent;
+import android.widget.Toast;
 import scorched.android.RunGameAct.RunGameActAccessor;
 import scorched.android.SalvoSlider.Listener;
 
@@ -309,6 +312,25 @@ public abstract class GameState {
         /*================= Constants =================*/
         public static final byte ID = 10;
 
+        /*================= Types =================*/
+        private static class DoToast implements Runnable {
+            private Context mContext;
+            private String mString;
+
+            /*================= Operations =================*/
+            public void run() {
+                Toast toast = Toast.makeText(mContext, mString, 30);
+                toast.setGravity(Gravity.TOP, 0, 30);
+                toast.show();
+            }
+
+            /*================= Lifecycle =================*/
+            public DoToast(Context context, String string) {
+                mContext = context;
+                mString = string;
+            }
+        }
+
         /*================= Static =================*/
         private static TurnStartState sMe = new TurnStartState();
 
@@ -339,8 +361,15 @@ public abstract class GameState {
             }
             else {
                 Model model = game.getModel();
+                int nextPlayerId = mInfo.getNextPlayerId();
+                Player play = model.getPlayers()[nextPlayerId];
+                DoToast doToast = new DoToast(
+                    game.getGameControlView().getContext(),
+                    play.getIntroductionString());
+                game.getRunGameAct().runOnUiThread(doToast);
+
                 model.setCurPlayerId(mInfo.getNextPlayerId());
-                return model.getCurPlayer().getGameState();
+                return play.getGameState();
             }
         }
 
@@ -650,8 +679,7 @@ public abstract class GameState {
     }
 
     public static GameState createInitialGameState() {
-        //return TurnStartState.create();
-        return HumanMoveState.create();
+        return TurnStartState.create();
     }
 }
 

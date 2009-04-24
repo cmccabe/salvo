@@ -80,6 +80,10 @@ public class RunGameAct extends Activity {
      */
     public class RunGameActAccessor {
         /*================= Access =================*/
+        public Activity getRunGameAct() {
+            return RunGameAct.this;
+        }
+
         public GameControlView getGameControlView() {
             return mGameControlView;
         }
