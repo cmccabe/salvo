@@ -41,7 +41,7 @@ public class Model {
         private boolean mCurPlayerHasWon;
 
         /*================= Access =================*/
-        /** Returns true if the game is a draw (nobody can win) */ 
+        /** Returns true if the game is a draw (nobody can win) */
         public boolean isDraw() {
             return (mNextPlayerId == Player.INVALID_PLAYER_ID);
         }
@@ -49,7 +49,7 @@ public class Model {
         /** Returns true if the current player has won */
         public boolean curPlayerHasWon() {
             if (isDraw()) {
-                throw new RuntimeException("NextTurnInfo: round is a draw; "
+                throw new RuntimeException("NextTurnInfo: round is a draw; " +
                                            "nobody has won");
             }
             return mCurPlayerHasWon;
@@ -58,7 +58,7 @@ public class Model {
         /** Returns the player who should move next. */
         public int getNextPlayerId() {
             if (isDraw()) {
-                throw new RuntimeException("NextTurnInfo: round is a draw; "
+                throw new RuntimeException("NextTurnInfo: round is a draw; " +
                                            "there is no next player");
             }
             return mNextPlayerId;
@@ -71,7 +71,6 @@ public class Model {
         }
 
         public NextTurnInfo() {
-            mCurPlayerId = Player.INVALID_PLAYER_ID;
             mNextPlayerId = Player.INVALID_PLAYER_ID;
         }
     }
@@ -80,6 +79,12 @@ public class Model {
     public static class MyVars {
         /** The index of the current player */
         public int mCurPlayerId;
+
+        /** The background image */
+        public Background mBackground;
+
+        /** The foreground paint */
+        public Foreground mForeground;
     }
     MyVars mV;
 
@@ -90,9 +95,16 @@ public class Model {
     private Player mPlayers[];
 
     /*================= Access =================*/
-    // Might be nice to use an iterator for this stuff... maybe?
-    public short[] getHeights() {
-        return mTerrain.getHeights();
+    public Background getBackground() {
+        return mV.mBackground;
+    }
+
+    public Foreground getForeground() {
+        return mV.mForeground;
+    }
+
+    public Terrain getTerrain() {
+        return mTerrain;
     }
 
     public Player[] getPlayers() {
@@ -141,7 +153,7 @@ public class Model {
             throw new IllegalArgumentException("setNextPlayerId: " +
                 "can't use INVALID_PLAYER_ID");
         }
-        mCurPlayerId = id;
+        mV.mCurPlayerId = id;
     }
 
 //    private float square(float x) {

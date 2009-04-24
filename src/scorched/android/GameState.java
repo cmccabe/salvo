@@ -1,8 +1,10 @@
 package scorched.android;
 
 import android.graphics.Canvas;
+import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
+import scorched.android.RunGameAct.RunGameActAccessor;
 import scorched.android.SalvoSlider.Listener;
 
 
@@ -167,7 +169,7 @@ public abstract class GameState {
     //
 
     ///** Displays the leaderboard */
-    class LeaderboardState implements GameState {
+    public static class LeaderboardState extends GameState {
         /*================= Constants =================*/
         public static final byte ID = 0;
 
@@ -178,8 +180,9 @@ public abstract class GameState {
         private boolean mFinished;
 
         /*================= Operations =================*/
-        public void saveState() {
-            map.putByte(ID, GAME_STATE_ID);
+        @Override
+        public void saveState(Bundle map) {
+            map.putByte(GAME_STATE_ID, ID);
         }
 
         public void onEnter(RunGameActAccessor game) {
@@ -191,7 +194,12 @@ public abstract class GameState {
         }
 
         public GameState main(RunGameActAccessor game) {
-            return (mFinished) ? sBuyWeaponsState : null;
+            if (mFinished) {
+                return BuyWeaponsState.create();
+            }
+            else {
+                return null;
+            }
         }
 
         public int getBlockingDelay() {
@@ -214,20 +222,20 @@ public abstract class GameState {
         }
 
         public static LeaderboardState create() {
-            sLeaderBoardState.initialize();
-            return sLeaderBoardState;
+            sMe.initialize();
+            return sMe;
         }
 
         public static LeaderboardState createFromBundle(Bundle map) {
-            sLeaderBoardState.initialize();
-            return sLeaderBoardState;
+            sMe.initialize();
+            return sMe;
         }
 
         private LeaderboardState() { }
     }
 
     /** Allows the user to buy weapons */
-    class BuyWeaponsState implements GameState {
+    public static class BuyWeaponsState extends GameState {
         /*================= Constants =================*/
         public static final byte ID = 5;
 
@@ -238,8 +246,9 @@ public abstract class GameState {
         private boolean mFinished;
 
         /*================= Operations =================*/
-        public void saveState() {
-            map.putByte(ID, GAME_STATE_ID);
+        @Override
+        public void saveState(Bundle map) {
+            map.putByte(GAME_STATE_ID, ID);
         }
 
         public void onEnter(RunGameActAccessor game) {
@@ -249,7 +258,12 @@ public abstract class GameState {
         }
 
         public GameState main(RunGameActAccessor game) {
-            return (mFinished) ? sBuyWeaponsState : null;
+        	if (mFinished) {
+        		return BuyWeaponsState.create();
+        	}
+        	else {
+        		return null;
+        	}
         }
 
         public void onExit(SalvoSlider powerSlider,
@@ -263,7 +277,7 @@ public abstract class GameState {
         }
 
         public boolean onButton(RunGameActAccessor game, GameButton b) {
-            if (b == GameButton.DONE) {
+            if (b == GameButton.OK) {
                 mFinished = true;
                 return true;
             }
@@ -291,19 +305,20 @@ public abstract class GameState {
     }
 
     /** The start of a turn. */
-    class TurnStartState implements GameState {
+    public static class TurnStartState extends GameState {
         /*================= Constants =================*/
         public static final byte ID = 10;
 
         /*================= Static =================*/
-        private TurnStartState sMe = new TurnStartState();
+        private static TurnStartState sMe = new TurnStartState();
 
         /*================= Data =================*/
         private Model.NextTurnInfo mInfo;
 
         /*================= Operations =================*/
-        public void saveState() {
-            map.putByte(ID, GAME_STATE_ID);
+        @Override
+        public void saveState(Bundle map) {
+            map.putByte(GAME_STATE_ID, ID);
         }
 
         public void onEnter(RunGameActAccessor game) {
@@ -314,17 +329,18 @@ public abstract class GameState {
         public GameState main(RunGameActAccessor game) {
             if (mInfo.isDraw()) {
                 // TODO: display "it was a draw!" or similar
-                return GameState.sLeaderBoardState;
+                return LeaderboardState.create();
             }
-            else if (mInfo.nextPlayerHasWon()) {
+            else if (mInfo.curPlayerHasWon()) {
                 // Someone won the round.
                 // TODO: display "foo wins" or similar
                 // TODO: add gold to account, or whatever
-                return GameState.sLeaderBoardState;
+                return LeaderboardState.create();
             }
             else {
-                game.setCurPlayerId(mInfo.getNextPlayerId());
-                return model.getCurPlayer().getPlayerGameState();
+            	Model model = game.getModel();
+                model.setCurPlayerId(mInfo.getNextPlayerId());
+                return model.getCurPlayer().getGameState();
             }
         }
 
@@ -341,7 +357,7 @@ public abstract class GameState {
             return sMe;
         }
 
-        public static LeaderboardState createFromBundle(Bundle map) {
+        public static TurnStartState createFromBundle(Bundle map) {
             sMe.initialize();
             return sMe;
         }
@@ -353,7 +369,7 @@ public abstract class GameState {
 
     /** A human turn. We will accept input from the touchscreen and do all
      * that stuff. */
-    class HumanMoveState implements GameState {
+    public static class HumanMoveState extends GameState {
         /*================= Constants =================*/
         public static final byte ID = 15;
 
@@ -381,8 +397,9 @@ public abstract class GameState {
 //        private boolean mFired;
 
         /*================= Operations =================*/
-        public void saveState() {
-            map.putByte(ID, GAME_STATE_ID);
+        @Override
+        public void saveState(Bundle map) {
+            map.putByte(GAME_STATE_ID, ID);
         }
 
         public void onEnter(RunGameActAccessor game) {
@@ -410,6 +427,7 @@ public abstract class GameState {
         }
 
         public GameState main(RunGameActAccessor game) {
+            game.getGameControlView().drawScreen(game);
             return null; //(mFired) ? sBallisticsState : null;
         }
 
@@ -476,7 +494,7 @@ public abstract class GameState {
     }
 
     /** Draw missiles flying through the sky. The fun state. */
-    class BallisticsState implements GameState {
+    public static class BallisticsState extends GameState {
         /*================= Constants =================*/
         public static final byte ID = 20;
 
@@ -487,12 +505,14 @@ public abstract class GameState {
         //private short mCurSample;
 
         /*================= Operations =================*/
-        public void saveState() {
-            map.putByte(ID, GAME_STATE_ID);
+        @Override
+        public void saveState(Bundle map) {
+            map.putByte(GAME_STATE_ID, ID);
         }
 
         public void onEnter(RunGameActAccessor game) {
-            Graphics gfx = Graphics.instance;
+        	/*
+        	Graphics gfx = Graphics.instance;
             Weapon wpn = Weapon.instance;
 
             model.getCurPlayer().fireWeapon();
@@ -507,15 +527,11 @@ public abstract class GameState {
             gfx.setViewSettings(mViewSettingsTemp);
             mCurSample = 0;
             // todo: zoom so that start and end points are both visible
+			*/
         }
 
         public GameState main(RunGameActAccessor game) {
-            short nextSample = (short)(mCurSample + 1);
-            if (nextSample >= Weapon.instance.getTotalSamples()) {
-                return sExplosionState;
-            }
-            mCurSample = nextSample;
-            return null;
+        	return null;
         }
 
         public int getBlockingDelay() {
@@ -543,7 +559,7 @@ public abstract class GameState {
      * Subtract from players' life points if necessary.
      * Make craters if necessary.
      */
-    class ExplosionState implements GameState {
+    public static class ExplosionState extends GameState {
         /*================= Constants =================*/
         public static final byte ID = 25;
 
@@ -555,8 +571,9 @@ public abstract class GameState {
         //private float mCurExplosionSize;
 
         /*================= Operations =================*/
-        public void saveState() {
-            map.putByte(ID, GAME_STATE_ID);
+        @Override
+        public void saveState(Bundle map) {
+            map.putByte(GAME_STATE_ID, ID);
         }
 
         public void onEnter(RunGameActAccessor game) {
@@ -610,27 +627,31 @@ public abstract class GameState {
     /*================= Static =================*/
     /** Initialize and return a game state object from a Bundle */
     public static GameState fromBundle(Bundle map) {
-        byte id = getByte(map, GAME_STATE_ID);
+        byte id = map.getByte(GAME_STATE_ID);
         switch (id) {
             case LeaderboardState.ID:
-                return sLeaderBoardState.createFromBundle(map);
+                return LeaderboardState.createFromBundle(map);
             case BuyWeaponsState.ID:
-                return sBuyWeaponsState.createFromBundle(map);
+                return BuyWeaponsState.createFromBundle(map);
             case TurnStartState.ID:
-                return sTurnStartState.createFromBundle(map);
+                return TurnStartState.createFromBundle(map);
             case HumanMoveState.ID:
-                return sHumanMoveState.createFromBundle(map);
-            case ComputerMoveState.ID:
-                return sComputerMoveState.createFromBundle(map);
+                return HumanMoveState.createFromBundle(map);
+            //case ComputerMoveState.ID:
+            //    return ComputerMoveState.createFromBundle(map);
             case BallisticsState.ID:
-                return sBallisticsState.createFromBundle(map);
+                return BallisticsState.createFromBundle(map);
             case ExplosionState.ID:
-                return sExplosionState.createFromBundle(map);
+                return ExplosionState.createFromBundle(map);
+            default:
+            	throw new RuntimeException("can't recognize state with ID = "
+            								+ id);
         }
     }
 
     public static GameState createInitialGameState() {
-        return sTurnStartState;
+        //return TurnStartState.create();
+        return HumanMoveState.create();
     }
 }
 

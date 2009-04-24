@@ -1,14 +1,15 @@
 package scorched.android;
 
+import scorched.android.GameState.HumanMoveState;
 import scorched.android.ModelFactory.MyVars;
 import android.os.Bundle;
 
 /**
  * Controls a player.
  */
-public class Brain {
+public abstract class Brain {
     /*================= Access =================*/
-    public abstract GameState getPlayerGameState() {
+    public abstract GameState getPlayerGameState();
 
     /*================= Operations =================*/
 
@@ -31,7 +32,7 @@ public class Brain {
 
         /*================= Access =================*/
         public GameState getPlayerGameState() {
-            return GameState.sHumanMoveState;
+            return HumanMoveState.create();
         }
 
         /*================= Operations =================*/
@@ -63,7 +64,7 @@ public class Brain {
 
         /*================= Access =================*/
         public GameState getPlayerGameState() {
-            return GameState.sHumanMoveState; //TODO: change to comp state
+            return HumanMoveState.create(); //TODO: change to comp state
         }
 
         /*================= Lifecycle =================*/
@@ -83,7 +84,7 @@ public class Brain {
 
         /*================= Access =================*/
         public GameState getPlayerGameState() {
-            return GameState.sHumanMoveState; //TODO: change to comp state
+            return HumanMoveState.create(); //TODO: change to comp state
         }
 
         /*================= Lifecycle =================*/
@@ -103,7 +104,7 @@ public class Brain {
 
         /*================= Access =================*/
         public GameState getPlayerGameState() {
-            return GameState.sHumanMoveState; //TODO: change to comp state
+            return HumanMoveState.create(); //TODO: change to comp state
         }
 
         /*================= Lifecycle =================*/

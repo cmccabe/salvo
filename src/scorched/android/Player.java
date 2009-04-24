@@ -132,7 +132,7 @@ public class Player {
     }
 
     public GameState getGameState() {
-        return GameState.sHumanMoveState;
+        return GameState.HumanMoveState.create();
     }
 
     /** Initialize the Weapon singleton with what we're firing */

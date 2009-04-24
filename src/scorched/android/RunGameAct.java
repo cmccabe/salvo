@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.SurfaceHolder;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -31,11 +32,17 @@ public class RunGameAct extends Activity {
     /** The button you press to choose the previous weapon in your armory */
     private Button mArmoryLeftButton;
 
+    /** The main text displayed in the center */
+    private TextView mArmoryMainText;
+
+    /** The secondary text displayed in the center */
+    private TextView mArmorySecondaryText;
+
     /** The button you press to choose the next weapon in your armory */
     private Button mArmoryRightButton;
 
     /** The button you press to choose the previous weapon in your armory */
-    private Button mWeapSelLeftButton
+    private Button mWeapSelLeftButton;
 
     /** The button the user presses to fire */
     private Button mFireButton;
@@ -71,7 +78,7 @@ public class RunGameAct extends Activity {
      *
      * This class contains no locking
      */
-    private class RunGameActAccessor {
+    public class RunGameActAccessor {
         /*================= Access =================*/
         public GameControlView getGameControlView() {
             return mGameControlView;
@@ -98,23 +105,18 @@ public class RunGameAct extends Activity {
             }
         }
 
-        //public void surfaceChanged(SurfaceHolder holder,
-        //                      int format, int width, int height) {
-        // Callback invoked when the surface dimensions change.
-        //}
+		public void surfaceChanged(SurfaceHolder arg0, int arg1, int arg2,
+				int arg3) {
+	        // Callback invoked when the surface dimensions change.			
+		}
 
-        /** Callback invoked when the Surface has been destroyed and must
-         * no longer be touched.
-         *
-         * WARNING: after this method returns, the Surface/Canvas must
-         * never be touched again! */
-        //public void surfaceDestroyed(SurfaceHolder holder) {
+		public void surfaceDestroyed(SurfaceHolder arg0) {
             // TODO: figure out what to do here, if anything.
 
             // The confusing thing is that before this callback, we should
             // receive onPause() or similar, which should already have led us
             // to pause the thread. So what remains to do here anyway?
-        //}
+		}
     }
 
     /** Controls the state of the RunGameThread.
@@ -153,7 +155,7 @@ public class RunGameAct extends Activity {
                 return;
             mInitializationComplete = true;
             if (mSurfaceAvailable)
-                mRunGameThread.start();
+                mThread.start();
         }
 
         public void setSurfaceAvailable() {
@@ -162,7 +164,7 @@ public class RunGameAct extends Activity {
                 return;
             mSurfaceAvailable = true;
             if (mInitializationComplete)
-                mRunGameThread.start();
+                mThread.start();
         }
 
         public void changeStopRequested(boolean stopRequested) {
@@ -208,37 +210,43 @@ public class RunGameAct extends Activity {
         public void run() {
             Log.w(this.getClass().getName(), "Starting RunGameThread...");
 
-            while (true) {
-                // Enter the state
-                synchronized (mStateLock) {
-                    stateLog("onEnter", mState);
-                    mState.onEnter(mAcc);
-                }
-
-                // Execute the state's main loop
-                GameState next = null;
-                synchronized (mStateLock) {
-                    stateLog("starting main", mState);
-                    while (true) {
-                        if (doCancellationPoint())
-                            return;
-                        next = mState.main(mAcc);
-                        if (next != null)
-                            break;
-                        // Delay until the next call to main()
-                        // If getBlockingDelay == 0, then we delay until
-                        // someone calls notify() on mStateLock
-                        mStateLock.wait(mState.getBlockingDelay());
-                    }
-                    if (doCancellationPoint())
-                        return;
-                }
-
-                synchronized (mStateLock) {
-                    stateLog("onExit", mState);
-                    mState.onExit();
-                    mState = next;
-                }
+            try {           	
+	            while (true) {
+	                // Enter the state
+	                synchronized (mStateLock) {
+	                    stateLog("onEnter", mState);
+	                    mState.onEnter(mAcc);
+	                }
+	
+	                // Execute the state's main loop
+	                GameState next = null;
+	                synchronized (mStateLock) {
+	                    stateLog("starting main", mState);
+	                    while (true) {
+	                        if (doCancellationPoint())
+	                            return;
+	                        next = mState.main(mAcc);
+	                        if (next != null)
+	                            break;
+	                        // Delay until the next call to main()
+	                        // If getBlockingDelay == 0, then we delay until
+	                        // someone calls notify() on mStateLock
+	                        mStateLock.wait(mState.getBlockingDelay());
+	                    }
+	                    if (doCancellationPoint())
+	                        return;
+	                }
+	
+	                synchronized (mStateLock) {
+	                    stateLog("onExit", mState);
+	                    mState.onExit(mAcc);
+	                    mState = next;
+	                }
+	            }
+            }
+            catch (InterruptedException e) {
+            	Log.e(getClass().getName(), 
+            		  "caught InterruptedException: quitting.");
             }
         }
 
@@ -261,8 +269,9 @@ public class RunGameAct extends Activity {
          * true.
          *
          * @return      true if we should exit run(), false otherwise
+         * @throws InterruptedException 
          */
-        private boolean doCancellationPoint() {
+        private boolean doCancellationPoint() throws InterruptedException {
             assert (Thread.holdsLock(mStateLock));
             if (mStateController.getTerminateRequested())
                 return true;
@@ -290,12 +299,13 @@ public class RunGameAct extends Activity {
     }
 
     /** Called from GameControlView to handle touch events */
-    public void onTouchEvent(MotionEvent me) {
+    public boolean onTouchEvent(MotionEvent me) {
         synchronized (mStateLock) {
             if (mState.onTouchEvent(mAcc, me)) {
                 mStateLock.notify();
             }
         }
+        return true;
     }
 
     private void showAreYouSureYouWantToQuit() {
@@ -383,7 +393,7 @@ public class RunGameAct extends Activity {
             }
         });
 
-        fireButton.setOnTouchListener(new View.OnTouchListener() {
+        mFireButton.setOnTouchListener(new View.OnTouchListener() {
             public boolean onTouch(View v, MotionEvent event) {
                 int act = event.getAction();
                 if (act == MotionEvent.ACTION_DOWN) {
@@ -406,6 +416,8 @@ public class RunGameAct extends Activity {
             }
         });
 
+        mGameControlView.initialize(mModel.getBackground(),
+                                    mModel.getForeground());
         mGameControlView.getHolder().addCallback(mGameControlViewObserver);
         synchronized (mStateLock) {
             mThread.getStateController().setInitializationComplete();
@@ -454,12 +466,12 @@ public class RunGameAct extends Activity {
 
     @Override
     protected void onDestroy() {
-        super.onDestroy(map);
+        super.onDestroy();
         synchronized (mStateLock) {
             Log.w(this.getClass().getName(),
                     "RunGameAct.onDestroy");
             mThread.getStateController().changeTerminateRequested(true);
-            mStateLock.notify()
+            mStateLock.notify();
         }
     }
 

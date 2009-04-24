@@ -380,8 +380,13 @@ public class ModelFactory {
     }
 
     public synchronized Model createModel() {
+        Background bg = Background.getRandomBackground();
+        Foreground fg = Foreground.getRandomForeground(bg);
+
         Model.MyVars v = new Model.MyVars();
         v.mCurPlayerId = Player.INVALID_PLAYER_ID;
+        v.mBackground = bg;
+        v.mForeground = fg;
 
         // Create terrain
         Terrain terrain = mV.mTerrainFac.createTerrain();
