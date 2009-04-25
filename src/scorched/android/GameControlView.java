@@ -7,6 +7,9 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Rect;
+import android.graphics.RectF;
+import android.graphics.Region;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -39,7 +42,11 @@ class GameControlView extends SurfaceView  {
 
     /*================= Data =================*/
     /** temporary storage for line values */
-    float mLineTemp[];
+    private float mLineTemp[];
+
+    private Paint mTempPlayerPaint;
+
+    private RectF mScratchRectF;
 
     private Bitmap mBackgroundImage;
 
@@ -50,12 +57,13 @@ class GameControlView extends SurfaceView  {
         // TODO: draw this stuff into a bitmap to speed things up?
         Canvas canvas = null;
         SurfaceHolder holder = getHolder();
+        Model model = acc.getModel();
         try {
             canvas = holder.lockCanvas(null);
             drawTerrain(canvas, acc.getModel().getTerrain());
-            // for (Player p : model.getPlayers()) {
-            // drawPlayer(canvas, p);
-            // }
+             for (Player player : model.getPlayers()) {
+                 drawPlayer(canvas, player);
+             }
         }
         finally {
             if (canvas != null) {
@@ -86,6 +94,29 @@ class GameControlView extends SurfaceView  {
             canvas.drawLines(mLineTemp, 0, LINE_TEMP_SIZE * COORDS_PER_LINE,
                              mForegroundPaint);
         }
+    }
+
+    private void drawPlayer(Canvas canvas, Player player) {
+        final int x = player.getX();
+        final int y = player.getY();
+        final int ps = Player.PLAYER_SIZE;
+
+        // set color
+        mTempPlayerPaint.setColor(player.getColor().toInt());
+
+        // draw dome
+        Rect oldClip = canvas.getClipBounds();
+        canvas.clipRect(x - Player.HALF_PLAYER_SIZE,
+                        y - Player.HALF_PLAYER_SIZE,
+                        x + Player.HALF_PLAYER_SIZE,
+                        y + Player.HALF_PLAYER_SIZE,
+                        Region.Op.REPLACE);
+        mScratchRectF.left = x - Player.HALF_PLAYER_SIZE;
+        mScratchRectF.right = x + Player.HALF_PLAYER_SIZE;
+        mScratchRectF.top = y - Player.HALF_PLAYER_SIZE;
+        mScratchRectF.bottom = y + Player.HALF_PLAYER_SIZE;
+        canvas.drawOval(mScratchRectF, mTempPlayerPaint);
+        canvas.clipRect(oldClip);
     }
 
     @Override
@@ -156,5 +187,8 @@ class GameControlView extends SurfaceView  {
         enableHardwareAcceleration();
 
         mLineTemp = new float[LINE_TEMP_SIZE * COORDS_PER_LINE];
+        mTempPlayerPaint = new Paint();
+        mTempPlayerPaint.setAntiAlias(true);
+        mScratchRectF = new RectF();
     }
 }

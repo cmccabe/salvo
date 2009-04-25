@@ -50,6 +50,9 @@ public class Player {
 
     public static final int INVALID_PLAYER_ID = -1;
 
+    public static final int PLAYER_SIZE = 10;
+    public static final int HALF_PLAYER_SIZE = PLAYER_SIZE / 2;
+
     /*================= Members =================*/
     public static class MyVars {
         /** How much life we have. If this is 0 then we're dead. */
@@ -60,7 +63,7 @@ public class Player {
         public int mX;
 
         /** Current y-position of the bottom of the tank. */
-        public float mY;
+        public int mY;
 
         /** Current turret angle, in degrees. Turret angles are represented
          * like this:
@@ -113,8 +116,8 @@ public class Player {
         return mV.mX;
     }
 
-    /** Get the y-coordinate of the bottom of the tank */
-    public float getY() {
+    /** Get the y-coordinate of the center of the tank */
+    public int getY() {
         return mV.mY;
     }
 
@@ -191,30 +194,6 @@ public class Player {
         }
         mV.mAngleDeg = angleDeg;
         mAngleRad = (float)Math.toRadians(angleDeg);
-    }
-
-    /** Move turret left by one degree */
-    public void turretLeft() {
-        setAngleDeg(mV.mAngleDeg + 1);
-    }
-
-    /** Move turret right by one degree */
-    public void turretRight() {
-        setAngleDeg(mV.mAngleDeg - 1);
-    }
-
-    public void powerUp() {
-        mV.mPower += 1;
-        if (mV.mPower > MAX_POWER) {
-            mV.mPower = MAX_POWER;
-        }
-    }
-
-    public void powerDown() {
-        mV.mPower -= 1;
-        if (mV.mPower < MIN_POWER) {
-            mV.mPower = MIN_POWER;
-        }
     }
 
     /*================= Save =================*/
