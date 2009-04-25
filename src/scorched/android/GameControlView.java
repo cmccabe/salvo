@@ -40,6 +40,8 @@ class GameControlView extends SurfaceView  {
     /** number of coordinates needed to describe a line */
     private static final int COORDS_PER_LINE = 4;
 
+    private static final int TURRET_STROKE_WIDTH = 4;
+
     /*================= Data =================*/
     /** temporary storage for line values */
     private float mLineTemp[];
@@ -62,7 +64,7 @@ class GameControlView extends SurfaceView  {
             canvas = holder.lockCanvas(null);
             drawTerrain(canvas, acc.getModel().getTerrain());
              for (Player player : model.getPlayers()) {
-                 drawPlayer(canvas, player);
+                 drawPlayer(canvas, model.getCurPlayerId(), player);
              }
         }
         finally {
@@ -96,26 +98,57 @@ class GameControlView extends SurfaceView  {
         }
     }
 
-    private void drawPlayer(Canvas canvas, Player player) {
+    private void drawPlayer(Canvas canvas, int curPlayerId,
+                            Player player) {
         final int x = player.getX();
         final int y = player.getY();
         final int ps = Player.PLAYER_SIZE;
 
-        // set color
-        mTempPlayerPaint.setColor(player.getColor().toInt());
-
         // draw dome
         Rect oldClip = canvas.getClipBounds();
-        canvas.clipRect(x - Player.HALF_PLAYER_SIZE,
-                        y - Player.HALF_PLAYER_SIZE,
-                        x + Player.HALF_PLAYER_SIZE,
-                        y + Player.HALF_PLAYER_SIZE,
-                        Region.Op.REPLACE);
+
+        if (player.getId() == curPlayerId) {
+            canvas.clipRect(0, 0, Terrain.MAX_X,
+                            y + Player.BORDER_SIZE, Region.Op.REPLACE);
+            mTempPlayerPaint.setColor(0xffffffff);
+            mScratchRectF.left = x - Player.HALF_PLAYER_SIZE
+                                    - Player.BORDER_SIZE;
+            mScratchRectF.right = x + Player.HALF_PLAYER_SIZE
+                                    + Player.BORDER_SIZE;
+            mScratchRectF.top = y - Player.HALF_PLAYER_SIZE
+                                    - Player.BORDER_SIZE;
+            mScratchRectF.bottom = y + Player.HALF_PLAYER_SIZE
+                                    + Player.BORDER_SIZE;
+            canvas.drawOval(mScratchRectF, mTempPlayerPaint);
+
+            mTempPlayerPaint.setColor(0xffffffff);
+            mTempPlayerPaint.setStrokeWidth(TURRET_STROKE_WIDTH +
+                    (Player.BORDER_SIZE * 2));
+            float angle = player.getAngleRad();
+            float sin = (float)Math.sin(angle);
+            float cos = (float)Math.cos(angle);
+            canvas.drawLine(x, y,
+                x + ((Player.TURRET_LENGTH + Player.BORDER_SIZE) * cos),
+                y - ((Player.TURRET_LENGTH + Player.BORDER_SIZE) * sin),
+                mTempPlayerPaint);
+
+            mTempPlayerPaint.setColor(player.getColor().toInt());
+            mTempPlayerPaint.setStrokeWidth(TURRET_STROKE_WIDTH);
+            canvas.drawLine(x, y,
+                x + (Player.TURRET_LENGTH * cos),
+                y - (Player.TURRET_LENGTH * sin),
+                mTempPlayerPaint);
+            mTempPlayerPaint.setStrokeWidth(1);
+        }
+        canvas.clipRect(0, 0, Terrain.MAX_X, y, Region.Op.REPLACE);
+
+        mTempPlayerPaint.setColor(player.getColor().toInt());
         mScratchRectF.left = x - Player.HALF_PLAYER_SIZE;
         mScratchRectF.right = x + Player.HALF_PLAYER_SIZE;
         mScratchRectF.top = y - Player.HALF_PLAYER_SIZE;
         mScratchRectF.bottom = y + Player.HALF_PLAYER_SIZE;
         canvas.drawOval(mScratchRectF, mTempPlayerPaint);
+
         canvas.clipRect(oldClip);
     }
 

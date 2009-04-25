@@ -50,8 +50,10 @@ public class Player {
 
     public static final int INVALID_PLAYER_ID = -1;
 
-    public static final int PLAYER_SIZE = 10;
+    public static final int PLAYER_SIZE = 25;
     public static final int HALF_PLAYER_SIZE = PLAYER_SIZE / 2;
+    public static final int BORDER_SIZE = 2;
+    public static final int TURRET_LENGTH= 25;
 
     /*================= Members =================*/
     public static class MyVars {
