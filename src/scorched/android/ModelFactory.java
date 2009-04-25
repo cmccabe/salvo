@@ -398,10 +398,11 @@ public class ModelFactory {
         }
 
         // Place players
-        int slots = mPlayers.size() + 2;
         LinkedList < Short > positions = new LinkedList < Short >();
-        for (int i = 1; i < slots - 1; i++) {
-            int yVal = (i * Terrain.MAX_X) / (slots - 1);
+        for (int i = 0; i < mPlayers.size(); i++) {
+            int xe = Terrain.MAX_X - (2 * Terrain.SIDE_BUFFER_SIZE);
+            int yVal = Terrain.SIDE_BUFFER_SIZE +
+                        (i * (xe / (mPlayers.size() - 1)));
             positions.add(new Short((short)yVal));
         }
         if (mV.mUseRandomPlayerPlacement) {

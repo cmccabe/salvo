@@ -43,6 +43,11 @@ public class Terrain {
     /** The highest displayable Y coordinate */
     public static final int MAX_Y = 320;
 
+    /** The space between the left wall and the leftmost player.
+     *  Also the space between the right wall and the rightmost player.
+     */
+    public static final int SIDE_BUFFER_SIZE = 30;
+
     /** The force of gravity.
       * As measured by change in downward force each sample */
     public static final float GRAVITY = 0.00006f;
