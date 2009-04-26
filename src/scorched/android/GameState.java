@@ -111,7 +111,7 @@ public abstract class GameState {
      *
      * @return  true if the main thread needs to be notified of a change
      */
-    public boolean onTouchEvent(RunGameActAccessor game, MotionEvent me) {
+    public boolean onTouchEvent(RunGameActAccessor game, MotionEvent event) {
         return false;
     }
 
@@ -469,34 +469,44 @@ public abstract class GameState {
             return 0;
         }
 
-        public boolean onTouchEvent(RunGameActAccessor game, MotionEvent me) {
-            // TODO: implement touch-to-angle
+        public boolean onTouchEvent(
+                RunGameActAccessor game, MotionEvent event) {
 
-            /*int action = me.getAction();
-            boolean notify = false;
-            if ((action == MotionEvent.ACTION_DOWN) ||
-                (action == MotionEvent.ACTION_MOVE) ||
-                (action == MotionEvent.ACTION_UP))
+            Player curPlayer = game.getModel().getCurPlayer();
+            int startAngle = curPlayer.getAngleDeg();
+            int finishAngle = startAngle;
+
+            int act = event.getAction();
+            if ((act == MotionEvent.ACTION_DOWN) ||
+                (act == MotionEvent.ACTION_MOVE) ||
+                (act == MotionEvent.ACTION_UP))
             {
-                Graphics gfx = Graphics.instance;
-                if (mFingerDown == false) {
-                    mFingerDown = true;
-                    //...
+                float x = event.getX();
+                float y = event.getY();
+
+                float tx = curPlayer.getX();
+                float ty = curPlayer.getTurretCenterY();
+
+                float y_diff = ty - y;
+                if (y_diff <= 0) {
+                    if (x >= tx)
+                        finishAngle = Player.MIN_TURRET_ANGLE;
+                    else
+                        finishAngle = Player.MAX_TURRET_ANGLE;
                 }
                 else {
-                    //
+                    float x_diff = tx - x;
+                    float angleRad = (float)Math.atan2(y_diff, x_diff);
+                    int angleDeg = (int)Math.toDegrees(angleRad);
+                    finishAngle = Player.MAX_TURRET_ANGLE - angleDeg;
                 }
             }
-            // TODO: do edgeflags?
-
-            if (action == MotionEvent.ACTION_UP) {
-                mFingerDown = false;
+            if (finishAngle != startAngle) {
+                curPlayer.setAngleDeg(finishAngle);
+                return true;
             }
-            if (notify)
-                mNeedRedraw = true;
-            return notify;*/
-
-            return false;
+            else
+                return false;
         }
 
         /*================= Lifecycle =================*/

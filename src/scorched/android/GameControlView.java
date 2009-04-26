@@ -110,6 +110,7 @@ class GameControlView extends SurfaceView  {
                             Player player) {
         final int x = player.getX();
         final int y = player.getY();
+        final int ty = player.getTurretCenterY();
         final int sx = Player.PLAYER_X_SIZE;
         final int sy = Player.PLAYER_Y_SIZE;
         final int playerColor = player.getColor().toInt();
@@ -118,6 +119,7 @@ class GameControlView extends SurfaceView  {
 
         if (curPlayerId == player.getId()) {
             mTempPlayerPaint.setColor(playerBlendColor);
+            mTempPlayerPaint.setStyle(Paint.Style.FILL);
             // Draw selection circle
             canvas.drawCircle(x, y, SELECTION_CIRCLE_RADIUS,
                                 mTempPlayerPaint);
@@ -127,7 +129,6 @@ class GameControlView extends SurfaceView  {
         mTempPlayerPaint.setColor(Color.WHITE);
         mTempPlayerPaint.setStrokeWidth(TURRET_STROKE_WIDTH +
                                         Player.BORDER_SIZE);
-        final int ty = (int)(y - (sy / 4));
         float angle = player.getAngleRad();
         float sin = (float)Math.sin(angle);
         float cos = (float)Math.cos(angle);

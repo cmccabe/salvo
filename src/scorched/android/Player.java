@@ -129,6 +129,14 @@ public class Player {
         return mV.mY;
     }
 
+    /** Get the y-coordinate of the center of the turret.
+     *
+     * Note: the x-coordinate of the center of the turret is the same as
+     * that of the tank itself. */
+    public int getTurretCenterY() {
+        return (int)(mV.mY - (PLAYER_Y_SIZE / 4));
+    }
+
     public int getAngleDeg() {
         return mV.mAngleDeg;
     }
