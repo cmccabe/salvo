@@ -6,6 +6,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Rect;
@@ -123,7 +124,7 @@ class GameControlView extends SurfaceView  {
         }
 
         // Draw turret
-        mTempPlayerPaint.setColor(0xffffffff);
+        mTempPlayerPaint.setColor(Color.WHITE);
         mTempPlayerPaint.setStrokeWidth(TURRET_STROKE_WIDTH +
                                         Player.BORDER_SIZE);
         final int ty = (int)(y - (sy / 4));
@@ -164,7 +165,7 @@ class GameControlView extends SurfaceView  {
         canvas.drawPath(mPathTmp2, mTempPlayerPaint);
 
         mTempPlayerPaint.setStyle(Paint.Style.STROKE);
-        mTempPlayerPaint.setColor(0xffffffff);
+        mTempPlayerPaint.setColor(Color.WHITE);
         canvas.drawPath(mPathTmp, mTempPlayerPaint);
         canvas.drawPath(mPathTmp2, mTempPlayerPaint);
 

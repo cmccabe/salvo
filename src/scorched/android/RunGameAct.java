@@ -271,8 +271,8 @@ public class RunGameAct extends Activity {
         /** Print out state logging information */
         private void stateLog(String text, GameState state) {
             StringBuilder b = new StringBuilder(80);
-            b.append("onEnter(").append(mState.toString());
-            b.append(")");
+            b.append(text).append("(");
+            b.append(mState.toString()).append(")");
             Log.w(this.getClass().getName(), b.toString());
         }
 
