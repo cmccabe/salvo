@@ -2,10 +2,34 @@ package scorched.android;
 
 import java.util.Random;
 
+import android.content.Context;
+import android.view.Gravity;
+import android.widget.Toast;
+
 /**
  * General utility stuff that doesn't really fit anywhere else.
  */
 public abstract class Util {
+    /*================= Types =================*/
+    /** Runnable that creates a Toast and displays it */
+    public static class DoToast implements Runnable {
+        private Context mContext;
+        private String mString;
+
+        /*================= Operations =================*/
+        public void run() {
+            Toast toast = Toast.makeText(mContext, mString, 30);
+            toast.setGravity(Gravity.TOP, 0, 30);
+            toast.show();
+        }
+
+        /*================= Lifecycle =================*/
+        public DoToast(Context context, String string) {
+            mContext = context;
+            mString = string;
+        }
+    }
+
     /*================= Static =================*/
     /** Convenience function that makes a key for player-specific data */
     public static String indexToString(int playerNum) {

@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
+import android.widget.TextView;
 import android.widget.Toast;
 import scorched.android.RunGameAct.RunGameActAccessor;
 import scorched.android.SalvoSlider.Listener;
@@ -50,10 +51,11 @@ import scorched.android.SalvoSlider.Listener;
  */
 public abstract class GameState {
     /*================= Constants =================*/
-    static final String GAME_STATE_ID = "GAME_STATE_ID";
+    private static final String GAME_STATE_ID = "GAME_STATE_ID";
+    private static final String EMPTY_STRING = "";
 
     /*================= Types =================*/
-    enum GameButton {
+    public static enum GameButton {
         ARMORY_LEFT,
         ARMORY_RIGHT,
         OK,
@@ -61,12 +63,28 @@ public abstract class GameState {
         RELEASE_FIRE
     }
 
-    public class DomainException extends RuntimeException {
+    public static class DomainException extends RuntimeException {
         public static final long serialVersionUID = 1;
         public DomainException(String message) {
            super(message);
         }
-     }
+    }
+
+    private static class SetTextView implements Runnable {
+        /*================= Operations =================*/
+        public void run() {
+            mTextView.setText(mStr);
+        }
+        /*================= Data =================*/
+        private TextView mTextView;
+        private String mStr;
+
+        /*================= Lifecycle =================*/
+        SetTextView(TextView textView, String str) {
+            mTextView = textView;
+            mStr = str;
+        }
+    }
 
     /*================= Operations =================*/
     /** Pack this GameState into a Bundle.
@@ -312,25 +330,6 @@ public abstract class GameState {
         /*================= Constants =================*/
         public static final byte ID = 10;
 
-        /*================= Types =================*/
-        private static class DoToast implements Runnable {
-            private Context mContext;
-            private String mString;
-
-            /*================= Operations =================*/
-            public void run() {
-                Toast toast = Toast.makeText(mContext, mString, 30);
-                toast.setGravity(Gravity.TOP, 0, 30);
-                toast.show();
-            }
-
-            /*================= Lifecycle =================*/
-            public DoToast(Context context, String string) {
-                mContext = context;
-                mString = string;
-            }
-        }
-
         /*================= Static =================*/
         private static TurnStartState sMe = new TurnStartState();
 
@@ -363,7 +362,7 @@ public abstract class GameState {
                 Model model = game.getModel();
                 int nextPlayerId = mInfo.getNextPlayerId();
                 Player play = model.getPlayers()[nextPlayerId];
-                DoToast doToast = new DoToast(
+                Util.DoToast doToast = new Util.DoToast(
                     game.getGameControlView().getContext(),
                     play.getIntroductionString());
                 game.getRunGameAct().runOnUiThread(doToast);
@@ -432,27 +431,12 @@ public abstract class GameState {
         }
 
         public void onEnter(RunGameActAccessor game) {
+            GameState.setCurPlayerAngleText(game);
 //            mNeedRedraw = true;
 //            mFingerDown = false;
 //            mTouchX = 0;
 //            mTouchY = 0;
 //            mFired = false;
-//
-//            // Activate sliders
-//            // TODO: look up sliders by layout
-//            Player curPlayer = model.getCurPlayer();
-//            int myColor = curPlayer.getColor().toInt();
-//
-//            powerSlider.setState(SalvoSlider.SliderState.BAR,
-//                        powerAdaptor,
-//                        Player.MIN_POWER, Player.MAX_POWER,
-//                        curPlayer.getPower(),
-//                        myColor);
-//            angleSlider.setState(SalvoSlider.SliderState.ANGLE,
-//                        angleAdaptor,
-//                        Player.MAX_TURRET_ANGLE, Player.MIN_TURRET_ANGLE,
-//                        curPlayer.getAngleDeg(),
-//                        myColor);
         }
 
         public GameState main(RunGameActAccessor game) {
@@ -460,9 +444,9 @@ public abstract class GameState {
             return null; //(mFired) ? sBallisticsState : null;
         }
 
-        public void onExit(SalvoSlider powerSlider,
-                           SalvoSlider angleSlider) {
+        public void onExit(RunGameActAccessor game) {
             // TODO: grey out buttons and whatnot
+            GameState.setCustomAngleText(game, EMPTY_STRING);
         }
 
         public int getBlockingDelay() {
@@ -503,6 +487,7 @@ public abstract class GameState {
             }
             if (finishAngle != startAngle) {
                 curPlayer.setAngleDeg(finishAngle);
+                GameState.setCurPlayerAngleText(game);
                 return true;
             }
             else
@@ -664,6 +649,25 @@ public abstract class GameState {
     }
 
     /*================= Static =================*/
+    /** Sets the current angle text to the turret angle of the current
+     * player.
+     */
+    private static void setCurPlayerAngleText(RunGameActAccessor game) {
+        Player curPlayer = game.getModel().getCurPlayer();
+        TextView angleText = game.getAngleText();
+        StringBuilder b = new StringBuilder(10);
+        b.append(curPlayer.getAngleDeg()).append("°");
+        game.getRunGameAct().runOnUiThread(new SetTextView(angleText,
+                                                           b.toString()));
+    }
+
+    private static void setCustomAngleText(RunGameActAccessor game,
+                                           String text) {
+        Player curPlayer = game.getModel().getCurPlayer();
+        TextView angleText = game.getAngleText();
+        game.getRunGameAct().runOnUiThread(new SetTextView(angleText, text));
+    }
+
     /** Initialize and return a game state object from a Bundle */
     public static GameState fromBundle(Bundle map) {
         byte id = map.getByte(GAME_STATE_ID);

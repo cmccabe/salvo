@@ -92,6 +92,9 @@ public class RunGameAct extends Activity {
             return mModel;
         }
 
+        public TextView getAngleText() {
+            return mAngleText;
+        }
         // TODO: add accessors for angle display / weapons display here
     }
 
