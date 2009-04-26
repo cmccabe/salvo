@@ -25,9 +25,9 @@ import android.widget.TextView;
  * When we pick game settings, we're really creating a ModelFactory
  * which will later be used to create the in-game Model.
  *
- * Thread-safety: this class implements its own thread safety.
- * It uses the heavy-hammer approach because performance is not
- * critical here, and I am lazy.
+ * This class relies on external synchronization. This is provided by the
+ * fact that the Android view tree is single threaded (i.e. only one callback
+ * will be processed at once.)
  */
 public class ModelFactory {
     /*================= Types =================*/
@@ -188,7 +188,7 @@ public class ModelFactory {
         private MyVars mV;
 
         /*================= Access =================*/
-        public synchronized Player createPlayer(int index) {
+        public  Player createPlayer(int index) {
             Player.MyVars v = new Player.MyVars();
             v.mLife = mV.mLife;
             v.mX = -1;
@@ -201,42 +201,42 @@ public class ModelFactory {
             return new Player(index, v, brain);
         }
 
-        public synchronized void saveState(int index, Bundle map) {
+        public  void saveState(int index, Bundle map) {
             if (map == null)
                 return;
             AutoPack.autoPack(map, Util.indexToString(index), mV);
         }
 
-        public synchronized String getName() {
+        public  String getName() {
             return mV.mName;
         }
 
-        public synchronized BrainFactory getBrainFactory() {
+        public  BrainFactory getBrainFactory() {
             return mV.mBrainFac;
         }
 
-        public synchronized short getLife() {
+        public  short getLife() {
             return mV.mLife;
         }
 
-        public synchronized Player.PlayerColor getColor() {
+        public  Player.PlayerColor getColor() {
             return mV.mColor;
         }
 
         /*================= Operations =================*/
-        public synchronized void setName(String name) {
+        public  void setName(String name) {
             mV.mName = name;
         }
 
-        public synchronized void setBrainFactory(BrainFactory fac) {
+        public  void setBrainFactory(BrainFactory fac) {
             mV.mBrainFac = fac;
         }
 
-        public synchronized void setLife(short life) {
+        public  void setLife(short life) {
             mV.mLife = life;
         }
 
-        public synchronized void setColor(Player.PlayerColor color) {
+        public  void setColor(Player.PlayerColor color) {
             mV.mColor = color;
         }
 
@@ -359,27 +359,27 @@ public class ModelFactory {
     private PlayerListAdapter mAdapter;
 
     /*================= Access =================*/
-    public synchronized TerrainFactory getTerrainFactory() {
+    public  TerrainFactory getTerrainFactory() {
         return mV.mTerrainFac;
     }
 
-    public synchronized boolean getRandomPlayerPlacement() {
+    public  boolean getRandomPlayerPlacement() {
         return mV.mUseRandomPlayerPlacement;
     }
 
-    public synchronized short getNumRounds() {
+    public  short getNumRounds() {
         return mV.mNumRounds;
     }
 
-    public synchronized short getStartingCash() {
+    public  short getStartingCash() {
         return mV.mStartingCash;
     }
 
-    public synchronized PlayerFactory getPlayerFactory(int index) {
+    public  PlayerFactory getPlayerFactory(int index) {
         return mPlayers.get(index);
     }
 
-    public synchronized Model createModel() {
+    public  Model createModel() {
         Background bg = Background.getRandomBackground();
         Foreground fg = Foreground.getRandomForeground(bg);
 
@@ -422,22 +422,22 @@ public class ModelFactory {
         return new Model(v, terrain, players);
     }
 
-    public synchronized PlayerListAdapter getPlayerListAdapter() {
+    public  PlayerListAdapter getPlayerListAdapter() {
         return mAdapter;
     }
 
     /** Returns true if we can add another player */
-    public synchronized boolean canAddPlayer() {
+    public  boolean canAddPlayer() {
         return (mPlayers.size() + 1 <= Model.MAX_PLAYERS);
     }
 
     /** Returns true if we can delete a player */
-    public synchronized boolean canDeletePlayer() {
+    public  boolean canDeletePlayer() {
         return (!(mPlayers.size() - 1 < Model.MIN_PLAYERS));
     }
 
     /** Returns true if all players are computers */
-    public synchronized boolean everyoneIsAComputer() {
+    public  boolean everyoneIsAComputer() {
         for (PlayerFactory p: mPlayers) {
             if (p.getBrainFactory() == BrainFactory.HUMAN)
                 return false;
@@ -446,7 +446,7 @@ public class ModelFactory {
     }
 
     /** Returns true if a player is already using the given color */
-    public synchronized boolean colorInUse(Player.PlayerColor color) {
+    public  boolean colorInUse(Player.PlayerColor color) {
         for (PlayerFactory p: mPlayers) {
             if (p.getColor() == color)
                 return true;
@@ -455,13 +455,13 @@ public class ModelFactory {
     }
 
     /** Gets a list of colors that aren't currently in use by a player */
-    public synchronized LinkedList < Player.PlayerColor >
+    public  LinkedList < Player.PlayerColor >
             getAvailableColors() {
         return PlayerFactory.getAvailableColors(mPlayers);
     }
 
     /** Gets the position of a playerFactory in the list */
-    public synchronized int getPlayerPosition(PlayerFactory p) {
+    public  int getPlayerPosition(PlayerFactory p) {
         for (int i = 0; i < mPlayers.size(); i++) {
             if (mPlayers.get(i) == p)
                 return i;
@@ -471,23 +471,23 @@ public class ModelFactory {
     }
 
     /*================= Operations =================*/
-    public synchronized void setTerrainFactory(TerrainFactory fac) {
+    public  void setTerrainFactory(TerrainFactory fac) {
         mV.mTerrainFac = fac;
     }
 
-    public synchronized void modifyRandomPlayerPlacement(boolean b) {
+    public  void modifyRandomPlayerPlacement(boolean b) {
         mV.mUseRandomPlayerPlacement = b;
     }
 
-    public synchronized void setNumRounds(short numRounds) {
+    public  void setNumRounds(short numRounds) {
         mV.mNumRounds = (short)numRounds;
     }
 
-    public synchronized void setStartingCash(short startingCash) {
+    public  void setStartingCash(short startingCash) {
         mV.mStartingCash = startingCash;
     }
 
-    public synchronized PlayerFactory addPlayerFactory() {
+    public  PlayerFactory addPlayerFactory() {
         PlayerFactory p = PlayerFactory.fromDefault(mPlayers);
         mPlayers.add(p);
         if (mAdapter != null)
@@ -503,7 +503,7 @@ public class ModelFactory {
      *  Perhaps this should be refactored so that PlayerFactory is a
      *  non-static inner class which calls this method itself?
      */
-    public synchronized void notifyDataSetChanged() {
+    public  void notifyDataSetChanged() {
         mAdapter.notifyDataSetChanged();
     }
 
@@ -518,7 +518,7 @@ public class ModelFactory {
      *                  TooFewPlayers if we have too few players to remove
      *                  one.
      */
-    public synchronized PlayerFactory deletePlayerFactory(PlayerFactory p) {
+    public  PlayerFactory deletePlayerFactory(PlayerFactory p) {
         if (!canDeletePlayer())
             throw new TooFewPlayers("");
 
@@ -545,7 +545,7 @@ public class ModelFactory {
     }
 
     /*================= Save =================*/
-    public synchronized void saveState(Bundle map) {
+    public  void saveState(Bundle map) {
         if (map == null)
             return;
         AutoPack.autoPack(map, AutoPack.EMPTY_STRING, mV);
