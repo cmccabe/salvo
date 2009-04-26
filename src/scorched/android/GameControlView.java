@@ -43,6 +43,10 @@ class GameControlView extends SurfaceView  {
 
     private static final int TURRET_STROKE_WIDTH = 3;
 
+    private static final byte SELECTION_CIRCLE_ALPHA= (byte)0x55;
+
+    private static final int SELECTION_CIRCLE_RADIUS = 32;
+
     /*================= Data =================*/
     /** temporary storage for line values */
     private float mLineTemp[];
@@ -107,6 +111,16 @@ class GameControlView extends SurfaceView  {
         final int y = player.getY();
         final int sx = Player.PLAYER_X_SIZE;
         final int sy = Player.PLAYER_Y_SIZE;
+        final int playerColor = player.getColor().toInt();
+        final int playerBlendColor =
+            player.getColor().toInt(SELECTION_CIRCLE_ALPHA);
+
+        if (curPlayerId == player.getId()) {
+            mTempPlayerPaint.setColor(playerBlendColor);
+            // Draw selection circle
+            canvas.drawCircle(x, y, SELECTION_CIRCLE_RADIUS,
+                                mTempPlayerPaint);
+        }
 
         // Draw turret
         mTempPlayerPaint.setColor(0xffffffff);
@@ -121,7 +135,7 @@ class GameControlView extends SurfaceView  {
             ty - ((Player.TURRET_LENGTH + Player.BORDER_SIZE) * sin),
             mTempPlayerPaint);
 
-        mTempPlayerPaint.setColor(player.getColor().toInt());
+        mTempPlayerPaint.setColor(playerColor);
         mTempPlayerPaint.setStrokeWidth(TURRET_STROKE_WIDTH);
         canvas.drawLine(x, ty,
             x + (Player.TURRET_LENGTH * cos),
@@ -145,7 +159,7 @@ class GameControlView extends SurfaceView  {
         mPathTmp2.lineTo(x - (sx / 4), y - (sy / 5.5f));
 
         mTempPlayerPaint.setStyle(Paint.Style.FILL);
-        mTempPlayerPaint.setColor(player.getColor().toInt());
+        mTempPlayerPaint.setColor(playerColor);
         canvas.drawPath(mPathTmp, mTempPlayerPaint);
         canvas.drawPath(mPathTmp2, mTempPlayerPaint);
 

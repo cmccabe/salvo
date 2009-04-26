@@ -28,6 +28,12 @@ public class Player {
         public String toString() { return mName; }
         public int toInt() { return mColor; }
 
+        /** Returns the color, using 'alpha' as the new alpha channel value */
+        public int toInt(byte alpha) {
+            int ret = mColor & 0x00ffffff;
+            return ret | (alpha << 24);
+        }
+
         /*================= Lifecycle =================*/
         private PlayerColor(String name, int color) {
             mName = name;
