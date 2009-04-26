@@ -206,6 +206,7 @@ public abstract class GameState {
             map.putByte(GAME_STATE_ID, ID);
         }
 
+        @Override
         public void onEnter(RunGameActAccessor game) {
             // TODO: give a reward to the 'surviving' player
             // use: int newPlayer = model.getCurPlayerId();, etc.
@@ -214,6 +215,7 @@ public abstract class GameState {
             // TODO: set leaderboard menus...
         }
 
+        @Override
         public GameState main(RunGameActAccessor game) {
             if (mFinished) {
                 return BuyWeaponsState.create();
@@ -223,10 +225,12 @@ public abstract class GameState {
             }
         }
 
+        @Override
         public int getBlockingDelay() {
             return 0;
         }
 
+        @Override
         public boolean onButton(RunGameActAccessor game, GameButton b) {
             if (b == GameButton.OK) {
                 mFinished = true;
@@ -272,12 +276,14 @@ public abstract class GameState {
             map.putByte(GAME_STATE_ID, ID);
         }
 
+        @Override
         public void onEnter(RunGameActAccessor game) {
             mFinished = false;
             // TODO: implement weapons layout...
             // TODO: implement weapons menus...
         }
 
+        @Override
         public GameState main(RunGameActAccessor game) {
             if (mFinished) {
                 return BuyWeaponsState.create();
@@ -287,16 +293,18 @@ public abstract class GameState {
             }
         }
 
-        public void onExit(SalvoSlider powerSlider,
-                           SalvoSlider angleSlider) {
+        @Override
+        public void onExit(RunGameActAccessor game) {
             // TODO: implement game layout
             // TODO: implement game menus
         }
 
+        @Override
         public int getBlockingDelay() {
             return 0;
         }
 
+        @Override
         public boolean onButton(RunGameActAccessor game, GameButton b) {
             if (b == GameButton.OK) {
                 mFinished = true;
@@ -342,11 +350,13 @@ public abstract class GameState {
             map.putByte(GAME_STATE_ID, ID);
         }
 
+        @Override
         public void onEnter(RunGameActAccessor game) {
             game.getModel().getNextPlayerInfo(mInfo);
             // TODO: set location of floating arrow thing to current player
         }
 
+        @Override
         public GameState main(RunGameActAccessor game) {
             if (mInfo.isDraw()) {
                 // TODO: display "it was a draw!" or similar
@@ -372,6 +382,7 @@ public abstract class GameState {
             }
         }
 
+        @Override
         public int getBlockingDelay() {
             throw new RuntimeException("unreachable");
         }
@@ -430,6 +441,7 @@ public abstract class GameState {
             map.putByte(GAME_STATE_ID, ID);
         }
 
+        @Override
         public void onEnter(RunGameActAccessor game) {
             GameState.setCurPlayerAngleText(game);
 //            mNeedRedraw = true;
@@ -439,20 +451,24 @@ public abstract class GameState {
 //            mFired = false;
         }
 
+        @Override
         public GameState main(RunGameActAccessor game) {
             game.getGameControlView().drawScreen(game);
             return null; //(mFired) ? sBallisticsState : null;
         }
 
+        @Override
         public void onExit(RunGameActAccessor game) {
             // TODO: grey out buttons and whatnot
             GameState.setCustomAngleText(game, EMPTY_STRING);
         }
 
+        @Override
         public int getBlockingDelay() {
             return 0;
         }
 
+        @Override
         public boolean onTouchEvent(
                 RunGameActAccessor game, MotionEvent event) {
 
@@ -534,6 +550,7 @@ public abstract class GameState {
             map.putByte(GAME_STATE_ID, ID);
         }
 
+        @Override
         public void onEnter(RunGameActAccessor game) {
             /*
             Graphics gfx = Graphics.instance;
@@ -554,10 +571,12 @@ public abstract class GameState {
             */
         }
 
+        @Override
         public GameState main(RunGameActAccessor game) {
             return null;
         }
 
+        @Override
         public int getBlockingDelay() {
             return 10;
         }
@@ -600,6 +619,7 @@ public abstract class GameState {
             map.putByte(GAME_STATE_ID, ID);
         }
 
+        @Override
         public void onEnter(RunGameActAccessor game) {
 //            Weapon wpn = Weapon.instance;
 //            WeaponType wtp = wpn.getWeaponType();
@@ -610,6 +630,7 @@ public abstract class GameState {
 //                powerSlider.getContext().getApplicationContext());
         }
 
+        @Override
         public GameState main(RunGameActAccessor game) {
 //            if (mCurExplosionSize > mMaxExplosionSize) {
 //                // TODO: explosion retreating animation
@@ -622,11 +643,13 @@ public abstract class GameState {
             return null;
         }
 
+        @Override
         public void onExit(RunGameActAccessor game) {
              // examine Weapon.instance to find out where the boom is,
              // then modify the terrain in the model
         }
 
+        @Override
         public int getBlockingDelay() {
             return 10;
         }
