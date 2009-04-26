@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 import scorched.android.RunGameAct.RunGameActAccessor;
@@ -70,6 +71,7 @@ public abstract class GameState {
         }
     }
 
+    /** Runnable which sets a text view to a specified string. */
     private static class SetTextView implements Runnable {
         /*================= Operations =================*/
         public void run() {
@@ -469,6 +471,24 @@ public abstract class GameState {
         }
 
         @Override
+        public boolean onButton(RunGameActAccessor game, GameButton b) {
+            switch (b) {
+                case ARMORY_LEFT:
+                    return true;
+                case ARMORY_RIGHT:
+                    return true;
+                case PRESS_FIRE:
+                    hideArmory(game);
+                    return true;
+                case RELEASE_FIRE:
+                    showArmory(game);
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        @Override
         public boolean onTouchEvent(
                 RunGameActAccessor game, MotionEvent event) {
 
@@ -684,11 +704,36 @@ public abstract class GameState {
                                                            b.toString()));
     }
 
+    /** Sets the current angle text to a custom string */
     private static void setCustomAngleText(RunGameActAccessor game,
                                            String text) {
         Player curPlayer = game.getModel().getCurPlayer();
         TextView angleText = game.getAngleText();
         game.getRunGameAct().runOnUiThread(new SetTextView(angleText, text));
+    }
+
+    /** Hides the armory in the middle of the screen */
+    private static void hideArmory(RunGameActAccessor game) {
+        game.getAngleText().setVisibility(View.INVISIBLE);
+        game.getArmoryMainText().setVisibility(View.INVISIBLE);
+        game.getArmorySecondaryText().setVisibility(View.INVISIBLE);
+        game.getArmoryLeftButton().setVisibility(View.INVISIBLE);
+        game.getArmoryRightButton().setVisibility(View.INVISIBLE);
+        int color = game.getRunGameAct().getResources().
+                        getColor(R.drawable.clear);
+        game.getArmoryCenter().setBackgroundColor(color);
+    }
+
+    /** Un-hides the armory in the middle of the screen */
+    private static void showArmory(RunGameActAccessor game) {
+        game.getAngleText().setVisibility(View.VISIBLE);
+        game.getArmoryMainText().setVisibility(View.VISIBLE);
+        game.getArmorySecondaryText().setVisibility(View.VISIBLE);
+        game.getArmoryLeftButton().setVisibility(View.VISIBLE);
+        game.getArmoryRightButton().setVisibility(View.VISIBLE);
+        int color = game.getRunGameAct().getResources().
+                        getColor(R.drawable.armory_bg_color);
+        game.getArmoryCenter().setBackgroundColor(color);
     }
 
     /** Initialize and return a game state object from a Bundle */

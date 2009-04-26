@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.ZoomButton;
 
@@ -41,8 +42,8 @@ public class RunGameAct extends Activity {
     /** The button you press to choose the next weapon in your armory */
     private Button mArmoryRightButton;
 
-    /** The button you press to choose the previous weapon in your armory */
-    private Button mWeapSelLeftButton;
+    /** The layout of the central portion of the armory */
+    private RelativeLayout mArmoryCenter;
 
     /** The button the user presses to fire */
     private Button mFireButton;
@@ -95,7 +96,26 @@ public class RunGameAct extends Activity {
         public TextView getAngleText() {
             return mAngleText;
         }
-        // TODO: add accessors for angle display / weapons display here
+
+        public TextView getArmoryMainText() {
+            return mArmoryMainText;
+        }
+
+        public TextView getArmorySecondaryText() {
+            return mArmorySecondaryText;
+        }
+
+        public Button getArmoryLeftButton() {
+            return mArmoryLeftButton;
+        }
+
+        public Button getArmoryRightButton() {
+            return mArmoryRightButton;
+        }
+
+        public RelativeLayout getArmoryCenter() {
+            return mArmoryCenter;
+        }
     }
 
     /** Observes changes in the GameControlView.
@@ -389,6 +409,7 @@ public class RunGameAct extends Activity {
         mArmorySecondaryText = (TextView)
             findViewById(R.id.armory_secondary_text);
         mArmoryRightButton = (Button)findViewById(R.id.armory_right_button);
+        mArmoryCenter = (RelativeLayout)findViewById(R.id.armory_center);
         mFireButton = (Button)findViewById(R.id.fire_button);
 
         ////////////////// Initialize stuff
