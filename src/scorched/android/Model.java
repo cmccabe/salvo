@@ -234,7 +234,7 @@ public class Model {
         MyVars v = (MyVars) AutoPack.
             autoUnpack(map, AutoPack.EMPTY_STRING, MyVars.class);
         Terrain terrain = Terrain.fromBundle(map);
-        int numPlayers = map.getInt(KEY_NUM_PLAYERS);
+        int numPlayers = map.getShort(KEY_NUM_PLAYERS);
         Player players[] = new Player[numPlayers];
         for (int i = 0; i < numPlayers; ++i)
             players[i] = Player.fromBundle(i, map);
