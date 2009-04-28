@@ -46,20 +46,13 @@ class GameControlView extends SurfaceView  {
 
     private static final byte SELECTION_CIRCLE_ALPHA= (byte)0x55;
 
+    private static final byte FIRE_BAR_ALPHA= (byte)0xaa;
+
     private static final int SELECTION_CIRCLE_RADIUS = 32;
 
-    /** An enumerator describing what elements of the graphical display have
-     *  been invalidated.
-     */
-    public static enum InvalidatedElement {
-        /** Neither the players nor the terrain has changed */
-        NONE,
-        /** The terrain is still the same, but at least one of the players
-         *  has changed. */
-        PLAYERS,
-        /** The terrain and everything else has changed */
-        ALL
-    }
+    private static final int MAX_BAR_LENGTH = 385;
+
+    private static final int BAR_HEIGHT = 50;
 
     /*================= Data =================*/
     /** temporary storage for line values */
@@ -80,7 +73,15 @@ class GameControlView extends SurfaceView  {
     private Canvas mCachedTerrainCanvas;
 
     /*================= Operations =================*/
-    public void drawScreen(RunGameActAccessor acc) {
+    /** Draws the screen.
+     *
+     * @param acc       The RunGameActAccessor
+     *
+     * @param power     The length of the power bar at the bottom of the
+     *                  screen, or Player.INVALID_POWER if the bar should not
+     *                  be displayed.
+     */
+    public void drawScreen(RunGameActAccessor acc, int power) {
         // TODO: draw this stuff into a bitmap to speed things up?
         Canvas canvas = null;
         SurfaceHolder holder = getHolder();
@@ -90,6 +91,16 @@ class GameControlView extends SurfaceView  {
             canvas.drawBitmap(mCachedTerrain, 0, 0, null);
             for (Player player : model.getPlayers()) {
                 drawPlayer(canvas, model.getCurPlayerId(), player);
+            }
+            if (power != Player.INVALID_POWER) {
+                int bar_x = (power * MAX_BAR_LENGTH) / Player.MAX_POWER;
+                int playerBlendColor =
+                    model.getCurPlayer().getColor().toInt(FIRE_BAR_ALPHA);
+                mTempPlayerPaint.setColor(playerBlendColor);
+                mTempPlayerPaint.setStyle(Paint.Style.FILL);
+                canvas.drawRect(0, Terrain.MAX_Y - BAR_HEIGHT,
+                                bar_x, Terrain.MAX_Y,
+                                mTempPlayerPaint);
             }
         }
         finally {
@@ -118,7 +129,7 @@ class GameControlView extends SurfaceView  {
                 mLineTemp[j] = Terrain.MAX_Y;
                 j++;
             }
-            mCachedTerrainCanvas.drawLines(mLineTemp, 
+            mCachedTerrainCanvas.drawLines(mLineTemp,
                     0, LINE_TEMP_SIZE * COORDS_PER_LINE,
                     mForegroundPaint);
         }

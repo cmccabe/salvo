@@ -48,6 +48,7 @@ public class Player {
     public static final int MAX_LIFE = MAX_STARTING_LIFE;
     public static final int MAX_NAME_LENGTH = 14;
 
+    public static final int INVALID_POWER = -1;
     public static final int MIN_POWER = 50;
     public static final int MAX_POWER = 1000;
 

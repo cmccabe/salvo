@@ -3,6 +3,7 @@ package scorched.android;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.os.Bundle;
+import java.lang.System;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -414,28 +415,17 @@ public abstract class GameState {
         /*================= Constants =================*/
         public static final byte ID = 15;
 
+        private static final long MAX_FIRE_TIME = 2400;
+
         /*================= Static =================*/
         private static HumanMoveState sMe = new HumanMoveState();
 
         /*================= Data =================*/
-//        /** True if we need a screen refresh */
-//        private boolean mNeedRedraw;
-//
-//        /** True while the user's finger is down on the touch screen */
-//        private boolean mFingerDown;
-//
-//        /** The zoom, pan settings that were in effect when the user started
-//         * pressing on the screen */
-//        //private Graphics.ViewSettings mTouchViewSettings;
-//
-//        /** Last X coordinate the user touched (in game coordinates) */
-//        private float mTouchX;
-//
-//        /** Last Y coordinate the user touched (in game coordinates) */
-//        private float mTouchY;
-//
-//        /** True if the user has just fired his weapon */
-//        private boolean mFired;
+        /** True only if the user pressed the fire button */
+        private boolean mFiring;
+
+        /** The time at which the user pressed the fire button */
+        private long mFireTime;
 
         /*================= Operations =================*/
         @Override
@@ -447,16 +437,31 @@ public abstract class GameState {
         public void onEnter(RunGameActAccessor game) {
             GameState.setCurPlayerAngleText(game);
             game.getGameControlView().cacheTerrain(game);
-          //            mNeedRedraw = true;
-//            mFingerDown = false;
-//            mTouchX = 0;
-//            mTouchY = 0;
-//            mFired = false;
+        }
+
+        /** Calculate what the power should be, given the current time, and
+         * the time that the user pressed the fire button.
+         */
+        private int timeToPower() {
+            long cur = System.currentTimeMillis();
+            long diff = cur - mFireTime;
+            if (diff > MAX_FIRE_TIME)
+                return Player.MAX_POWER;
+            else {
+                return (int)((diff * Player.MAX_POWER) / MAX_FIRE_TIME);
+            }
         }
 
         @Override
         public GameState main(RunGameActAccessor game) {
-            game.getGameControlView().drawScreen(game);
+            if (mFiring) {
+                int power = timeToPower();
+                game.getGameControlView().  drawScreen(game, power);
+            }
+            else {
+                game.getGameControlView().
+                    drawScreen(game, Player.INVALID_POWER);
+            }
             return null; //(mFired) ? sBallisticsState : null;
         }
 
@@ -468,7 +473,7 @@ public abstract class GameState {
 
         @Override
         public int getBlockingDelay() {
-            return 0;
+            return (mFiring) ? 1 : 0;
         }
 
         @Override
@@ -480,9 +485,13 @@ public abstract class GameState {
                     return true;
                 case PRESS_FIRE:
                     hideArmory(game);
+                    mFiring = true;
+                    mFireTime = System.currentTimeMillis();
                     return true;
                 case RELEASE_FIRE:
                     showArmory(game);
+                    // TODO: fire projectile
+                    mFiring = false;
                     return true;
                 default:
                     return false;
@@ -533,12 +542,7 @@ public abstract class GameState {
 
         /*================= Lifecycle =================*/
         private void initialize() {
-            //mNeedRedraw = true;
-            //mFingerDown = false;
-            //mTouchViewSettings = new Graphics.ViewSettings(0,0,0);
-            //mTouchX = 0;
-            //mTouchY = 0;
-            //mFired = false;
+            mFiring = false;
         }
 
         public static HumanMoveState create() {
@@ -551,7 +555,8 @@ public abstract class GameState {
             return sMe;
         }
 
-        public HumanMoveState() { }
+        public HumanMoveState() {
+        }
     }
 
     /** Draw missiles flying through the sky. The fun state. */
