@@ -34,7 +34,7 @@ public abstract class AutoPack
     public static final String EMPTY_STRING = "";
 
     /*================= Utility =================*/
-    private static String fieldNameToKey(String prefix, String fieldName) {
+    public static String fieldNameToKey(String prefix, String fieldName) {
         StringBuilder b = new StringBuilder(80);
         b.append("KEY_").append(prefix).append(fieldName);
         return b.toString();

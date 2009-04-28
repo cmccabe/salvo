@@ -1,9 +1,12 @@
 package scorched.android;
 
+import scorched.android.WeaponType.Armory;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Random;
+import java.util.SortedMap;
 
 import scorched.android.Player.PlayerColor;
 
@@ -189,16 +192,17 @@ public class ModelFactory {
 
         /*================= Access =================*/
         public  Player createPlayer(int index) {
+            Armory armory = Armory.fromDefault();
             Player.MyVars v = new Player.MyVars();
             v.mLife = mV.mLife;
             v.mX = -1;
             v.mY = -1;
             v.mAngleDeg = Player.MAX_TURRET_ANGLE / 4;
-            v.mPower = (3 * Player.MAX_POWER) / 4;
             v.mName = mV.mName;
+            v.mCurWeaponType = armory.firstKey();
             v.mColor = mV.mColor;
             Brain brain = mV.mBrainFac.createBrain();
-            return new Player(index, v, brain);
+            return new Player(index, v, brain, armory);
         }
 
         public  void saveState(int index, Bundle map) {

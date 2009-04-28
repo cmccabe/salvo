@@ -1,5 +1,9 @@
 package scorched.android;
 
+import scorched.android.WeaponType.Armory;
+
+import java.util.SortedMap;
+
 import scorched.android.ModelFactory.MyVars;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -84,12 +88,14 @@ public class Player {
          */
         public int mAngleDeg;
 
-        /** The power that we're firing with. Measured on the same
-         * scale as life. */
-        public int mPower;
+        /** The weapon that we're firing with. */
+        public WeaponType mWeaponType;
 
         /** Player name */
         public String mName;
+
+        /** The currently selected weapon */
+        public WeaponType mCurWeaponType;
 
         /** Our color */
         public PlayerColor mColor;
@@ -98,6 +104,9 @@ public class Player {
 
     /** The brain that controls this player */
     public Brain mBrain;
+
+    /** The weapons that this player owns */
+    Armory mArmory;
 
     /** The index of this player in the players array */
     public int mId;
@@ -146,8 +155,12 @@ public class Player {
         return mAngleRad;
     }
 
-    public int getPower() {
-        return mV.mPower;
+    public WeaponType getWeaponType() {
+        return mV.mWeaponType;
+    }
+
+    public WeaponType getCurWeaponType () {
+        return mV.mCurWeaponType;
     }
 
     public Player.PlayerColor getColor() {
@@ -163,14 +176,14 @@ public class Player {
     }
 
     /** Initialize the Weapon singleton with what we're firing */
-    public void fireWeapon() {
+    /*public void fireWeapon() {
         float dx = (float)Math.cos(mAngleRad);
         dx = (dx * mV.mPower) / 10000.0f;
         float dy = (float)Math.sin(mAngleRad);
         dy = (dy * mV.mPower) / 10000.0f;
         Weapon.instance.initialize(getTurretX(), getTurretY(), dx, dy,
                                    WeaponType.sBabyMissile);
-    }
+    }*/
 
     /** Return a float representing the X position of the end of the
      *  gun turret */
@@ -195,11 +208,6 @@ public class Player {
         mV.mY = h[x];
     }
 
-    /** set turret power. */
-    public void setPower(int val) {
-        mV.mPower = val;
-    }
-
     /** set turret angle.
      *  'val' is scaled to 0...1000 and must be normalized */
     public void setAngleDeg(int angleDeg) {
@@ -217,6 +225,7 @@ public class Player {
     public void saveState(int index, Bundle map) {
         AutoPack.autoPack(map, Util.indexToString(index), mV);
         mBrain.saveState(index, map);
+        mArmory.saveState(index, map);
     }
 
     /*================= Lifecycle =================*/
@@ -224,13 +233,15 @@ public class Player {
         MyVars v = (MyVars)AutoPack.autoUnpack(map,
                         Util.indexToString(index), MyVars.class);
         Brain brain = Brain.fromBundle(index, map);
-        return new Player(index, v, brain);
+        Armory armory = Armory.fromBundle(index, map);
+        return new Player(index, v, brain, armory);
     }
 
-    public Player(int index, MyVars v, Brain brain) {
+    public Player(int index, MyVars v, Brain brain, Armory armory) {
         mV = v;
         mId = index;
         mBrain = brain;
+        mArmory = armory;
 
         // update cached value of mAngleRad
         setAngleDeg(mV.mAngleDeg);

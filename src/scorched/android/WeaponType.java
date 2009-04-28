@@ -1,75 +1,125 @@
 package scorched.android;
 
+import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.TreeMap;
 
-public abstract class WeaponType {
+import android.os.Bundle;
+
+public enum WeaponType {
+    SMALL_MISSILE("Small Missile", 1, WeaponType.UNLIMITED,
+                    EnumSet.noneOf(Attr.class)),
+    MEDIUM_MISSILE("Medium Missile", 3, 2,
+                    EnumSet.noneOf(Attr.class)),
+    LARGE_MISSILE("Large Missile", 5, 0,
+                    EnumSet.noneOf(Attr.class)),
+    DOOMHAMMER("Doomhammer", 0, 0,
+                    EnumSet.of(Attr.DOOMHAMMER)),
+    MEDIUM_ROLLER("Medium Roller", 2, 0,
+                    EnumSet.of(Attr.ROLLER)),
+    LARGE_ROLLER("Large Roller", 4, 0,
+                    EnumSet.of(Attr.ROLLER)),
+    MIRV_WARHEAD("MIRV Warhead", 4, 0,
+                    EnumSet.of(Attr.MIRV));
+
     /*================= Constants =================*/
-    public final static int UNLIMITED = -1;
+    public static final int UNLIMITED = -1;
 
     /*================= Types =================*/
+    public static enum Attr {
+        ROLLER,
+        DOOMHAMMER,
+        MIRV
+    }
 
-    /*================= Access =================*/
-    /** Returns the name of the weapon */
-    public abstract String getName();
+    /** An armory is a collection of weapons owned by a player.
+     *
+     * This class is essentially a wrapper around a TreeMap of weapon types
+     * to amounts.
+     */
+    public static class Armory {
+        /*================= Types =================*/
+        private static class MyMap extends TreeMap < WeaponType, Integer > {
+            private static final long serialVersionUID = 1L;
+        }
 
-    /** Returns the size of the explosion
-      */
-    public abstract float getExplosionSize();
+        /*================= Static =================*/
+        /** Returns the Armory of weapons that all players start with */
+        public static Armory fromDefault() {
+            MyMap weapons = new MyMap();
+            WeaponType types[] = WeaponType.values();
+            for (int i = 0; i < types.length; i++) {
+                weapons.put(types[i],
+                        new Integer(types[i].getStartingAmount()));
+            }
+            return new Armory(weapons);
+        }
 
-    /** Returns the number of weapons of this type initially in the player's
-     * inventory */
-    public abstract int initialAmount();
+        public static Armory fromBundle(int index, Bundle map) {
+            MyMap weapons = new MyMap();
+            WeaponType types[] = WeaponType.values();
+            for (int i = 0; i < types.length; i++) {
+                String name = types[i].getClass().toString();
+                String keyName =
+                    AutoPack.fieldNameToKey(Util.indexToString(index), name);
+                if (map.containsKey(keyName)) {
+                    int amount = map.getInt(keyName);
+                    weapons.put(types[i], new Integer(amount));
+                }
+            }
+            return new Armory(weapons);
+        }
 
-    /*================= Static =================*/
-    //public static EmergencyTeleport
-        //sEmergencyTeleport = new EmergencyTeleport();
-    public static WeaponType
-        sBabyMissile = new BabyMissile();
-    public static WeaponType
-        sMediumMissile = new MediumMissile();
-    public static LargeMissile
-        sLargeMissile = new LargeMissile();
-    //public static NuclearMissile
-        //sNuclearMissile = new NuclearMissile();
+        /*================= Access =================*/
+        public WeaponType firstKey() {
+            return mWeapons.firstKey();
+        }
+
+        /*================= Operations =================*/
+        public void saveState(int index, Bundle map) {
+            for (WeaponType type : mWeapons.keySet()) {
+                int amount = mWeapons.get(type).intValue();
+                map.putInt(AutoPack.fieldNameToKey(Util.indexToString(index),
+                                   type.getClass().toString()), amount);
+            }
+        }
+
+        /*================= Data =================*/
+        private MyMap mWeapons;
+
+        /*================= Lifecycle =================*/
+        private Armory(MyMap weapons) {
+            mWeapons = weapons;
+        }
+    }
 
     /*================= Data =================*/
-    private static HashMap < String, WeaponType >
-        sNameToWeaponType = new HashMap < String, WeaponType >();
+    private final String mName;
+    private final int mExplosionSize;
+    private final int mStartingAmount;
+    private final EnumSet<Attr> mAttrs;
+
+    /*================= Access =================*/
+    public String getName() {
+        return mName;
+    }
+
+    public int getExplosionSize() {
+        return mExplosionSize;
+    }
+
+    public int getStartingAmount() {
+        return mStartingAmount;
+    }
 
     /*================= Lifecycle =================*/
-    public WeaponType(String name) {
-        //sNameToWeaponType.put(name, this);
+    private WeaponType(String name, int explosionSize,
+                        int startingAmount, EnumSet<Attr> attrs) {
+        mName = name;
+        mExplosionSize = explosionSize;
+        mStartingAmount = startingAmount;
+        mAttrs = attrs;
     }
-
-    /*================= Weapons =================*/
-    static class BabyMissile extends WeaponType {
-        private final static String NAME = "BabyMissile";
-        public String getName() { return NAME; }
-        public float getExplosionSize() { return 1.0f; }
-        public int initialAmount() { return UNLIMITED; }
-        protected BabyMissile() { super(NAME); }
-    }
-
-    static class MediumMissile extends WeaponType {
-        private final static String NAME = "MediumMissile";
-        public String getName() { return NAME; }
-        public float getExplosionSize() { return 2.0f; }
-        public int initialAmount() { return 1; }
-        protected MediumMissile() { super(NAME); }
-    }
-
-    static class LargeMissile extends WeaponType {
-        private final static String NAME = "LargeMissile";
-        public String getName() { return NAME; }
-        public float getExplosionSize() { return 4.0f; }
-        public int initialAmount() { return 0; }
-        protected LargeMissile() { super(NAME); }
-    }
-
-    /*================= Constants =================*/
-    /*================= Types =================*/
-    /*================= Operations =================*/
-    /*================= Members =================*/
-    /*================= Accessors =================*/
-    /*================= Lifecycle =================*/
 }

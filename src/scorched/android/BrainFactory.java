@@ -12,10 +12,10 @@ public enum BrainFactory {
     HARD("Computer: Hard", HardBrain.class);
 
     /*================= Data =================*/
-    private String mName;
+    private final String mName;
 
     @SuppressWarnings("unchecked")
-    private Class mClass;
+    private final Class mClass;
 
     /*================= Access =================*/
     public String toString() {
