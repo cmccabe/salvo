@@ -446,7 +446,8 @@ public abstract class GameState {
         @Override
         public void onEnter(RunGameActAccessor game) {
             GameState.setCurPlayerAngleText(game);
-//            mNeedRedraw = true;
+            game.getGameControlView().cacheTerrain(game);
+          //            mNeedRedraw = true;
 //            mFingerDown = false;
 //            mTouchX = 0;
 //            mTouchY = 0;

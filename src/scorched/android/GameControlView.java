@@ -48,6 +48,19 @@ class GameControlView extends SurfaceView  {
 
     private static final int SELECTION_CIRCLE_RADIUS = 32;
 
+    /** An enumerator describing what elements of the graphical display have
+     *  been invalidated.
+     */
+    public static enum InvalidatedElement {
+        /** Neither the players nor the terrain has changed */
+        NONE,
+        /** The terrain is still the same, but at least one of the players
+         *  has changed. */
+        PLAYERS,
+        /** The terrain and everything else has changed */
+        ALL
+    }
+
     /*================= Data =================*/
     /** temporary storage for line values */
     private float mLineTemp[];
@@ -62,6 +75,10 @@ class GameControlView extends SurfaceView  {
 
     private Paint mForegroundPaint;
 
+    private Bitmap mCachedTerrain;
+
+    private Canvas mCachedTerrainCanvas;
+
     /*================= Operations =================*/
     public void drawScreen(RunGameActAccessor acc) {
         // TODO: draw this stuff into a bitmap to speed things up?
@@ -70,10 +87,10 @@ class GameControlView extends SurfaceView  {
         Model model = acc.getModel();
         try {
             canvas = holder.lockCanvas(null);
-            drawTerrain(canvas, acc.getModel().getTerrain());
-             for (Player player : model.getPlayers()) {
-                 drawPlayer(canvas, model.getCurPlayerId(), player);
-             }
+            canvas.drawBitmap(mCachedTerrain, 0, 0, null);
+            for (Player player : model.getPlayers()) {
+                drawPlayer(canvas, model.getCurPlayerId(), player);
+            }
         }
         finally {
             if (canvas != null) {
@@ -83,12 +100,12 @@ class GameControlView extends SurfaceView  {
         }
     }
 
-    /** Draws the terrain */
-    private void drawTerrain(Canvas canvas, Terrain terrain) {
+    /** Cache the terrain in memory */
+    public void cacheTerrain(RunGameActAccessor acc) {
         //canvas.drawColor(Color.BLACK);
-        canvas.drawBitmap(mBackgroundImage, 0, 0, null);
+        mCachedTerrainCanvas.drawBitmap(mBackgroundImage, 0, 0, null);
 
-        short h[] = terrain.getHeights();
+        short h[] = acc.getModel().getTerrain().getHeights();
         for (int x = 0; x < Terrain.MAX_X; x += LINE_TEMP_SIZE) {
             int j = 0;
             for (int i = 0; i < LINE_TEMP_SIZE; i++) {
@@ -101,8 +118,9 @@ class GameControlView extends SurfaceView  {
                 mLineTemp[j] = Terrain.MAX_Y;
                 j++;
             }
-            canvas.drawLines(mLineTemp, 0, LINE_TEMP_SIZE * COORDS_PER_LINE,
-                             mForegroundPaint);
+            mCachedTerrainCanvas.drawLines(mLineTemp, 
+                    0, LINE_TEMP_SIZE * COORDS_PER_LINE,
+                    mForegroundPaint);
         }
     }
 
@@ -182,7 +200,7 @@ class GameControlView extends SurfaceView  {
         if (!ret)
             ret = super.onKeyDown(keyCode, event);
         return ret;
-}
+    }
 
     @Override
     public boolean onTouchEvent(MotionEvent me) {
@@ -233,6 +251,10 @@ class GameControlView extends SurfaceView  {
         mForegroundPaint = new Paint();
         mForegroundPaint.setColor(fg.getColor());
         mForegroundPaint.setAntiAlias(false);
+
+        mCachedTerrain = Bitmap.createBitmap(Terrain.MAX_X, Terrain.MAX_Y,
+                                             mBackgroundImage.getConfig());
+        mCachedTerrainCanvas = new Canvas(mCachedTerrain);
     }
 
     public GameControlView(Context context, AttributeSet attrs) {
