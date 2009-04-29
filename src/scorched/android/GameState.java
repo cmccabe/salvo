@@ -433,6 +433,10 @@ public abstract class GameState {
         /** The time at which the user pressed the fire button */
         private long mFireTime;
 
+        /** The time at which the user released the fire button, or 0 if
+         * the user has not yet released the fire button. */
+        private long mFireReleaseTime;
+
         /*================= Operations =================*/
         @Override
         public void saveState(Bundle map) {
@@ -449,9 +453,8 @@ public abstract class GameState {
         /** Calculate what the power should be, given the current time, and
          * the time that the user pressed the fire button.
          */
-        private int timeToPower() {
-            long cur = System.currentTimeMillis();
-            long diff = cur - mFireTime;
+        private int timeToPower(long time) {
+            long diff = time - mFireTime;
             if (diff > MAX_FIRE_TIME)
                 return Player.MAX_POWER;
             else {
@@ -461,15 +464,26 @@ public abstract class GameState {
 
         @Override
         public GameState main(RunGameActAccessor game) {
-            if (mFiring) {
-                int power = timeToPower();
-                game.getGameControlView().  drawScreen(game, power);
+            int power = 0;
+            if (mFireTime == 0) {
+                game.getGameControlView().
+                    drawScreen(game, Player.INVALID_POWER, null);
             }
             else {
-                game.getGameControlView().
-                    drawScreen(game, Player.INVALID_POWER);
+                power = timeToPower(System.currentTimeMillis());
+                game.getGameControlView().drawScreen(game, power, null);
+                if (power == Player.MAX_POWER)
+                    doReleaseFire(game);
             }
-            return null; //(mFired) ? sBallisticsState : null;
+            if (mFireReleaseTime == 0) {
+                // The user hasn't released the fire button yet. Continue in
+                // this state.
+                return null;
+            }
+            else {
+                // The user released the fire button
+                return BallisticsState.create(power);
+            }
         }
 
         @Override
@@ -481,7 +495,31 @@ public abstract class GameState {
 
         @Override
         public int getBlockingDelay() {
-            return (mFiring) ? 1 : 0;
+            if (mFireTime == 0) {
+                // If the user hasn't pressed the fire button yet, block
+                // until we get some input.
+                return 0;
+            }
+            else {
+                // If the user has already pressed the fire button, update
+                // every 1 ms or so
+                return 1;
+            }
+        }
+
+        class DoShowArmory implements Runnable {
+            private RunGameActAccessor mGame;
+            public void run() {
+                showArmory(mGame);
+            }
+            DoShowArmory(RunGameActAccessor game) {
+                mGame = game;
+            }
+        }
+
+        private void doReleaseFire(RunGameActAccessor game) {
+            mFireReleaseTime = System.currentTimeMillis();
+            game.getRunGameAct().runOnUiThread(new DoShowArmory(game));
         }
 
         @Override
@@ -523,16 +561,12 @@ public abstract class GameState {
 
                     return true;
                 }
-
                 case PRESS_FIRE:
                     hideArmory(game);
-                    mFiring = true;
                     mFireTime = System.currentTimeMillis();
                     return true;
                 case RELEASE_FIRE:
-                    showArmory(game);
-                    // TODO: fire projectile
-                    mFiring = false;
+                    doReleaseFire(game);
                     return true;
                 default:
                     return false;
@@ -583,7 +617,8 @@ public abstract class GameState {
 
         /*================= Lifecycle =================*/
         private void initialize() {
-            mFiring = false;
+            mFireTime = 0;
+            mFireReleaseTime = 0;
         }
 
         public static HumanMoveState create() {
@@ -604,65 +639,78 @@ public abstract class GameState {
     public static class BallisticsState extends GameState {
         /*================= Constants =================*/
         public static final byte ID = 20;
+        public static final String BALLISTICS_POWER = "BALLISTICS_POWER";
+
+        /*================= Types =================*/
 
         /*================= Static =================*/
         private static BallisticsState sMe = new BallisticsState();
 
         /*================= Data =================*/
-        //private short mCurSample;
+        private int mPower;
+        private Projectile mProjectile;
 
         /*================= Operations =================*/
         @Override
         public void saveState(Bundle map) {
             map.putByte(GAME_STATE_ID, ID);
+            map.putInt(BALLISTICS_POWER, mPower);
         }
 
         @Override
         public void onEnter(RunGameActAccessor game) {
-            /*
-            Graphics gfx = Graphics.instance;
-            Weapon wpn = Weapon.instance;
+            Model model = game.getModel();
+            Player curPlayer = model.getCurPlayer();
 
-            model.getCurPlayer().fireWeapon();
-            wpn.calculateTrajectory(model);
-
-            float x[] = wpn.getX();
-            float y[] = wpn.getY();
-            int total = wpn.getTotalSamples();
-            gfx.getEnclosingViewSettings
-                    (x[0], y[0], x[total-1], y[total-1], 1,
-                    mViewSettingsTemp);
-            gfx.setViewSettings(mViewSettingsTemp);
-            mCurSample = 0;
-            // todo: zoom so that start and end points are both visible
-            */
+            float angle = curPlayer.getAngleRad();
+            float cos = (float)Math.cos(angle);
+            float sin = - (float)Math.sin(angle);
+            float dx = (cos * mPower) / 200f;
+            float dy = (sin * mPower) / 200f;
+            Log.w(this.getClass().getName(), "onEnter: dx=" + dx + ", dy=" + dy);
+            float turretX = curPlayer.getX() + (Player.TURRET_LENGTH * cos);
+            float turretY = curPlayer.getY() + (Player.TURRET_LENGTH * sin);
+            mProjectile.initialize(turretX, turretY,
+                                   dx, dy, model.getWind());
         }
 
         @Override
         public GameState main(RunGameActAccessor game) {
-            return null;
+            mProjectile.step();
+            game.getGameControlView().
+                drawScreen(game, Player.INVALID_POWER, mProjectile);
+            if (mProjectile.hasExploded()) {
+                return HumanMoveState.create();
+                //return ExplosionState.create();
+            }
+            else
+                return null;
         }
 
         @Override
         public int getBlockingDelay() {
-            return 10;
+            return 1;
         }
 
         /*================= Lifecycle =================*/
-        private void initialize() {
+        private void initialize(int power) {
+            mPower = power;
         }
 
-        public static BallisticsState create() {
-            sMe.initialize();
+        public static BallisticsState create(int power) {
+            sMe.initialize(power);
             return sMe;
         }
 
         public static BallisticsState createFromBundle(Bundle map) {
-            sMe.initialize();
+            int power = map.getInt(BALLISTICS_POWER);
+            sMe.initialize(power);
             return sMe;
         }
 
-        private BallisticsState() { }
+        private BallisticsState() {
+            mProjectile = new Projectile();
+        }
     }
 
     /** Do explosions.
@@ -767,7 +815,7 @@ public abstract class GameState {
         game.getRunGameAct().runOnUiThread(
             new SetTextView(armoryMain, EMPTY_STRING));
         game.getRunGameAct().runOnUiThread(
-            new SetTextView(armoryMain, EMPTY_STRING));
+            new SetTextView(armorySecondary, EMPTY_STRING));
     }
 
     /** Sets the current angle text to the turret angle of the current

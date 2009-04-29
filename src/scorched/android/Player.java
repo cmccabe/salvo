@@ -182,21 +182,6 @@ public class Player {
                                    WeaponType.sBabyMissile);
     }*/
 
-    /** Return a float representing the X position of the end of the
-     *  gun turret */
-    private float getTurretX() {
-        return (float)mV.mX +
-            ((float)Math.cos(mAngleRad) * Model.TURRET_LENGTH);
-    }
-
-    /** Return a float representing the Y position of the end of the
-     *  gun turret */
-    private float getTurretY() {
-        return (float)mV.mY +
-            ((float)Model.PLAYER_SIZE / 2f) +
-            ((float)Math.sin(mAngleRad) * Model.TURRET_LENGTH);
-    }
-
     /*================= Operations =================*/
     public void setX(int x, Terrain terrain) {
         mV.mX = x;

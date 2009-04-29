@@ -85,6 +85,9 @@ public class Model {
 
         /** The foreground paint */
         public Foreground mForeground;
+
+        /** The wind we have this round */
+        public int mWind;
     }
     MyVars mV;
 
@@ -117,6 +120,10 @@ public class Model {
 
     public int getCurPlayerId() {
         return mV.mCurPlayerId;
+    }
+
+    public int getWind() {
+        return mV.mWind;
     }
 
     /** Gets information about who should move next. */

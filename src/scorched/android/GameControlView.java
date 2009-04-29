@@ -54,6 +54,8 @@ class GameControlView extends SurfaceView  {
 
     private static final int BAR_HEIGHT = 50;
 
+    /*================= Types =================*/
+
     /*================= Data =================*/
     /** temporary storage for line values */
     private float mLineTemp[];
@@ -81,7 +83,8 @@ class GameControlView extends SurfaceView  {
      *                  screen, or Player.INVALID_POWER if the bar should not
      *                  be displayed.
      */
-    public void drawScreen(RunGameActAccessor acc, int power) {
+    public void drawScreen(RunGameActAccessor acc, int power,
+                            Projectile proj) {
         // TODO: draw this stuff into a bitmap to speed things up?
         Canvas canvas = null;
         SurfaceHolder holder = getHolder();
@@ -101,6 +104,12 @@ class GameControlView extends SurfaceView  {
                 canvas.drawRect(0, Terrain.MAX_Y - BAR_HEIGHT,
                                 bar_x, Terrain.MAX_Y,
                                 mTempPlayerPaint);
+            }
+            if (proj != null) {
+                mTempPlayerPaint.setColor(Projectile.PROJECTILE_COLOR);
+                mTempPlayerPaint.setStyle(Paint.Style.FILL);
+                canvas.drawCircle(proj.getCurX(), proj.getCurY(),
+                            Projectile.PROJECTILE_RADIUS, mTempPlayerPaint);
             }
         }
         finally {

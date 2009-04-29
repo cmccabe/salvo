@@ -391,6 +391,7 @@ public class ModelFactory {
         v.mCurPlayerId = Player.INVALID_PLAYER_ID;
         v.mBackground = bg;
         v.mForeground = fg;
+        v.mWind = 0; // TODO: set wind to something random
 
         // Create terrain
         Terrain terrain = mV.mTerrainFac.createTerrain();
