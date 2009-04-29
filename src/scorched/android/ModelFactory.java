@@ -199,7 +199,7 @@ public class ModelFactory {
             v.mY = -1;
             v.mAngleDeg = Player.MAX_TURRET_ANGLE / 4;
             v.mName = mV.mName;
-            v.mCurWeaponType = armory.firstKey();
+            v.mCurWeaponType = armory.getMap().firstKey();
             v.mColor = mV.mColor;
             Brain brain = mV.mBrainFac.createBrain();
             return new Player(index, v, brain, armory);

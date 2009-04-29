@@ -88,9 +88,6 @@ public class Player {
          */
         public int mAngleDeg;
 
-        /** The weapon that we're firing with. */
-        public WeaponType mWeaponType;
-
         /** Player name */
         public String mName;
 
@@ -155,12 +152,12 @@ public class Player {
         return mAngleRad;
     }
 
-    public WeaponType getWeaponType() {
-        return mV.mWeaponType;
-    }
-
     public WeaponType getCurWeaponType () {
         return mV.mCurWeaponType;
+    }
+
+    public Armory getArmory () {
+        return mArmory;
     }
 
     public Player.PlayerColor getColor() {
@@ -219,6 +216,10 @@ public class Player {
         }
         mV.mAngleDeg = angleDeg;
         mAngleRad = (float)Math.toRadians(angleDeg);
+    }
+
+    public void setCurWeaponType (WeaponType type) {
+        mV.mCurWeaponType = type;
     }
 
     /*================= Save =================*/

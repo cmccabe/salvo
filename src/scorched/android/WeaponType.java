@@ -51,8 +51,9 @@ public enum WeaponType {
             MyMap weapons = new MyMap();
             WeaponType types[] = WeaponType.values();
             for (int i = 0; i < types.length; i++) {
-                weapons.put(types[i],
-                        new Integer(types[i].getStartingAmount()));
+                int startingAmount = types[i].getStartingAmount();
+                if (startingAmount != 0)
+                    weapons.put(types[i], new Integer(startingAmount));
             }
             return new Armory(weapons);
         }
@@ -73,8 +74,8 @@ public enum WeaponType {
         }
 
         /*================= Access =================*/
-        public WeaponType firstKey() {
-            return mWeapons.firstKey();
+        public TreeMap < WeaponType, Integer > getMap() {
+            return (TreeMap < WeaponType, Integer >) mWeapons;
         }
 
         /*================= Operations =================*/

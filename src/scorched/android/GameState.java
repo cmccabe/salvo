@@ -4,6 +4,11 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.os.Bundle;
 import java.lang.System;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.SortedMap;
+import java.util.TreeMap;
+
 import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -12,6 +17,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import scorched.android.RunGameAct.RunGameActAccessor;
 import scorched.android.SalvoSlider.Listener;
+import scorched.android.WeaponType.Armory;
 
 
 /** Represents a state that the game can be in.
@@ -437,6 +443,7 @@ public abstract class GameState {
         public void onEnter(RunGameActAccessor game) {
             GameState.setCurPlayerAngleText(game);
             game.getGameControlView().cacheTerrain(game);
+            GameState.setCurPlayerArmoryText(game);
         }
 
         /** Calculate what the power should be, given the current time, and
@@ -469,6 +476,7 @@ public abstract class GameState {
         public void onExit(RunGameActAccessor game) {
             // TODO: grey out buttons and whatnot
             GameState.setCustomAngleText(game, EMPTY_STRING);
+            GameState.clearCurPlayerArmoryText(game);
         }
 
         @Override
@@ -479,10 +487,43 @@ public abstract class GameState {
         @Override
         public boolean onButton(RunGameActAccessor game, GameButton b) {
             switch (b) {
-                case ARMORY_LEFT:
+                case ARMORY_LEFT: {
+                    Player curPlayer = game.getModel().getCurPlayer();
+                    TreeMap < WeaponType, Integer > map =
+                        curPlayer.getArmory().getMap();
+                    WeaponType curWeapon = curPlayer.getCurWeaponType();
+                    if (curWeapon == map.firstKey()) {
+                        curPlayer.setCurWeaponType(map.lastKey());
+                    }
+                    else {
+                        SortedMap < WeaponType, Integer > smap =
+                            map.headMap(curWeapon);
+                        curPlayer.setCurWeaponType(smap.lastKey());
+                    }
+                    GameState.setCurPlayerArmoryText(game);
+
                     return true;
-                case ARMORY_RIGHT:
+                }
+                case ARMORY_RIGHT: {
+                    Player curPlayer = game.getModel().getCurPlayer();
+                    TreeMap < WeaponType, Integer > map =
+                        curPlayer.getArmory().getMap();
+                    WeaponType curWeapon = curPlayer.getCurWeaponType();
+                    if (curWeapon == map.lastKey()) {
+                        curPlayer.setCurWeaponType(map.firstKey());
+                    }
+                    else {
+                        WeaponType nextWeapon =
+                            WeaponType.values()[curWeapon.ordinal() + 1];
+                        SortedMap < WeaponType, Integer > smap =
+                            map.tailMap(nextWeapon);
+                        curPlayer.setCurWeaponType(smap.firstKey());
+                    }
+                    GameState.setCurPlayerArmoryText(game);
+
                     return true;
+                }
+
                 case PRESS_FIRE:
                     hideArmory(game);
                     mFiring = true;
@@ -698,6 +739,37 @@ public abstract class GameState {
     }
 
     /*================= Static =================*/
+    private static void setCurPlayerArmoryText(RunGameActAccessor game) {
+        Player curPlayer = game.getModel().getCurPlayer();
+        WeaponType type = curPlayer.getCurWeaponType();
+        Integer amount = curPlayer.getArmory().getMap().get(type);
+
+        TextView armoryMain = game.getArmoryMainText();
+        TextView armorySecondary = game.getArmorySecondaryText();
+
+        game.getRunGameAct().runOnUiThread(new SetTextView(armoryMain,
+                                                           type.getName()));
+        StringBuilder b = new StringBuilder(14);
+        b.append("[");
+        if (amount.intValue() == WeaponType.UNLIMITED)
+            b.append("∞");
+        else
+            b.append(amount);
+        b.append("]");
+        game.getRunGameAct().runOnUiThread(new SetTextView(armorySecondary,
+                                                           b.toString()));
+    }
+
+    private static void clearCurPlayerArmoryText(RunGameActAccessor game) {
+        TextView armoryMain = game.getArmoryMainText();
+        TextView armorySecondary = game.getArmorySecondaryText();
+
+        game.getRunGameAct().runOnUiThread(
+            new SetTextView(armoryMain, EMPTY_STRING));
+        game.getRunGameAct().runOnUiThread(
+            new SetTextView(armoryMain, EMPTY_STRING));
+    }
+
     /** Sets the current angle text to the turret angle of the current
      * player.
      */
