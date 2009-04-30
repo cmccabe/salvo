@@ -665,8 +665,8 @@ public abstract class GameState {
             float angle = curPlayer.getAngleRad();
             float cos = (float)Math.cos(angle);
             float sin = - (float)Math.sin(angle);
-            float dx = (cos * mPower) / 200f;
-            float dy = (sin * mPower) / 200f;
+            float dx = (cos * mPower) / 120f;
+            float dy = (sin * mPower) / 120f;
             Log.w(this.getClass().getName(), "onEnter: dx=" + dx + ", dy=" + dy);
             float turretX = curPlayer.getX() + (Player.TURRET_LENGTH * cos);
             float turretY = curPlayer.getY() + (Player.TURRET_LENGTH * sin);

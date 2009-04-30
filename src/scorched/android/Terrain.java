@@ -50,7 +50,7 @@ public class Terrain {
 
     /** The force of gravity.
       * As measured by change in downward force each sample */
-    public static final float GRAVITY = 0.06f;
+    public static final float GRAVITY = 0.1f;
 
     /*================= Data =================*/
     public static class MyVars {
