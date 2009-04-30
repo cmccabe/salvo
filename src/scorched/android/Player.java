@@ -7,6 +7,7 @@ import java.util.SortedMap;
 import scorched.android.ModelFactory.MyVars;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 
 public class Player {
     /*================= Types =================*/
@@ -63,7 +64,7 @@ public class Player {
 
     public static final int PLAYER_X_SIZE = 30;
     public static final int PLAYER_Y_SIZE = 21;
-    public static final int COLLISION_RADIUS = 14;
+    public static final int COLLISION_RADIUS = 10;
     public static final int BORDER_SIZE = 1;
     public static final int TURRET_LENGTH= 20;
 
@@ -183,12 +184,38 @@ public class Player {
                                    WeaponType.sBabyMissile);
     }*/
 
+    /** Get the height that we would be at when resting comfortably on the
+      * ground. */
+    public int getCorrectHeight(Terrain terrain) {
+        // TODO: use averaging mechanism here to set tank height
+        short h[] = terrain.getBoard();
+        return h[mV.mX];
+    }
+
     /*================= Operations =================*/
     public void setX(int x, Terrain terrain) {
         mV.mX = x;
-        // TODO: use averaging mechanism here to set tank height
-        short h[] = terrain.getBoard();
-        mV.mY = h[x];
+        mV.mY = getCorrectHeight(terrain);
+    }
+
+    /** Drop the player down to the current height of the terrain.
+     *
+     * If the player has to fall, apply fall damage.
+     * If the player is already at that height, do nothing.
+     */
+    public void doFalling(Terrain terrain) {
+        int cy = getCorrectHeight(terrain);
+        if (mV.mY < cy) {
+            Log.e(this.getClass().getName(), "can't understand " +
+                "why the player is lower than expected");
+            mV.mY = cy;
+        }
+        else if (mV.mY > cy) {
+            int fallDist = mV.mY - cy;
+            takeDamage(fallDist); // TODO: determine best
+                                  // multiplier setting here
+            mV.mY = cy;
+        }
     }
 
     /** set turret angle.
@@ -204,8 +231,18 @@ public class Player {
         mAngleRad = (float)Math.toRadians(angleDeg);
     }
 
-    public void setCurWeaponType (WeaponType type) {
+    public void setCurWeaponType(WeaponType type) {
         mV.mCurWeaponType = type;
+    }
+
+    public void takeDamage(int damage) {
+        if (damage < 0) {
+            throw new RuntimeException("takeDamage: damage cannot be " +
+                                       "less than 0");
+        }
+        mV.mLife -= damage;
+        if (mV.mLife < 0)
+            mV.mLife = 0;
     }
 
     /*================= Save =================*/

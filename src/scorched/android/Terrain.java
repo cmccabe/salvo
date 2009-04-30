@@ -68,6 +68,8 @@ public class Terrain {
         return mV.mBoard;
     }
 
+    /*================= Operations =================*/
+
     /*================= Save State =================*/
     public void saveState(Bundle map) {
         AutoPack.autoPack(map, AutoPack.EMPTY_STRING, mV);

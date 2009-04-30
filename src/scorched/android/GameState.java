@@ -182,16 +182,8 @@ public abstract class GameState {
     //   |     | BallisticsState              |     |
     //   |     |                              |<----+
     //   |     | display missles flying       |
-    //   |     | through the air              |
-    //   |     |                              |
-    //   |     +------------------------------+
-    //   |                 |
-    //   |                 V
-    //   |     +------------------------------+
-    //   |     | ExplosionState               |
-    //   |     |                              |
-    //   |     | display explosion            |
-    //   |     | mutate terrain               |
+    //   |     | through the air, draw        |
+    //   |     | explosions                   |
     //   |     |                              |
     //   |     +------------------------------+
     //   |                 |
@@ -467,11 +459,11 @@ public abstract class GameState {
             int power = 0;
             if (mFireTime == 0) {
                 game.getGameControlView().
-                    drawScreen(game, Player.INVALID_POWER, null);
+                    drawScreen(game, Player.INVALID_POWER, null, null);
             }
             else {
                 power = timeToPower(System.currentTimeMillis());
-                game.getGameControlView().drawScreen(game, power, null);
+                game.getGameControlView().drawScreen(game, power, null, null);
                 if (power == Player.MAX_POWER)
                     doReleaseFire(game);
             }
@@ -649,6 +641,9 @@ public abstract class GameState {
         /*================= Data =================*/
         private int mPower;
         private Projectile mProjectile;
+        private Explosion mExplosion;
+
+        /*================= Access =================*/
 
         /*================= Operations =================*/
         @Override
@@ -678,13 +673,41 @@ public abstract class GameState {
 
         @Override
         public GameState main(RunGameActAccessor game) {
-            mProjectile.step();
-            game.getGameControlView().
-                drawScreen(game, Player.INVALID_POWER, mProjectile);
-            if (mProjectile.hasExploded(game.getModel())) {
-                return HumanMoveState.create();
-                //return ExplosionState.create();
+            boolean finished = true;
+            final Model model = game.getModel();
+            final WeaponType weapon = model.getCurPlayer().getCurWeaponType();
+
+            if (mProjectile.getInUse()) {
+                finished = false;
+                mProjectile.step();
+                if (mProjectile.hasExploded(game.getModel())) {
+                    mProjectile.changeInUse(false);
+                    mExplosion.initialize(
+                        mProjectile.getCurX(), mProjectile.getCurY(),
+                        weapon);
+                }
             }
+            if (mExplosion.getInUse()) {
+                finished = false;
+                if (mExplosion.getFinished(System.currentTimeMillis())) {
+                    mExplosion.clearInUse();
+                    mExplosion.doDirectDamage(game);
+                    mExplosion.editTerrain(game);
+                    Terrain terrain = model.getTerrain();
+                    for (Player p : model.getPlayers()) {
+                        p.doFalling(terrain);
+                    }
+                    // TODO: potentially start other explosions here as
+                    // players die
+                }
+            }
+
+            game.getGameControlView().
+                drawScreen(game, Player.INVALID_POWER,
+                           mProjectile, mExplosion);
+
+            if (finished)
+                return HumanMoveState.create();
             else
                 return null;
         }
@@ -697,6 +720,8 @@ public abstract class GameState {
         /*================= Lifecycle =================*/
         private void initialize(int power) {
             mPower = power;
+            mProjectile.changeInUse(false);
+            mExplosion.clearInUse();
         }
 
         public static BallisticsState create(int power) {
@@ -712,80 +737,8 @@ public abstract class GameState {
 
         private BallisticsState() {
             mProjectile = new Projectile();
+            mExplosion = new Explosion();
         }
-    }
-
-    /** Do explosions.
-     * Subtract from players' life points if necessary.
-     * Make craters if necessary.
-     */
-    public static class ExplosionState extends GameState {
-        /*================= Constants =================*/
-        public static final byte ID = 25;
-
-        /*================= Static =================*/
-        private static ExplosionState sMe = new ExplosionState();
-
-        /*================= Data =================*/
-        //private float mMaxExplosionSize;
-        //private float mCurExplosionSize;
-
-        /*================= Operations =================*/
-        @Override
-        public void saveState(Bundle map) {
-            map.putByte(GAME_STATE_ID, ID);
-        }
-
-        @Override
-        public void onEnter(RunGameActAccessor game) {
-//            Weapon wpn = Weapon.instance;
-//            WeaponType wtp = wpn.getWeaponType();
-//            mMaxExplosionSize = wtp.getExplosionSize();
-//            mCurExplosionSize = 0;
-//            Graphics.instance.initializeExplosion();
-//            Sound.instance.playBoom(
-//                powerSlider.getContext().getApplicationContext());
-        }
-
-        @Override
-        public GameState main(RunGameActAccessor game) {
-//            if (mCurExplosionSize > mMaxExplosionSize) {
-//                // TODO: explosion retreating animation
-//                Weapon wpn = Weapon.instance;
-//                model.doExplosion(wpn.getFinalX(), wpn.getFinalY(),
-//                                mMaxExplosionSize);
-//                return sTurnStartState;
-//            }
-//            mCurExplosionSize += 0.01;
-            return null;
-        }
-
-        @Override
-        public void onExit(RunGameActAccessor game) {
-             // examine Weapon.instance to find out where the boom is,
-             // then modify the terrain in the model
-        }
-
-        @Override
-        public int getBlockingDelay() {
-            return 10;
-        }
-
-        /*================= Lifecycle =================*/
-        private void initialize() {
-        }
-
-        public static ExplosionState create() {
-            sMe.initialize();
-            return sMe;
-        }
-
-        public static ExplosionState createFromBundle(Bundle map) {
-            sMe.initialize();
-            return sMe;
-        }
-
-        private ExplosionState() { }
     }
 
     /*================= Static =================*/
@@ -880,8 +833,6 @@ public abstract class GameState {
             //    return ComputerMoveState.createFromBundle(map);
             case BallisticsState.ID:
                 return BallisticsState.createFromBundle(map);
-            case ExplosionState.ID:
-                return ExplosionState.createFromBundle(map);
             default:
                 throw new RuntimeException("can't recognize state with ID = "
                                             + id);

@@ -31,6 +31,12 @@ public abstract class Util {
     }
 
     /*================= Static =================*/
+    /** Returns the Euclidian distance between (x0,y0) and (x1,1) */
+    public static float calcDistance(float x0, float y0, float x1, float y1) {
+        return (float)
+            Math.sqrt(((x1 - x0) * (x1 - x0)) + ((y1 - y0) * (y1 - y0)));
+    }
+
     /** Convenience function that makes a key for player-specific data */
     public static String indexToString(int playerNum) {
         StringBuilder b = new StringBuilder(40);

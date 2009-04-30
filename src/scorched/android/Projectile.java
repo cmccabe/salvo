@@ -23,6 +23,7 @@ public class Projectile {
     private float mX, mY;
     private float mDeltaX, mDeltaY;
     private float mWind;
+    private boolean mInUse;
 
     private boolean mExploded;
     private int mCurStep;
@@ -36,7 +37,15 @@ public class Projectile {
         return mY;
     }
 
+    public boolean getInUse() {
+        return mInUse;
+    }
+
     /*================= Operations =================*/
+    public void changeInUse(boolean inUse) {
+        mInUse = inUse;
+    }
+
     public void step() {
         mCurStep++;
         if (mCurStep > MAX_STEPS)
@@ -71,12 +80,6 @@ public class Projectile {
         return (int)bottom;
     }
 
-    /** Returns the Euclidian distance between (x0,y0) and (x1,1) */
-    private float calcDistance(float x0, float y0, float x1, float y1) {
-        return (float)
-            Math.sqrt(((x1 - x0) * (x1 - x0)) + ((y1 - y0) * (y1 - y0)));
-    }
-
     private boolean checkCollisions(Model model) {
         if (mX < 0)
             return true;
@@ -103,8 +106,10 @@ public class Projectile {
         // Check collisions against players
         Player players[] = model.getPlayers();
         for (Player p : players) {
-            if (calcDistance(mX, mY, p.getX(), p.getY()) <
-                    Player.COLLISION_RADIUS) {
+            if (! p.isAlive())
+                continue;
+            if (Util.calcDistance(mX, mY, p.getX(), p.getY()) <
+                    Player.COLLISION_RADIUS + PROJECTILE_RADIUS) {
                 return true;
             }
         }
@@ -133,6 +138,7 @@ public class Projectile {
 
         mExploded = false;
         mCurStep = 0;
+        mInUse = true;
     }
 
     public Projectile() { }

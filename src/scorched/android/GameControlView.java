@@ -84,7 +84,7 @@ class GameControlView extends SurfaceView  {
      *                  be displayed.
      */
     public void drawScreen(RunGameActAccessor acc, int power,
-                            Projectile proj) {
+                            Projectile proj, Explosion expl) {
         // TODO: draw this stuff into a bitmap to speed things up?
         Canvas canvas = null;
         SurfaceHolder holder = getHolder();
@@ -105,11 +105,19 @@ class GameControlView extends SurfaceView  {
                                 bar_x, Terrain.MAX_Y,
                                 mTempPlayerPaint);
             }
-            if (proj != null) {
+            if ((proj != null) && proj.getInUse()) {
                 mTempPlayerPaint.setColor(Projectile.PROJECTILE_COLOR);
                 mTempPlayerPaint.setStyle(Paint.Style.FILL);
                 canvas.drawCircle(proj.getCurX(), proj.getCurY(),
                             Projectile.PROJECTILE_RADIUS, mTempPlayerPaint);
+            }
+            if ((expl != null) && expl.getInUse()) {
+                WeaponType weapon = expl.getWeaponType();
+                mTempPlayerPaint.setColor(Projectile.PROJECTILE_COLOR);
+                mTempPlayerPaint.setStyle(Paint.Style.FILL);
+                canvas.drawCircle(expl.getX(), expl.getY(),
+                    expl.getCurExplosionSize(System.currentTimeMillis()),
+                    mTempPlayerPaint);
             }
         }
         finally {
@@ -146,6 +154,8 @@ class GameControlView extends SurfaceView  {
 
     private void drawPlayer(Canvas canvas, int curPlayerId,
                             Player player) {
+        if (! player.isAlive())
+            return;
         final int x = player.getX();
         final int y = player.getY();
         final int ty = player.getTurretCenterY();

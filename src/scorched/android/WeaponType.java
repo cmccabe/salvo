@@ -9,20 +9,20 @@ import java.util.TreeMap;
 import android.os.Bundle;
 
 public enum WeaponType {
-    SMALL_MISSILE("Small Missile", 1, WeaponType.UNLIMITED,
-                    EnumSet.noneOf(Attr.class)),
-    MEDIUM_MISSILE("Medium Missile", 3, 2,
-                    EnumSet.noneOf(Attr.class)),
+    SMALL_MISSILE("Small Missile", 10, WeaponType.UNLIMITED,
+                    EnumSet.noneOf(Attr.class), 125),
+    MEDIUM_MISSILE("Medium Missile", 20, 2,
+                    EnumSet.noneOf(Attr.class), 175),
     LARGE_MISSILE("Large Missile", 5, 0,
-                    EnumSet.noneOf(Attr.class)),
+                    EnumSet.noneOf(Attr.class), 100),
     DOOMHAMMER("Doomhammer", 0, 0,
-                    EnumSet.of(Attr.DOOMHAMMER)),
+                    EnumSet.of(Attr.DOOMHAMMER), 100),
     MEDIUM_ROLLER("Medium Roller", 2, 0,
-                    EnumSet.of(Attr.ROLLER)),
+                    EnumSet.of(Attr.ROLLER), 100),
     LARGE_ROLLER("Large Roller", 4, 0,
-                    EnumSet.of(Attr.ROLLER)),
+                    EnumSet.of(Attr.ROLLER), 100),
     MIRV_WARHEAD("MIRV Warhead", 4, 0,
-                    EnumSet.of(Attr.MIRV));
+                    EnumSet.of(Attr.MIRV), 100);
 
     /*================= Constants =================*/
     public static final int UNLIMITED = -1;
@@ -101,6 +101,7 @@ public enum WeaponType {
     private final int mExplosionSize;
     private final int mStartingAmount;
     private final EnumSet<Attr> mAttrs;
+    private final int mFullDamage;
 
     /*================= Access =================*/
     public String getName() {
@@ -115,12 +116,18 @@ public enum WeaponType {
         return mStartingAmount;
     }
 
+    public int getFullDamage() {
+        return mFullDamage;
+    }
+
     /*================= Lifecycle =================*/
     private WeaponType(String name, int explosionSize,
-                        int startingAmount, EnumSet<Attr> attrs) {
+                        int startingAmount, EnumSet<Attr> attrs,
+                        int fullDamage) {
         mName = name;
         mExplosionSize = explosionSize;
         mStartingAmount = startingAmount;
         mAttrs = attrs;
+        mFullDamage = fullDamage;
     }
 }
