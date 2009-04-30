@@ -91,7 +91,9 @@ public class Projectile {
         short board[] = model.getTerrain().getBoard();
         int x = (int)mX;
         int y = (int)mY;
-        for (int i = x - PROJECTILE_RADIUS; i < x + PROJECTILE_RADIUS; i++) {
+        for (int i = Math.max(0, x - PROJECTILE_RADIUS);
+                 i < Math.min(x + PROJECTILE_RADIUS, Terrain.MAX_X);
+                 i++) {
             int yb = circAt(x, y, PROJECTILE_RADIUS, i);
             if (board[i] <= yb) {
                 return true;
