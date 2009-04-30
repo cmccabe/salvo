@@ -668,7 +668,7 @@ public abstract class GameState {
             float dx = (cos * mPower) / 120f;
             float dy = (sin * mPower) / 120f;
             float turretX = curPlayer.getX() + (Player.TURRET_LENGTH * cos);
-            float turretY = curPlayer.getTurretCenterY() 
+            float turretY = curPlayer.getTurretCenterY()
                     + (Player.TURRET_LENGTH * sin);
             mProjectile.initialize(turretX, turretY,
                                    dx, dy, model.getWind());

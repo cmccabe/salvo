@@ -52,6 +52,10 @@ public class Terrain {
       * As measured by change in downward force each sample */
     public static final float GRAVITY = 0.1f;
 
+    /** The maximum wind that we can have.
+     * Wind is a purely horizontal constant acceleration on the projectile */
+    public static final int MAX_WIND = 50;
+
     /*================= Data =================*/
     public static class MyVars {
         /** The playing field */

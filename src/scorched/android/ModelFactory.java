@@ -391,7 +391,8 @@ public class ModelFactory {
         v.mCurPlayerId = Player.INVALID_PLAYER_ID;
         v.mBackground = bg;
         v.mForeground = fg;
-        v.mWind = 0; // TODO: set wind to something random
+        v.mWind =
+            Util.mRandom.nextInt(2 * Terrain.MAX_WIND) - Terrain.MAX_WIND;
 
         // Create terrain
         Terrain terrain = mV.mTerrainFac.createTerrain();
