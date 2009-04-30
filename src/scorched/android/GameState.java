@@ -672,6 +672,8 @@ public abstract class GameState {
                     + (Player.TURRET_LENGTH * sin);
             mProjectile.initialize(turretX, turretY,
                                    dx, dy, model.getWind());
+
+            game.getGameControlView().cacheTerrain(game);
         }
 
         @Override
