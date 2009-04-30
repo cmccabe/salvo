@@ -63,6 +63,7 @@ public class Player {
 
     public static final int PLAYER_X_SIZE = 30;
     public static final int PLAYER_Y_SIZE = 21;
+    public static final int COLLISION_RADIUS = 14;
     public static final int BORDER_SIZE = 1;
     public static final int TURRET_LENGTH= 20;
 
@@ -186,7 +187,7 @@ public class Player {
     public void setX(int x, Terrain terrain) {
         mV.mX = x;
         // TODO: use averaging mechanism here to set tank height
-        short h[] = terrain.getHeights();
+        short h[] = terrain.getBoard();
         mV.mY = h[x];
     }
 

@@ -125,7 +125,7 @@ class GameControlView extends SurfaceView  {
         //canvas.drawColor(Color.BLACK);
         mCachedTerrainCanvas.drawBitmap(mBackgroundImage, 0, 0, null);
 
-        short h[] = acc.getModel().getTerrain().getHeights();
+        short h[] = acc.getModel().getTerrain().getBoard();
         for (int x = 0; x < Terrain.MAX_X; x += LINE_TEMP_SIZE) {
             int j = 0;
             for (int i = 0; i < LINE_TEMP_SIZE; i++) {

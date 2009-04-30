@@ -64,7 +64,7 @@ public class Terrain {
     private MyVars mV;
 
     /*================= Access =================*/
-    public short[] getHeights() {
+    public short[] getBoard() {
         return mV.mBoard;
     }
 

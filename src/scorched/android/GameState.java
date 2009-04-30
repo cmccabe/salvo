@@ -681,7 +681,7 @@ public abstract class GameState {
             mProjectile.step();
             game.getGameControlView().
                 drawScreen(game, Player.INVALID_POWER, mProjectile);
-            if (mProjectile.hasExploded()) {
+            if (mProjectile.hasExploded(game.getModel())) {
                 return HumanMoveState.create();
                 //return ExplosionState.create();
             }

@@ -1,5 +1,7 @@
 package scorched.android;
 
+import android.util.Log;
+
 /* Represents a projectile flying across the screen.
  *
  * This class is mutable and designed to be reused. This is to cut down on
@@ -45,7 +47,37 @@ public class Projectile {
         mDeltaX += mWind;
     }
 
-    private boolean checkCollisions() {
+    /* Returns the bottom coordinate of a circle centered at (cx, cy)
+     * evaulated at x
+     */
+    private int circAt(int x0, int y0, int radius, int x) {
+         // The equation for a circle is
+         // (x - x0)^2 + (y - y0)^2 = r
+         //
+         // Solved for y:
+         //              _____________
+         //   y = y0 +  | r - (x-x0)^2
+         //          - \|
+         //
+         // Taking only the bottom coordinate:
+         //              _____________
+         //   y = y0 +  | r - (x-x0)^2
+         //            \|
+
+        float tmp = radius - (x - x0) * (x - x0);
+        if (tmp <= 0)
+            return 0;
+        float bottom = y0 + (float)Math.sqrt(tmp);
+        return (int)bottom;
+    }
+
+    /** Returns the Euclidian distance between (x0,y0) and (x1,1) */
+    private float calcDistance(float x0, float y0, float x1, float y1) {
+        return (float)
+            Math.sqrt(((x1 - x0) * (x1 - x0)) + ((y1 - y0) * (y1 - y0)));
+    }
+
+    private boolean checkCollisions(Model model) {
         if (mX < 0)
             return true;
         else if (mX > Terrain.MAX_X)
@@ -53,15 +85,36 @@ public class Projectile {
         else if (mY > Terrain.MAX_Y)
             return true;
         // NOTE: no check for min Y.
-        // We want to let projectiles go as far up in the air as possible.
+        // Projectiles can sail as far up as they want.
+
+        // Check collisions against terrain
+        short board[] = model.getTerrain().getBoard();
+        int x = (int)mX;
+        int y = (int)mY;
+        for (int i = x - PROJECTILE_RADIUS; i < x + PROJECTILE_RADIUS; i++) {
+            int yb = circAt(x, y, PROJECTILE_RADIUS, i);
+            if (board[i] <= yb) {
+                return true;
+            }
+        }
+
+        // Check collisions against players
+        Player players[] = model.getPlayers();
+        for (Player p : players) {
+            if (calcDistance(mX, mY, p.getX(), p.getY()) <
+                    Player.COLLISION_RADIUS) {
+                return true;
+            }
+        }
+
         return false;
     }
 
-    public boolean hasExploded() {
+    public boolean hasExploded(Model model) {
         if (mExploded)
             return true;
         else {
-            mExploded = checkCollisions();
+            mExploded = checkCollisions(model);
             return mExploded;
         }
     }
