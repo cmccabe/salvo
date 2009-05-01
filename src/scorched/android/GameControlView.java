@@ -108,8 +108,14 @@ class GameControlView extends SurfaceView  {
             if ((proj != null) && proj.getInUse()) {
                 mTempPlayerPaint.setColor(Projectile.PROJECTILE_COLOR);
                 mTempPlayerPaint.setStyle(Paint.Style.FILL);
-                canvas.drawCircle(proj.getCurX(), proj.getCurY(),
+                if (proj.isOffscreen()) {
+                    float x = proj.getCurX();
+                    canvas.drawRect(x - 5, 0, x + 5, 5, mTempPlayerPaint);
+                }
+                else {
+                    canvas.drawCircle(proj.getCurX(), proj.getCurY(),
                             Projectile.PROJECTILE_RADIUS, mTempPlayerPaint);
+                }
             }
             if ((expl != null) && expl.getInUse()) {
                 WeaponType weapon = expl.getWeaponType();

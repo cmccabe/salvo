@@ -41,6 +41,10 @@ public class Projectile {
         return mInUse;
     }
 
+    public boolean isOffscreen() {
+        return (mY + PROJECTILE_RADIUS < 0);
+    }
+
     /*================= Operations =================*/
     public void changeInUse(boolean inUse) {
         mInUse = inUse;
