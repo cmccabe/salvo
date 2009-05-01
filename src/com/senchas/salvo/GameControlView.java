@@ -1,6 +1,6 @@
-package scorched.android;
+package com.senchas.salvo;
 
-import scorched.android.RunGameAct.RunGameActAccessor;
+import com.senchas.salvo.RunGameAct.RunGameActAccessor;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;

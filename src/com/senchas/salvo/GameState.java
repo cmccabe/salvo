@@ -1,4 +1,4 @@
-package scorched.android;
+package com.senchas.salvo;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -15,9 +15,9 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
-import scorched.android.RunGameAct.RunGameActAccessor;
-import scorched.android.SalvoSlider.Listener;
-import scorched.android.WeaponType.Armory;
+import com.senchas.salvo.RunGameAct.RunGameActAccessor;
+import com.senchas.salvo.SalvoSlider.Listener;
+import com.senchas.salvo.WeaponType.Armory;
 
 
 /** Represents a state that the game can be in.

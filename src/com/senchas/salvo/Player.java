@@ -1,10 +1,10 @@
-package scorched.android;
+package com.senchas.salvo;
 
-import scorched.android.WeaponType.Armory;
+import com.senchas.salvo.WeaponType.Armory;
 
 import java.util.SortedMap;
 
-import scorched.android.ModelFactory.MyVars;
+import com.senchas.salvo.ModelFactory.MyVars;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;

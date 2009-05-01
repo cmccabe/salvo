@@ -1,7 +1,7 @@
-package scorched.android;
+package com.senchas.salvo;
 
-import scorched.android.GameState.HumanMoveState;
-import scorched.android.ModelFactory.MyVars;
+import com.senchas.salvo.GameState.HumanMoveState;
+import com.senchas.salvo.ModelFactory.MyVars;
 import android.os.Bundle;
 
 /**

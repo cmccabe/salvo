@@ -1,4 +1,4 @@
-package scorched.android;
+package com.senchas.salvo;
 
 import android.content.Context;
 import android.graphics.Canvas;

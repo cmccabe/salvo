@@ -1,4 +1,4 @@
-package scorched.android;
+package com.senchas.salvo;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -11,7 +11,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ZoomButton;
 
-import scorched.android.Model;
+import com.senchas.salvo.Model;
 import android.view.View.OnClickListener;
 
 public class TitleScreenAct extends Activity {

@@ -1,6 +1,6 @@
-package scorched.android;
+package com.senchas.salvo;
 import android.graphics.Color;
-import scorched.android.Background;
+import com.senchas.salvo.Background;
 
 /**
  * Represents a game foreground.

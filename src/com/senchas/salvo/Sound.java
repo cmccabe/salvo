@@ -1,4 +1,4 @@
-package scorched.android;
+package com.senchas.salvo;
 
 import java.io.IOException;
 import java.util.HashSet;

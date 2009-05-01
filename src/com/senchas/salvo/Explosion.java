@@ -1,6 +1,6 @@
-package scorched.android;
+package com.senchas.salvo;
 
-import scorched.android.RunGameAct.RunGameActAccessor;
+import com.senchas.salvo.RunGameAct.RunGameActAccessor;
 import android.util.Log;
 
 /* Represents an ongoing explosion

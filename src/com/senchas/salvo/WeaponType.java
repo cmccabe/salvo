@@ -1,4 +1,4 @@
-package scorched.android;
+package com.senchas.salvo;
 
 import java.util.EnumSet;
 import java.util.HashMap;

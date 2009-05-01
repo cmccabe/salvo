@@ -1,6 +1,6 @@
-package scorched.android;
+package com.senchas.salvo;
 
-import scorched.android.WeaponType.Armory;
+import com.senchas.salvo.WeaponType.Armory;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.util.Random;
 import java.util.SortedMap;
 
-import scorched.android.Player.PlayerColor;
+import com.senchas.salvo.Player.PlayerColor;
 
 import android.content.Context;
 import android.os.Bundle;

@@ -1,6 +1,6 @@
-package scorched.android;
+package com.senchas.salvo;
 
-import scorched.android.Brain.*;
+import com.senchas.salvo.Brain.*;
 
 /**
  * Creates a Brain

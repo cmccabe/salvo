@@ -1,4 +1,4 @@
-package scorched.android;
+package com.senchas.salvo;
 
 import android.app.Activity;
 import android.app.AlertDialog;

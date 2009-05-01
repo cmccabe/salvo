@@ -1,4 +1,4 @@
-package scorched.android;
+package com.senchas.salvo;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -16,7 +16,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.ZoomButton;
 
-import scorched.android.Model;
+import com.senchas.salvo.Model;
 import android.view.View.OnClickListener;
 
 public class RunGameAct extends Activity {
