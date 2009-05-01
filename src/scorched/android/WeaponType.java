@@ -52,6 +52,12 @@ public enum WeaponType {
             WeaponType types[] = WeaponType.values();
             for (int i = 0; i < types.length; i++) {
                 int startingAmount = types[i].getStartingAmount();
+
+                // Give a good selection of weapons...
+                // TODO: take this out
+                if (startingAmount == 0)
+                    startingAmount = 4;
+
                 if (startingAmount != 0)
                     weapons.put(types[i], new Integer(startingAmount));
             }
