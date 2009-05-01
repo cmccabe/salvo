@@ -474,6 +474,10 @@ public abstract class GameState {
             }
             else {
                 // The user released the fire button
+                Player curPlayer = game.getModel().getCurPlayer();
+                curPlayer.setCurWeaponType(
+                    curPlayer.getArmory().useWeapon(
+                        curPlayer.getCurWeaponType()));
                 return BallisticsState.create(power);
             }
         }
@@ -519,38 +523,18 @@ public abstract class GameState {
             switch (b) {
                 case ARMORY_LEFT: {
                     Player curPlayer = game.getModel().getCurPlayer();
-                    TreeMap < WeaponType, Integer > map =
-                        curPlayer.getArmory().getMap();
-                    WeaponType curWeapon = curPlayer.getCurWeaponType();
-                    if (curWeapon == map.firstKey()) {
-                        curPlayer.setCurWeaponType(map.lastKey());
-                    }
-                    else {
-                        SortedMap < WeaponType, Integer > smap =
-                            map.headMap(curWeapon);
-                        curPlayer.setCurWeaponType(smap.lastKey());
-                    }
+                    curPlayer.setCurWeaponType(
+                        curPlayer.getArmory().getPrevWeapon(
+                            curPlayer.getCurWeaponType()));
                     GameState.setCurPlayerArmoryText(game);
-
                     return true;
                 }
                 case ARMORY_RIGHT: {
                     Player curPlayer = game.getModel().getCurPlayer();
-                    TreeMap < WeaponType, Integer > map =
-                        curPlayer.getArmory().getMap();
-                    WeaponType curWeapon = curPlayer.getCurWeaponType();
-                    if (curWeapon == map.lastKey()) {
-                        curPlayer.setCurWeaponType(map.firstKey());
-                    }
-                    else {
-                        WeaponType nextWeapon =
-                            WeaponType.values()[curWeapon.ordinal() + 1];
-                        SortedMap < WeaponType, Integer > smap =
-                            map.tailMap(nextWeapon);
-                        curPlayer.setCurWeaponType(smap.firstKey());
-                    }
+                    curPlayer.setCurWeaponType(
+                        curPlayer.getArmory().getNextWeapon(
+                            curPlayer.getCurWeaponType()));
                     GameState.setCurPlayerArmoryText(game);
-
                     return true;
                 }
                 case PRESS_FIRE:

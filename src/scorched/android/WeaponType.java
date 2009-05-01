@@ -78,12 +78,73 @@ public enum WeaponType {
             return (TreeMap < WeaponType, Integer >) mWeapons;
         }
 
+        /** Returns the weapon after 'curWeapon' in the armory.
+         *
+         * NOTE: we assume that the armory is never empty. This is easy to
+         * enforce because we have an unlimited supply of small missiles...
+         */
+        public WeaponType getNextWeapon(WeaponType curWeapon) {
+            if (curWeapon == mWeapons.lastKey()) {
+                return mWeapons.firstKey();
+            }
+            else {
+                WeaponType nextWeapon =
+                    WeaponType.values()[curWeapon.ordinal() + 1];
+                SortedMap < WeaponType, Integer > smap =
+                    mWeapons.tailMap(nextWeapon);
+                return smap.firstKey();
+            }
+        }
+
+        /** Returns the weapon before 'curWeapon' in the armory.
+         *
+         * NOTE: we assume that the armory is never empty. This is easy to
+         * enforce because we have an unlimited supply of small missiles...
+         */
+        public WeaponType getPrevWeapon(WeaponType curWeapon) {
+            if (curWeapon == mWeapons.firstKey()) {
+                return mWeapons.lastKey();
+            }
+            else {
+                SortedMap < WeaponType, Integer > smap =
+                    mWeapons.headMap(curWeapon);
+                return smap.lastKey();
+            }
+        }
+
         /*================= Operations =================*/
         public void saveState(int index, Bundle map) {
             for (WeaponType type : mWeapons.keySet()) {
                 int amount = mWeapons.get(type).intValue();
                 map.putInt(AutoPack.fieldNameToKey(Util.indexToString(index),
                                    type.getClass().toString()), amount);
+            }
+        }
+
+        /** Uses one instance of WeaponType "type" from the armory
+         *
+         * @returns     the new currently selected weapon
+         */
+        public WeaponType useWeapon(WeaponType type) {
+            Integer amount = mWeapons.get(type);
+            int amt = amount.intValue();
+            if (amt == UNLIMITED) {
+                // Weapons with an unlimited supply can never be used up
+                return type;
+            }
+            if (amt <= 0) {
+                throw new RuntimeException("useWeapon: used a weapon " +
+                                           "that we don't have?");
+            }
+            amt--;
+            if (amt == 0) {
+                WeaponType ret = getNextWeapon(type);
+                mWeapons.remove(type);
+                return ret;
+            }
+            else {
+                mWeapons.put(type, new Integer(amt));
+                return type;
             }
         }
 
