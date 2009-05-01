@@ -68,7 +68,7 @@ public enum WeaponType {
             MyMap weapons = new MyMap();
             WeaponType types[] = WeaponType.values();
             for (int i = 0; i < types.length; i++) {
-                String name = types[i].getClass().toString();
+                String name = types[i].getName();
                 String keyName =
                     AutoPack.fieldNameToKey(Util.indexToString(index), name);
                 if (map.containsKey(keyName)) {
@@ -123,7 +123,7 @@ public enum WeaponType {
             for (WeaponType type : mWeapons.keySet()) {
                 int amount = mWeapons.get(type).intValue();
                 map.putInt(AutoPack.fieldNameToKey(Util.indexToString(index),
-                                   type.getClass().toString()), amount);
+                                   type.getName()), amount);
             }
         }
 
