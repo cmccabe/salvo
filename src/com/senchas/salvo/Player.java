@@ -117,6 +117,24 @@ public class Player {
     /*================= Static =================*/
 
     /*================= Access =================*/
+    /** Get the outline color for this player. Outline colors vary depending
+      * on how much health the player has left. */
+    public int getOutlineColor() {
+        int l = mV.mLife;
+        if (l <= 100) {
+            int whiteness = (l * 0xff) / 100;
+            return Color.argb(0xff, 0xff, whiteness, whiteness);
+        }
+        else {
+            if (l > MAX_LIFE) {
+                throw new RuntimeException("getOutlineColor: can't " +
+                        "handle life > MAXLIFE (" + MAX_LIFE + ")");
+            }
+            int blueness = ((l - 100) * 0xff) / 200;
+            return Color.argb(0xff, 0xff - blueness, 0xff - blueness, 0xff);
+        }
+    }
+    
     public String getIntroductionString() {
         StringBuilder b = new StringBuilder(80);
         b.append(mV.mName);

@@ -162,6 +162,8 @@ class GameControlView extends SurfaceView  {
                             Player player) {
         if (! player.isAlive())
             return;
+        int outlineColor = player.getOutlineColor();
+
         final int x = player.getX();
         final int y = player.getY();
         final int ty = player.getTurretCenterY();
@@ -180,7 +182,7 @@ class GameControlView extends SurfaceView  {
         }
 
         // Draw turret
-        mTempPlayerPaint.setColor(Color.WHITE);
+        mTempPlayerPaint.setColor(outlineColor);
         mTempPlayerPaint.setStrokeWidth(TURRET_STROKE_WIDTH +
                                         Player.BORDER_SIZE);
         float angle = player.getAngleRad();
@@ -220,7 +222,7 @@ class GameControlView extends SurfaceView  {
         canvas.drawPath(mPathTmp2, mTempPlayerPaint);
 
         mTempPlayerPaint.setStyle(Paint.Style.STROKE);
-        mTempPlayerPaint.setColor(Color.WHITE);
+        mTempPlayerPaint.setColor(outlineColor);
         canvas.drawPath(mPathTmp, mTempPlayerPaint);
         canvas.drawPath(mPathTmp2, mTempPlayerPaint);
 
