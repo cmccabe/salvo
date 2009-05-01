@@ -475,10 +475,10 @@ public abstract class GameState {
             else {
                 // The user released the fire button
                 Player curPlayer = game.getModel().getCurPlayer();
+                WeaponType weapon = curPlayer.getCurWeaponType();
                 curPlayer.setCurWeaponType(
-                    curPlayer.getArmory().useWeapon(
-                        curPlayer.getCurWeaponType()));
-                return BallisticsState.create(power);
+                    curPlayer.getArmory().useWeapon(weapon));
+                return BallisticsState.create(power, weapon);
             }
         }
 
@@ -616,6 +616,7 @@ public abstract class GameState {
         /*================= Constants =================*/
         public static final byte ID = 20;
         public static final String BALLISTICS_POWER = "BALLISTICS_POWER";
+        public static final String WEAPON_TYPE = "WEAPON_TYPE";
 
         /*================= Types =================*/
 
@@ -626,6 +627,7 @@ public abstract class GameState {
         private int mPower;
         private Projectile mProjectile;
         private Explosion mExplosion;
+        private WeaponType mWeapon;
 
         /*================= Access =================*/
 
@@ -634,6 +636,7 @@ public abstract class GameState {
         public void saveState(Bundle map) {
             map.putByte(GAME_STATE_ID, ID);
             map.putInt(BALLISTICS_POWER, mPower);
+            map.putInt(WEAPON_TYPE, mWeapon.ordinal());
         }
 
         @Override
@@ -659,7 +662,6 @@ public abstract class GameState {
         public GameState main(RunGameActAccessor game) {
             boolean finished = true;
             final Model model = game.getModel();
-            final WeaponType weapon = model.getCurPlayer().getCurWeaponType();
 
             if (mProjectile.getInUse()) {
                 finished = false;
@@ -668,7 +670,7 @@ public abstract class GameState {
                     mProjectile.changeInUse(false);
                     mExplosion.initialize(
                         mProjectile.getCurX(), mProjectile.getCurY(),
-                        weapon);
+                        mWeapon);
                 }
             }
             if (mExplosion.getInUse()) {
@@ -702,20 +704,24 @@ public abstract class GameState {
         }
 
         /*================= Lifecycle =================*/
-        private void initialize(int power) {
+        private void initialize(int power, WeaponType weapon) {
             mPower = power;
             mProjectile.changeInUse(false);
             mExplosion.clearInUse();
+            mWeapon = weapon;
         }
 
-        public static BallisticsState create(int power) {
-            sMe.initialize(power);
+        public static BallisticsState create(int power, WeaponType weapon) {
+            sMe.initialize(power, weapon);
             return sMe;
         }
 
         public static BallisticsState createFromBundle(Bundle map) {
             int power = map.getInt(BALLISTICS_POWER);
-            sMe.initialize(power);
+            int wType = map.getInt(WEAPON_TYPE);
+            WeaponType weapons[] = WeaponType.values();
+            WeaponType weapon = weapons[wType];
+            sMe.initialize(power, weapon);
             return sMe;
         }
 
