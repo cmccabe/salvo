@@ -293,10 +293,10 @@ public class RunGameAct extends Activity {
 
         /** Print out state logging information */
         private void stateLog(String text, GameState state) {
-            StringBuilder b = new StringBuilder(80);
+            /*StringBuilder b = new StringBuilder(80);
             b.append(text).append("(");
             b.append(mState.toString()).append(")");
-            Log.w(this.getClass().getName(), b.toString());
+            Log.w(this.getClass().getName(), b.toString()); */
         }
 
         /** Process requests that the main thread sleep or exit.
