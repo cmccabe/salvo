@@ -387,7 +387,7 @@ public abstract class GameState {
                 game.getRunGameAct().runOnUiThread(doToast);
 
                 model.setCurPlayerId(mInfo.getNextPlayerId());
-                return play.getGameState();
+                return play.getBrain().getMoveState();
             }
         }
 
@@ -619,6 +619,68 @@ public abstract class GameState {
         }
     }
 
+    /** A computer turn. We use the Brain object to determine what to do.
+     * This code is mostly concerned with animating the action.
+     */
+    public static class ComputerMoveState extends GameState {
+        /*================= Constants =================*/
+        public static final byte ID = 16;
+
+        /*================= Static =================*/
+        private static ComputerMoveState sMe = new ComputerMoveState();
+
+        /*================= Data =================*/
+
+        /*================= Operations =================*/
+        @Override
+        public void saveState(Bundle map) {
+            map.putByte(GAME_STATE_ID, ID);
+        }
+
+        @Override
+        public void onEnter(RunGameActAccessor game) {
+            GameState.setCurPlayerAngleText(game);
+            game.getGameControlView().cacheTerrain(game);
+            GameState.setCurPlayerArmoryText(game);
+        }
+
+        @Override
+        public GameState main(RunGameActAccessor game) {
+                //return BallisticsState.create(power, weapon);
+            return null;
+        }
+
+        @Override
+        public void onExit(RunGameActAccessor game) {
+            // TODO: grey out buttons and whatnot
+            GameState.setCustomAngleText(game, EMPTY_STRING);
+            GameState.clearCurPlayerArmoryText(game);
+        }
+
+        @Override
+        public int getBlockingDelay() {
+            return 1;
+        }
+
+        /*================= Lifecycle =================*/
+        private void initialize() {
+        }
+
+        public static ComputerMoveState create() {
+            return ComputerMoveState.create();
+            //sMe.initialize();
+            //return sMe;
+        }
+
+        public static ComputerMoveState createFromBundle(Bundle map) {
+            sMe.initialize();
+            return sMe;
+        }
+
+        public ComputerMoveState() {
+        }
+    }
+
     /** Draw missiles flying through the sky. The fun state. */
     public static class BallisticsState extends GameState {
         /*================= Constants =================*/
@@ -827,8 +889,8 @@ public abstract class GameState {
                 return TurnStartState.createFromBundle(map);
             case HumanMoveState.ID:
                 return HumanMoveState.createFromBundle(map);
-            //case ComputerMoveState.ID:
-            //    return ComputerMoveState.createFromBundle(map);
+            case ComputerMoveState.ID:
+                return ComputerMoveState.createFromBundle(map);
             case BallisticsState.ID:
                 return BallisticsState.createFromBundle(map);
             default:
@@ -841,21 +903,3 @@ public abstract class GameState {
         return TurnStartState.create();
     }
 }
-
-// HOWTO: draw stuff on the canvas
-                        // redraw whatever needs to be redrawn
-//                        if (mState.needRedraw()) {
-//                            Canvas canvas = null;
-//                            try {
-//                                canvas = mSurfaceHolder.lockCanvas(null);
-//                                mState.redraw(canvas, mModel);
-//                            }
-//                            finally {
-//                                if (canvas != null) {
-//                                    // Don't leave the Surface in an
-//                                    // inconsistent state
-//                                    mSurfaceHolder.
-//                                        unlockCanvasAndPost(canvas);
-//                                }
-//                            }
-//                        }

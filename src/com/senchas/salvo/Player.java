@@ -188,8 +188,8 @@ public class Player {
         return mV.mLife > 0;
     }
 
-    public GameState getGameState() {
-        return GameState.HumanMoveState.create();
+    public Brain getBrain() {
+        return mBrain;
     }
 
     /** Initialize the Weapon singleton with what we're firing */

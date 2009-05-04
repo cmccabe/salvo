@@ -1,5 +1,6 @@
 package com.senchas.salvo;
 
+import com.senchas.salvo.GameState.ComputerMoveState;
 import com.senchas.salvo.GameState.HumanMoveState;
 import com.senchas.salvo.ModelFactory.MyVars;
 import android.os.Bundle;
@@ -9,7 +10,7 @@ import android.os.Bundle;
  */
 public abstract class Brain {
     /*================= Access =================*/
-    public abstract GameState getPlayerGameState();
+    public abstract GameState getMoveState();
 
     /*================= Operations =================*/
     public abstract void saveState(int index, Bundle map);
@@ -32,7 +33,7 @@ public abstract class Brain {
         private MyVars mV;
 
         /*================= Access =================*/
-        public GameState getPlayerGameState() {
+        public GameState getMoveState() {
             return HumanMoveState.create();
         }
 
@@ -59,23 +60,37 @@ public abstract class Brain {
         public static final short ID = 2;
 
         /*================= Static =================*/
-        public static EasyBrain fromBundle(int i, Bundle b) {
-            return new EasyBrain();
+        public static EasyBrain fromBundle(int index, Bundle map) {
+            MyVars v = (MyVars)AutoPack.
+                autoUnpack(map, Util.indexToString(index), MyVars.class);
+            return new EasyBrain(v);
         }
 
-        /*================= Access =================*/
-        public GameState getPlayerGameState() {
-            return HumanMoveState.create(); //TODO: change to comp state
+        /*================= Data =================*/
+        public static class MyVars {
         }
+        private MyVars mV;
+
+        /*================= Access =================*/
+        public GameState getMoveState() {
+            return HumanMoveState.create();
+        }
+
         /*================= Operations =================*/
         public void saveState(int index, Bundle map) {
             map.putShort(Util.indexToString(index, KEY_BRAIN_TYPE_ID), ID);
-            //AutoPack.autoPack(map, Util.indexToString(index), mV);
+            AutoPack.autoPack(map, Util.indexToString(index), mV);
         }
 
         /*================= Lifecycle =================*/
         public EasyBrain() {
             super();
+            mV = new MyVars();
+        }
+
+        public EasyBrain(MyVars v) {
+            super();
+            mV = v;
         }
     }
 
@@ -88,20 +103,31 @@ public abstract class Brain {
             return new MediumBrain();
         }
 
+        /*================= Data =================*/
+        public static class MyVars {
+        }
+        private MyVars mV;
+
         /*================= Access =================*/
-        public GameState getPlayerGameState() {
-            return HumanMoveState.create(); //TODO: change to comp state
+        public GameState getMoveState() {
+            return HumanMoveState.create();
         }
 
         /*================= Operations =================*/
         public void saveState(int index, Bundle map) {
             map.putShort(Util.indexToString(index, KEY_BRAIN_TYPE_ID), ID);
-            //AutoPack.autoPack(map, Util.indexToString(index), mV);
+            AutoPack.autoPack(map, Util.indexToString(index), mV);
         }
 
         /*================= Lifecycle =================*/
         public MediumBrain() {
             super();
+            mV = new MyVars();
+        }
+
+        public MediumBrain(MyVars v) {
+            super();
+            mV = v;
         }
     }
 
@@ -114,20 +140,31 @@ public abstract class Brain {
             return new HardBrain();
         }
 
+        /*================= Data =================*/
+        public static class MyVars {
+        }
+        private MyVars mV;
+
         /*================= Access =================*/
-        public GameState getPlayerGameState() {
-            return HumanMoveState.create(); //TODO: change to comp state
+        public GameState getMoveState() {
+            return HumanMoveState.create();
         }
 
         /*================= Operations =================*/
         public void saveState(int index, Bundle map) {
             map.putShort(Util.indexToString(index, KEY_BRAIN_TYPE_ID), ID);
-            //AutoPack.autoPack(map, Util.indexToString(index), mV);
+            AutoPack.autoPack(map, Util.indexToString(index), mV);
         }
 
         /*================= Lifecycle =================*/
         public HardBrain() {
             super();
+            mV = new MyVars();
+        }
+
+        public HardBrain(MyVars v) {
+            super();
+            mV = v;
         }
     }
 
