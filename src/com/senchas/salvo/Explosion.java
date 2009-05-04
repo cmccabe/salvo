@@ -50,7 +50,7 @@ public class Explosion {
     }
 
     public int getCurExplosionSize(long time) {
-        int full = mWeapon.getExplosionSize();
+        int full = mWeapon.getExplosionRadius();
         long diff = time - mStartTime;
         if (diff > MAX_TIME)
             return full;
@@ -76,7 +76,7 @@ public class Explosion {
                 continue;
             float dist = Util.calcDistance(mX, mY, p.getX(), p.getY());
             float safeDist = Player.COLLISION_RADIUS +
-                                mWeapon.getExplosionSize();
+                                mWeapon.getExplosionRadius();
             if (dist < safeDist) {
                 int reduction;
                 int full = mWeapon.getFullDamage();
@@ -101,17 +101,43 @@ public class Explosion {
     public void editTerrain(RunGameActAccessor game) {
         Terrain terrain = game.getModel().getTerrain();
         short board[] = terrain.getBoard();
+
+        Util.Pair pair = new Util.Pair();
+        int eSize = mWeapon.getExplosionRadius();
+
         // do the circle collision algorithm on each height
-//        int x = (int)mX;
-//        int y = (int)mY;
-//        for (int i = Math.max(0, x - PROJECTILE_RADIUS);
-//                 i < Math.min(x + PROJECTILE_RADIUS, Terrain.MAX_X);
-//                 i++) {
-//            int yb = circAt(x, y, PROJECTILE_RADIUS, i);
-//            if (board[i] <= yb) {
-//                return true;
-//            }
-//        }
+        int x = (int)mX;
+        int y = (int)mY;
+        for (int slice = Math.max(0, x - eSize);
+                 slice < Math.min(x + eSize, Terrain.MAX_X);
+                 slice++) {
+            Util.circAt(x, y, eSize, slice, pair);
+            editTerrainSlice(board, slice, pair);
+        }
+    }
+
+    /** Helper function for editTerrain that does the work at a single
+     * terrain slice. */
+    private void editTerrainSlice(short board[], int slice,
+                                  Util.Pair pair) {
+        if (pair.yLower == 0) {
+            // The explosion isn't relevant at this terrain slice
+            return;
+        }
+        if (pair.yLower < board[slice]) {
+            // The explosion is too far up in the air to have hit the ground
+            // at this terrain slice.
+            return;
+        }
+        if (pair.yUpper > board[slice]) {
+            // The explosion is completely underground
+            board[slice] += (pair.yLower - pair.yUpper);
+            return;
+        }
+        board[slice] += (pair.yLower - board[slice]);
+        if (board[slice] > Terrain.MAX_Y)
+            board[slice] = Terrain.MAX_Y;
+        return;
     }
 
     /*================= Lifecycle =================*/

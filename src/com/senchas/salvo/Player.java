@@ -134,7 +134,7 @@ public class Player {
             return Color.argb(0xff, 0xff - blueness, 0xff - blueness, 0xff);
         }
     }
-    
+
     public String getIntroductionString() {
         StringBuilder b = new StringBuilder(80);
         b.append(mV.mName);

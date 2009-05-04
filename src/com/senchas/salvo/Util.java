@@ -30,6 +30,11 @@ public abstract class Util {
         }
     }
 
+    public static class Pair {
+        public int yLower;
+        public int yUpper;
+    }
+
     /*================= Static =================*/
     /** Returns the Euclidian distance between (x0,y0) and (x1,1) */
     public static float calcDistance(float x0, float y0, float x1, float y1) {
@@ -50,6 +55,33 @@ public abstract class Util {
         b.append("P").append(playerNum).append("_");
         b.append(key);
         return b.toString();
+    }
+
+    /** Returns the top and bottom y-coordinates of a circle centered at
+     * (cx, cy) evaulated at x.
+     *
+     * @return  Returns the output in a mutable data structure called Pair.
+     * If the circle doesn't have a y coordinate at x, returns 0 in both
+     * y-coordiantes.
+     */
+    public static void circAt(int x0, int y0, int radius, int x, Pair out) {
+        // The equation for a circle is
+        // (x - x0)^2 + (y - y0)^2 = r^2
+        //
+        // Solved for y:
+        //              _______________
+        //   y = y0 +  | r^2 - (x-x0)^2
+        //          - \|
+        //
+
+        float tmp = (radius * radius) - ((x - x0) * (x - x0));
+        if (tmp < 0) {
+            out.yLower = out.yUpper = 0;
+        }
+        else {
+            out.yLower = (int)(y0 + (float)Math.sqrt(tmp));
+            out.yUpper = (int)(y0 - (float)Math.sqrt(tmp));
+        }
     }
 
     /*================= Data =================*/

@@ -13,8 +13,8 @@ public enum WeaponType {
                     EnumSet.noneOf(Attr.class), 125),
     MEDIUM_MISSILE("Medium Missile", 20, 2,
                     EnumSet.noneOf(Attr.class), 175),
-    LARGE_MISSILE("Large Missile", 5, 0,
-                    EnumSet.noneOf(Attr.class), 100),
+    LARGE_MISSILE("Large Missile", 35, 0,
+                    EnumSet.noneOf(Attr.class), 200),
     DOOMHAMMER("Doomhammer", 0, 0,
                     EnumSet.of(Attr.DOOMHAMMER), 100),
     MEDIUM_ROLLER("Medium Roller", 2, 0,
@@ -165,7 +165,7 @@ public enum WeaponType {
 
     /*================= Data =================*/
     private final String mName;
-    private final int mExplosionSize;
+    private final int mExplosionRadius;
     private final int mStartingAmount;
     private final EnumSet<Attr> mAttrs;
     private final int mFullDamage;
@@ -175,8 +175,8 @@ public enum WeaponType {
         return mName;
     }
 
-    public int getExplosionSize() {
-        return mExplosionSize;
+    public int getExplosionRadius() {
+        return mExplosionRadius;
     }
 
     public int getStartingAmount() {
@@ -192,7 +192,7 @@ public enum WeaponType {
                         int startingAmount, EnumSet<Attr> attrs,
                         int fullDamage) {
         mName = name;
-        mExplosionSize = explosionSize;
+        mExplosionRadius = explosionSize;
         mStartingAmount = startingAmount;
         mAttrs = attrs;
         mFullDamage = fullDamage;

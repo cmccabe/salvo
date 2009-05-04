@@ -16,6 +16,7 @@ public class Projectile {
 
     /** Radius of the projectile */
     public static final int PROJECTILE_RADIUS = 5;
+    public static final int PROJECTILE_COLLISION_RADIUS = 4;
 
     public static final int PROJECTILE_COLOR = 0xffff0000;
 
@@ -60,30 +61,6 @@ public class Projectile {
         mDeltaX += mWind;
     }
 
-    /* Returns the bottom coordinate of a circle centered at (cx, cy)
-     * evaulated at x
-     */
-    private int circAt(int x0, int y0, int radius, int x) {
-         // The equation for a circle is
-         // (x - x0)^2 + (y - y0)^2 = r
-         //
-         // Solved for y:
-         //              _____________
-         //   y = y0 +  | r - (x-x0)^2
-         //          - \|
-         //
-         // Taking only the bottom coordinate:
-         //              _____________
-         //   y = y0 +  | r - (x-x0)^2
-         //            \|
-
-        float tmp = radius - (x - x0) * (x - x0);
-        if (tmp <= 0)
-            return 0;
-        float bottom = y0 + (float)Math.sqrt(tmp);
-        return (int)bottom;
-    }
-
     private boolean checkCollisions(Model model) {
         if (mX < 0)
             return true;
@@ -95,14 +72,15 @@ public class Projectile {
         // Projectiles can sail as far up as they want.
 
         // Check collisions against terrain
+        Util.Pair pair = new Util.Pair();
         short board[] = model.getTerrain().getBoard();
         int x = (int)mX;
         int y = (int)mY;
-        for (int i = Math.max(0, x - PROJECTILE_RADIUS);
-                 i < Math.min(x + PROJECTILE_RADIUS, Terrain.MAX_X);
-                 i++) {
-            int yb = circAt(x, y, PROJECTILE_RADIUS, i);
-            if (board[i] <= yb) {
+        for (int slice = Math.max(0, x - PROJECTILE_RADIUS);
+                 slice < Math.min(x + PROJECTILE_RADIUS, Terrain.MAX_X);
+                 slice++) {
+            Util.circAt(x, y, PROJECTILE_COLLISION_RADIUS, slice, pair);
+            if (board[slice] < pair.yLower) {
                 return true;
             }
         }
@@ -113,7 +91,7 @@ public class Projectile {
             if (! p.isAlive())
                 continue;
             if (Util.calcDistance(mX, mY, p.getX(), p.getY()) <
-                    Player.COLLISION_RADIUS + PROJECTILE_RADIUS) {
+                    Player.COLLISION_RADIUS + PROJECTILE_COLLISION_RADIUS) {
                 return true;
             }
         }
