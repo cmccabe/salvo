@@ -218,12 +218,20 @@ public abstract class GameState {
 
         @Override
         public GameState main(RunGameActAccessor game) {
+            Util.DoToast doToast = new Util.DoToast(
+                game.getGameControlView().getContext(),
+                "LeaderboardState!");
+            game.getRunGameAct().runOnUiThread(doToast);
+            return TurnStartState.create();
+
+            /*
             if (mFinished) {
                 return BuyWeaponsState.create();
             }
             else {
                 return null;
             }
+            */
         }
 
         @Override
@@ -693,7 +701,7 @@ public abstract class GameState {
                            mProjectile, mExplosion);
 
             if (finished)
-                return HumanMoveState.create();
+                return TurnStartState.create();
             else
                 return null;
         }
