@@ -84,6 +84,23 @@ public abstract class Util {
         }
     }
 
+    /** Given an input range [inMin, inMax], an output range
+     * [outMin, outMax], and an input x, returns an x that
+     * is scaled to the output range.
+     *
+     * @return the scaled x
+     */
+    public static int linearInterpolation(int outMin, int outMax,
+                                          int inMin, int inMax,
+                                          int x) {
+        if (x < inMin)
+            return outMin;
+        else if (x > inMax)
+            return outMax;
+        int ret = outMin + ((x - inMin) * (outMax - outMin)) / (inMax - inMin);
+        return ret;
+    }
+
     /*================= Data =================*/
     /** A source of random numbers. */
     public static Random mRandom = new Random();

@@ -1,5 +1,6 @@
 package com.senchas.salvo;
 
+import android.graphics.Color;
 import android.util.Log;
 
 /* Represents a projectile flying across the screen.
@@ -18,7 +19,7 @@ public class Projectile {
     public static final int PROJECTILE_RADIUS = 5;
     public static final int PROJECTILE_COLLISION_RADIUS = 4;
 
-    public static final int PROJECTILE_COLOR = 0xffff0000;
+    public static final int PROJECTILE_COLOR = Color.argb(0xff, 0xff, 0, 0);
 
     /*================= Data =================*/
     private float mX, mY;

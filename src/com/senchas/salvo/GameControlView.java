@@ -119,7 +119,7 @@ class GameControlView extends SurfaceView  {
             }
             if ((expl != null) && expl.getInUse()) {
                 WeaponType weapon = expl.getWeaponType();
-                mTempPlayerPaint.setColor(Projectile.PROJECTILE_COLOR);
+                mTempPlayerPaint.setColor(weapon.getExplosionColor());
                 mTempPlayerPaint.setStyle(Paint.Style.FILL);
                 canvas.drawCircle(expl.getX(), expl.getY(),
                     expl.getCurExplosionSize(System.currentTimeMillis()),

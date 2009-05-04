@@ -12,6 +12,12 @@ public class Explosion {
     /*================= Constants =================*/
     public static final int MAX_TIME = 1000;
 
+    /** If a hit is closer than this radius, it is considered a bullseye
+     *  which should do full damage.
+     */
+    public static final int BULLSEYE_RADIUS =
+        Projectile.PROJECTILE_COLLISION_RADIUS + Player.COLLISION_RADIUS + 2;
+
     /*================= Data =================*/
     /** X coordinate of the center of the explosion */
     private float mX;
@@ -70,28 +76,27 @@ public class Explosion {
 
     /** Deal direct damage to players */
     public void doDirectDamage(RunGameActAccessor game) {
+        int full = mWeapon.getFullDamage();
+        if (full == 0)
+            return;
         Player players[] = game.getModel().getPlayers();
         for (Player p : players) {
             if (! p.isAlive())
                 continue;
             float dist = Util.calcDistance(mX, mY, p.getX(), p.getY());
-            float safeDist = Player.COLLISION_RADIUS +
+            int safeDist = Player.COLLISION_RADIUS +
                                 mWeapon.getExplosionRadius();
             if (dist < safeDist) {
-                int reduction;
-                int full = mWeapon.getFullDamage();
-                if (dist < safeDist / 2)
-                    reduction = 0;
-                else {
-                    float d = safeDist / 2;
-                    reduction = (int)((dist * d) / d);
-                }
-                int damage = full - reduction;
-                Log.w("doDirectDamage", "full=" + full +
-                                        " ,reduction=" + reduction +
-                                        " ,damage=" + (full - reduction) +
-                                        " ,dist=" + dist +
-                                        " ,safeDist=" + safeDist);
+                StringBuilder b = new StringBuilder(80 * 5);
+                b.append("doDirectDamage(player=").append(p.getName());
+                b.append(" full=").append(full);
+                b.append(" dist=").append(dist);
+                b.append(" safeDist=").append(safeDist);
+                int damage = Util.linearInterpolation(full, 0,
+                                        BULLSEYE_RADIUS, safeDist,
+                                        (int)dist);
+                b.append(" damage=").append(damage);
+                Log.w(this.getClass().getName(), b.toString());
                 p.takeDamage(damage);
             }
         }

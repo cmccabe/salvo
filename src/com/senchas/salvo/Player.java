@@ -117,6 +117,10 @@ public class Player {
     /*================= Static =================*/
 
     /*================= Access =================*/
+    public String getName() {
+        return mV.mName;
+    }
+
     /** Get the outline color for this player. Outline colors vary depending
       * on how much health the player has left. */
     public int getOutlineColor() {

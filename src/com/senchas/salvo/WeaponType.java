@@ -6,29 +6,70 @@ import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
 
+import android.graphics.Color;
 import android.os.Bundle;
 
 public enum WeaponType {
-    SMALL_MISSILE("Small Missile", 10, WeaponType.UNLIMITED,
-                    EnumSet.noneOf(Attr.class), 125),
-    MEDIUM_MISSILE("Medium Missile", 20, 2,
-                    EnumSet.noneOf(Attr.class), 175),
-    LARGE_MISSILE("Large Missile", 35, 0,
-                    EnumSet.noneOf(Attr.class), 200),
-    DOOMHAMMER("Doomhammer", 0, 0,
-                    EnumSet.of(Attr.DOOMHAMMER), 100),
-    MEDIUM_ROLLER("Medium Roller", 2, 0,
-                    EnumSet.of(Attr.ROLLER), 100),
-    LARGE_ROLLER("Large Roller", 4, 0,
-                    EnumSet.of(Attr.ROLLER), 100),
-    MIRV_WARHEAD("MIRV Warhead", 4, 0,
-                    EnumSet.of(Attr.MIRV), 100);
+    SMALL_MISSILE("Small Missile",
+                    10,
+                    WeaponType.UNLIMITED,
+                    EnumSet.noneOf(Attr.class),
+                    125),
+    MEDIUM_MISSILE("Medium Missile",
+                    20,
+                    2,
+                    EnumSet.noneOf(Attr.class),
+                    175),
+    LARGE_MISSILE("Large Missile",
+                    35,
+                    0,
+                    EnumSet.noneOf(Attr.class),
+                    200),
+    EARTHMOVER("Earthmover",
+                    25,
+                    0,
+                    EnumSet.of(Attr.EARTHMOVER),
+                    0),
+    LARGE_EARTHMOVER("Large Earthmover",
+                    42,
+                    0,
+                    EnumSet.of(Attr.EARTHMOVER),
+                    0),
+    DOOMHAMMER("Doomhammer",
+                    10,
+                    0,
+                    EnumSet.of(Attr.DOOMHAMMER),
+                    100),
+    MEDIUM_ROLLER("Medium Roller",
+                    10,
+                    0,
+                    EnumSet.of(Attr.ROLLER),
+                    100),
+    LARGE_ROLLER("Large Roller",
+                    10,
+                    0,
+                    EnumSet.of(Attr.ROLLER),
+                    100),
+    MIRV_WARHEAD("MIRV Warhead",
+                    10,
+                    0,
+                    EnumSet.of(Attr.MIRV),
+                    100);
 
     /*================= Constants =================*/
     public static final int UNLIMITED = -1;
 
+    public static final int RED = Color.argb(0xff, 0xff, 0, 0);
+
+    public static final int GREY = Color.argb(0xff, 0xaa, 0xaa, 0xaa);
+
     /*================= Types =================*/
     public static enum Attr {
+        /** Weapon causes no damage, but just removes dirt.
+         *  Explosion color is grey. */
+        EARTHMOVER,
+
+        /** Weapon rolls down hills to find its target */
         ROLLER,
         DOOMHAMMER,
         MIRV
@@ -171,6 +212,15 @@ public enum WeaponType {
     private final int mFullDamage;
 
     /*================= Access =================*/
+    public int getExplosionColor() {
+        if (mAttrs.contains(Attr.EARTHMOVER)) {
+            return GREY;
+        }
+        else {
+            return RED;
+        }
+    }
+
     public String getName() {
         return mName;
     }
@@ -188,13 +238,17 @@ public enum WeaponType {
     }
 
     /*================= Lifecycle =================*/
-    private WeaponType(String name, int explosionSize,
+    private WeaponType(String name, int explosionRadius,
                         int startingAmount, EnumSet<Attr> attrs,
                         int fullDamage) {
         mName = name;
-        mExplosionRadius = explosionSize;
+        mExplosionRadius = explosionRadius;
         mStartingAmount = startingAmount;
         mAttrs = attrs;
         mFullDamage = fullDamage;
+        if (attrs.contains(Attr.EARTHMOVER) && (fullDamage != 0)) {
+            throw new RuntimeException("EARTHMOVER weapons can't " +
+                "cause damage. Please set fullDamage to 0 for " + name);
+        }
     }
 }
