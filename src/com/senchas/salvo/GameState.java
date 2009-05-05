@@ -473,6 +473,8 @@ public abstract class GameState {
                 Player curPlayer = game.getModel().getCurPlayer();
                 WeaponType weapon = curPlayer.getCurWeaponType();
                 if (weapon.isTeleporter()) {
+                    curPlayer.setCurWeaponType(
+                        curPlayer.getArmory().useWeapon(weapon));
                     return doTeleport(game);
                 }
             }
@@ -949,7 +951,7 @@ public abstract class GameState {
             // display Toasts
             StringBuilder s = new StringBuilder(80);
             s.append(p1.getName());
-            if (p2 != null) {
+            if ((p2 != null) && (p2.isAlive())) {
                 s.append(" has switched places with ");
                 s.append(p2.getName()).append("!");
             }
@@ -979,7 +981,7 @@ public abstract class GameState {
                 percent = (int) ((d * 100) / mCurState.getDuration());
             }
             mCurState.applySpecialEffect(p1, percent);
-            if (p2 != null)
+            if ((p2 != null) && (p2.isAlive()))
                 mCurState.applySpecialEffect(p2, percent);
 
             game.getGameControlView().
@@ -1022,8 +1024,7 @@ public abstract class GameState {
             if (mV.mP2Index == Player.INVALID_PLAYER_ID)
                 return null;
             else {
-                Player p2 = model.getPlayers()[mV.mP2Index];
-                return (p2.isAlive()) ? p2 : null;
+                return model.getPlayers()[mV.mP2Index];
             }
         }
 
