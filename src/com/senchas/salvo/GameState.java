@@ -38,6 +38,12 @@ import com.senchas.salvo.WeaponType.Armory;
  * -------
  * Everything that GameState objects do is done under the RunGameThread lock.
  *
+ * Threading
+ * ---------
+ * Some GameState callbacks are called by the UI thread; others are called by
+ * the main game thread. There are a lot of things that you can only do in the
+ * UI thread, so use runOnUiThread() for those if you must.
+ *
  * Memory management
  * -----------------
  * It would be easiest simply to use new() to create a new GameState each
