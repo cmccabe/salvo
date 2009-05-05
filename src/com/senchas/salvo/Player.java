@@ -236,6 +236,10 @@ public class Player {
         return mAuraAlpha;
     }
 
+    public boolean canUseExtraArmor() {
+        return (mV.mLife < Player.MAX_LIFE);
+    }
+
     /*================= Operations =================*/
     public void setX(int x, Terrain terrain) {
         mV.mX = x;

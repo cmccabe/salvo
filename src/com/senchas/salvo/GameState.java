@@ -1,6 +1,8 @@
 package com.senchas.salvo;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Canvas;
 import android.os.Bundle;
 import java.lang.System;
@@ -483,9 +485,15 @@ public abstract class GameState {
                     return doTeleport(game);
                 }
                 else if (weapon.isExtraArmor()) {
-                    curPlayer.setCurWeaponType(
-                        curPlayer.getArmory().useWeapon(weapon));
-                    return ExtraArmorState.create();
+                    if (curPlayer.canUseExtraArmor()) {
+                        curPlayer.setCurWeaponType(
+                            curPlayer.getArmory().useWeapon(weapon));
+                        return ExtraArmorState.create();
+                    }
+                    else {
+                        ExtraArmorState.notifyPlayerThatArmorIsMaxed(game);
+                        mFireSpecial = false;
+                    }
                 }
             }
 
@@ -547,8 +555,10 @@ public abstract class GameState {
         }
 
         private void doReleaseFire(RunGameActAccessor game) {
-            mFireReleaseTime = System.currentTimeMillis();
-            game.getRunGameAct().runOnUiThread(new DoShowArmory(game));
+            if (mFireTime != 0) {
+                mFireReleaseTime = System.currentTimeMillis();
+                game.getRunGameAct().runOnUiThread(new DoShowArmory(game));
+            }
         }
 
         @Override
@@ -1081,9 +1091,49 @@ public abstract class GameState {
         public static final int EXTRA_ARMOR_AMOUNT = 100;
 
         /*================= Types =================*/
+        /** Runnable that creates a dialog box and displays it */
+        public static class DoDialog implements Runnable {
+            /*================= Data =================*/
+            private Context mContext;
+            private String mString;
+
+            /*================= Operations =================*/
+            public void run() {
+                AlertDialog.Builder b = new AlertDialog.Builder(mContext);
+
+                b.setMessage(mString);
+                b.setCancelable(true);
+                b.setPositiveButton("OK",
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog,
+                                            int whichButton) {
+                        }
+                    });
+                b.show();
+            }
+
+            /*================= Lifecycle =================*/
+            public DoDialog(Context context, String string) {
+                mContext = context;
+                mString = string;
+            }
+        }
 
         /*================= Static =================*/
         private static ExtraArmorState sMe = new ExtraArmorState();
+
+        /** Display an alert dialog box informing the (human) player that
+         * it is futile to use extra armor, since he is already at
+         * maximum life.
+         */
+        private static void
+                notifyPlayerThatArmorIsMaxed(RunGameActAccessor game) {
+            DoDialog doDialog = new DoDialog(
+                game.getGameControlView().getContext(),
+                "Can't use Extra Armor.\nYou already " +
+                "have maximum armor!");
+            game.getRunGameAct().runOnUiThread(doDialog);
+        };
 
         /*================= Data =================*/
         /** The time when the state began */
