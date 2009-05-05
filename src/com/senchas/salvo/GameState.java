@@ -6,6 +6,8 @@ import android.os.Bundle;
 import java.lang.System;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -427,8 +429,9 @@ public abstract class GameState {
         private static HumanMoveState sMe = new HumanMoveState();
 
         /*================= Data =================*/
-        /** True only if the user pressed the fire button */
-        private boolean mFiring;
+        /** True only if the user pressed the fire button to fire a
+         * special weapon. */
+        private boolean mFireSpecial;
 
         /** The time at which the user pressed the fire button */
         private long mFireTime;
@@ -448,6 +451,8 @@ public abstract class GameState {
             GameState.setCurPlayerAngleText(game);
             game.getGameControlView().cacheTerrain(game);
             GameState.setCurPlayerArmoryText(game);
+            game.getModel().getCurPlayer().setAuraAlpha(
+                Player.SELECTED_AURA_ALPHA);
         }
 
         /** Calculate what the power should be, given the current time, and
@@ -464,6 +469,14 @@ public abstract class GameState {
 
         @Override
         public GameState main(RunGameActAccessor game) {
+            if (mFireSpecial) {
+                Player curPlayer = game.getModel().getCurPlayer();
+                WeaponType weapon = curPlayer.getCurWeaponType();
+                if (weapon.isTeleporter()) {
+                    return doTeleport(game);
+                }
+            }
+
             int power = 0;
             if (mFireTime == 0) {
                 game.getGameControlView().
@@ -546,8 +559,14 @@ public abstract class GameState {
                     return true;
                 }
                 case PRESS_FIRE:
-                    hideArmory(game);
-                    mFireTime = System.currentTimeMillis();
+                    Player curPlayer = game.getModel().getCurPlayer();
+                    if (curPlayer.getCurWeaponType().isProjectile()) {
+                        hideArmory(game);
+                        mFireTime = System.currentTimeMillis();
+                    }
+                    else {
+                        mFireSpecial = true;
+                    }
                     return true;
                 case RELEASE_FIRE:
                     doReleaseFire(game);
@@ -601,6 +620,7 @@ public abstract class GameState {
 
         /*================= Lifecycle =================*/
         private void initialize() {
+            mFireSpecial = false;
             mFireTime = 0;
             mFireReleaseTime = 0;
         }
@@ -769,6 +789,12 @@ public abstract class GameState {
         }
 
         @Override
+        public void onExit(RunGameActAccessor game) {
+            game.getModel().getCurPlayer().setAuraAlpha(
+                    Player.DESELECTED_AURA_ALPHA);
+        }
+
+        @Override
         public int getBlockingDelay() {
             return 1;
         }
@@ -801,7 +827,336 @@ public abstract class GameState {
         }
     }
 
+    /** Animate a player teleporting */
+    public static class TeleportState extends GameState {
+        /*================= Constants =================*/
+        public static final byte ID = 25;
+
+        /*================= Types =================*/
+        private static interface SpecialEffect {
+            /** Apply a special effect that is "percent" complete to
+             * Player p */
+            public void applyEffect(Player p, int percent);
+        }
+
+        enum State {
+            START_AURA_WHITENING(1000, new SpecialEffect() {
+                public void applyEffect(Player p, int percent) {
+                    p.setAuraWhitening(percent);
+                }
+            }),
+            START_FADE(1000, new SpecialEffect() {
+                public void applyEffect(Player p, int percent) {
+                    p.setFadeAmount(percent);
+                }
+            }),
+            START_PAUSE(500, new SpecialEffect() {
+                public void applyEffect(Player p, int percent) {
+                }
+            }),
+            START_FADE_IN(1000, new SpecialEffect() {
+                public void applyEffect(Player p, int percent) {
+                    p.setFadeAmount(100 - percent);
+                }
+            }),
+            START_AURA_DIMMING(1000, new SpecialEffect() {
+                public void applyEffect(Player p, int percent) {
+                    p.setAuraWhitening(100 -percent);
+                }
+            });
+
+            /*================= Data =================*/
+            /** How many milliseconds this state lasts */
+            private int mDuration;
+
+            /** The special effect to apply to the player while we're in this
+              * state */
+            private SpecialEffect mSpecialEffect;
+
+            /*================= Access =================*/
+            public int getDuration() {
+                return mDuration;
+            }
+
+            /*================= Operations =================*/
+            public void applySpecialEffect(Player p, int percent) {
+                mSpecialEffect.applyEffect(p, percent);
+            }
+
+            /*================= Lifecycle =================*/
+            private State(int duration, SpecialEffect specialEffect) {
+                mDuration = duration;
+                mSpecialEffect = specialEffect;
+            }
+        }
+
+        /*================= Static =================*/
+        private static TeleportState sMe = new TeleportState();
+
+        /*================= Data =================*/
+        public class MyVars {
+            /** Index of the first player being teleported */
+            public int mP1Index;
+
+            /** Index of the second player being teleported, or
+             * INVALID_PLAYER_ID if there is no second player being
+             * teleported. */
+            public int mP2Index;
+
+            /** Starting X of the first player being teleported */
+            public int mP1x0;
+
+            /** Starting X of the second player being teleported */
+            public int mP2x0;
+
+            /** Destination X of the first player being teleported */
+            public int mP1xf;
+
+            /** Destination X of the second player being teleported */
+            public int mP2xf;
+        }
+
+        private MyVars mV;
+
+        /** The current animation state */
+        private State mCurState;
+
+        /** The time when the current animation state began */
+        private long mStateStartTime;
+
+
+        /*================= Access =================*/
+
+        /*================= Operations =================*/
+        @Override
+        public void saveState(Bundle map) {
+            map.putByte(GAME_STATE_ID, ID);
+            AutoPack.autoPack(map, AutoPack.EMPTY_STRING, mV);
+        }
+
+        @Override
+        public void onEnter(RunGameActAccessor game) {
+            Model model = game.getModel();
+            stateTransition(State.values()[0]);
+
+            // Place players in original positions
+            Player p1 = getPlayer1(model);
+            p1.setX(mV.mP1x0, model.getTerrain());
+            Player p2 = getPlayer2(model);
+            if (p2 != null)
+                p2.setX(mV.mP2x0, model.getTerrain());
+
+            // display Toasts
+            StringBuilder s = new StringBuilder(80);
+            s.append(p1.getName());
+            if (p2 != null) {
+                s.append(" has switched places with ");
+                s.append(p2.getName()).append("!");
+            }
+            else
+                s.append(" has teleported!");
+            Util.DoToast doToast = new Util.DoToast(
+                game.getGameControlView().getContext(),
+                s.toString());
+            game.getRunGameAct().runOnUiThread(doToast);
+        }
+
+        private void stateTransition(State val) {
+            mCurState = val;
+            mStateStartTime = System.currentTimeMillis();
+        }
+
+        @Override
+        public GameState main(RunGameActAccessor game) {
+            Model model = game.getModel();
+            Player p1 = getPlayer1(model);
+            Player p2 = getPlayer2(model);
+            long d = System.currentTimeMillis() - mStateStartTime;
+            int percent;
+            if (d >= mCurState.getDuration())
+                percent = 100;
+            else {
+                percent = (int) ((d * 100) / mCurState.getDuration());
+            }
+            mCurState.applySpecialEffect(p1, percent);
+            if (p2 != null)
+                mCurState.applySpecialEffect(p2, percent);
+
+            game.getGameControlView().
+                drawScreen(game, Player.INVALID_POWER, null, null);
+
+            if (percent == 100) {
+                State values[] = State.values();
+                int next = mCurState.ordinal() + 1;
+                if (next == values.length)
+                    return TurnStartState.create();
+                stateTransition(values[next]);
+
+                if (mCurState == State.START_PAUSE) {
+                    // Swap players
+                    p1.setX(mV.mP1xf, model.getTerrain());
+                    if (p2 != null)
+                        p2.setX(mV.mP2xf, model.getTerrain());
+                }
+            }
+
+            return null;
+        }
+
+        @Override
+        public void onExit(RunGameActAccessor game) {
+            game.getModel().getCurPlayer().setAuraAlpha(
+                    Player.DESELECTED_AURA_ALPHA);
+        }
+
+        @Override
+        public int getBlockingDelay() {
+            return 1;
+        }
+
+        private Player getPlayer1(Model model) {
+            return model.getPlayers()[mV.mP1Index];
+        }
+
+        private Player getPlayer2(Model model) {
+            if (mV.mP2Index == Player.INVALID_PLAYER_ID)
+                return null;
+            else {
+                Player p2 = model.getPlayers()[mV.mP2Index];
+                return (p2.isAlive()) ? p2 : null;
+            }
+        }
+
+        /*================= Lifecycle =================*/
+        private void initialize(MyVars v) {
+            mV = v;
+        }
+
+        public void initialize(int p1index, int p2index,
+                               int p1x0, int p2x0,
+                               int p1xf, int p2xf) {
+            mV.mP1Index = p1index; mV.mP2Index = p2index;
+            mV.mP1x0 = p1x0; mV.mP2x0 = p2x0;
+            mV.mP1xf = p1xf; mV.mP2xf = p2xf;
+        }
+
+        public static TeleportState create(int p1Index, int p2index,
+                                           int p1x0, int p2x0,
+                                           int p1xf, int p2xf) {
+            sMe.initialize(p1Index, p2index,
+                            p1x0, p2x0,
+                            p1xf, p2xf);
+            return sMe;
+        }
+
+        public static TeleportState createFromBundle(Bundle map) {
+            MyVars v = (MyVars)AutoPack.
+                autoUnpack(map, AutoPack.EMPTY_STRING, MyVars.class);
+            sMe.initialize(v);
+            return sMe;
+        }
+
+        private TeleportState() {
+            mCurState = null;
+            mStateStartTime = 0;
+            mV = new MyVars();
+        }
+    }
+
     /*================= Static =================*/
+    /** Helper function which takes a list of X positions and a list of
+     * players, and returns the first unused X position
+     */
+    private static int getFirstUnusedXPosition(List < Short > positions,
+                                              Player players[]) {
+        for (Short s : positions) {
+            boolean used = false;
+            int x = s.intValue();
+            for (Player p : players) {
+                if (p.getX() == x)
+                    used = true;
+            }
+            if (used == false)
+                return x;
+        }
+        throw new RuntimeException("getUnusedPosition: all " +
+            "X positions are used");
+    }
+
+    /** Figures out where to teleport and transitions to TeleportState.
+     *
+     * @return  The new GameState
+     */
+    private static GameState doTeleport(RunGameActAccessor game) {
+        Model model = game.getModel();
+        Player players[] = model.getPlayers();
+        Player curPlayer = model.getCurPlayer();
+        int p1index = model.getCurPlayerId();
+        int p2index;
+        int p1x0;
+        int p2x0;
+        int p1xf;
+        int p2xf;
+
+        // Look for dead players
+        if (! curPlayer.isAlive()) {
+            throw new RuntimeException("current player is dead!");
+        }
+        LinkedList < Player > deadPlayers = new LinkedList < Player >();
+        for (Player p : model.getPlayers()) {
+            if (! p.isAlive())
+                deadPlayers.add(p);
+        }
+        if (deadPlayers.size() != 0) {
+            // Switch places with a dead player
+            int i = Util.mRandom.nextInt(deadPlayers.size());
+            p2index = deadPlayers.get(i).getId();
+            p1x0 = players[p1index].getX();
+            p2x0 = players[p2index].getX();
+            p1xf = p2x0;
+            p2xf = p1x0;
+        }
+        else {
+            // There are no dead players to switch places with.
+            if (model.getPlayers().length == 2) {
+                // Special case for 2 player games: there is a lot of room
+                // when there are only two players.
+                //
+                // Rather than using the normal algorithm, check which of the
+                // valid 3-player game starting spots is not in use, and move
+                // the teleporting player to there.
+                //
+                // Please note: this only applies to 2-player games.
+                // Dead player entries still appear in Model.mPlayers,
+                // so we won't have Model.mPlayer.length == 2 unless we only
+                // started with 2.
+                List < Short > positions =
+                    ModelFactory.getValidPlayerPlacements(3);
+                int x = getFirstUnusedXPosition(positions, players);
+                p2index = Player.INVALID_PLAYER_ID;
+                p1x0 = players[p1index].getX();
+                p2x0 = 0;
+                p1xf = x;
+                p2xf = 0;
+            }
+            else {
+                // Switch places with a living player
+                p2index = Util.mRandom.nextInt(players.length - 1);
+                // make sure that we don't swap p1 with itself
+                if (p2index >= p1index)
+                    p2index++;
+                p1x0 = players[p1index].getX();
+                p2x0 = players[p2index].getX();
+                p1xf = p2x0;
+                p2xf = p1x0;
+            }
+        }
+
+        return TeleportState.create(p1index, p2index,
+                                    p1x0, p2x0,
+                                    p1xf, p2xf);
+    }
+
     private static void setCurPlayerArmoryText(RunGameActAccessor game) {
         Player curPlayer = game.getModel().getCurPlayer();
         WeaponType type = curPlayer.getCurWeaponType();
@@ -893,6 +1248,8 @@ public abstract class GameState {
                 return ComputerMoveState.createFromBundle(map);
             case BallisticsState.ID:
                 return BallisticsState.createFromBundle(map);
+            case TeleportState.ID:
+                return TeleportState.createFromBundle(map);
             default:
                 throw new RuntimeException("can't recognize state with ID = "
                                             + id);

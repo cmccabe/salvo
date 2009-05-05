@@ -44,8 +44,6 @@ class GameControlView extends SurfaceView  {
 
     private static final int TURRET_STROKE_WIDTH = 3;
 
-    private static final byte SELECTION_CIRCLE_ALPHA= (byte)0x55;
-
     private static final byte FIRE_BAR_ALPHA= (byte)0xaa;
 
     private static final int SELECTION_CIRCLE_RADIUS = 32;
@@ -98,7 +96,7 @@ class GameControlView extends SurfaceView  {
             if (power != Player.INVALID_POWER) {
                 int bar_x = (power * MAX_BAR_LENGTH) / Player.MAX_POWER;
                 int playerBlendColor =
-                    model.getCurPlayer().getColor().toInt(FIRE_BAR_ALPHA);
+                    model.getCurPlayer().getBaseColor().toInt(FIRE_BAR_ALPHA);
                 mTempPlayerPaint.setColor(playerBlendColor);
                 mTempPlayerPaint.setStyle(Paint.Style.FILL);
                 canvas.drawRect(0, Terrain.MAX_Y - BAR_HEIGHT,
@@ -162,19 +160,18 @@ class GameControlView extends SurfaceView  {
                             Player player) {
         if (! player.isAlive())
             return;
-        int outlineColor = player.getOutlineColor();
 
         final int x = player.getX();
         final int y = player.getY();
         final int ty = player.getTurretCenterY();
         final int sx = Player.PLAYER_X_SIZE;
         final int sy = Player.PLAYER_Y_SIZE;
-        final int playerColor = player.getColor().toInt();
-        final int playerBlendColor =
-            player.getColor().toInt(SELECTION_CIRCLE_ALPHA);
+        int playerColor = player.getBodyColor();
+        int playerAuraColor = player.getAuraColor();
+        int outlineColor = player.getOutlineColor();
 
-        if (curPlayerId == player.getId()) {
-            mTempPlayerPaint.setColor(playerBlendColor);
+        if (player.getAuraAlpha() != 0) {
+            mTempPlayerPaint.setColor(playerAuraColor);
             mTempPlayerPaint.setStyle(Paint.Style.FILL);
             // Draw selection circle
             canvas.drawCircle(x, y, SELECTION_CIRCLE_RADIUS,

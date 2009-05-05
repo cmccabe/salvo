@@ -68,6 +68,11 @@ public class Player {
     public static final int BORDER_SIZE = 1;
     public static final int TURRET_LENGTH= 20;
 
+    public static final byte DESELECTED_AURA_ALPHA = (byte)0;
+    public static final byte SELECTED_AURA_ALPHA = (byte)0x55;
+    private static final int WHITENED_AURA_COLOR =
+        Color.argb(0xcc, 0xdd, 0xdd, 0xdd);
+
     /*================= Members =================*/
     public static class MyVars {
         /** How much life we have. If this is 0 then we're dead. */
@@ -114,29 +119,30 @@ public class Player {
      * You always need the angle in radians for doing math */
     private float mAngleRad;
 
+    /** The player's body color */
+    private int mBodyColor;
+
+    /** The color of this player's outline. The player's outline changes
+     * color in response to how much life the player has left. */
+    private int mOutlineColor;
+
+    /** The color of this player's "aura". A player's aura is the
+     * semi-transparent circle drawn around him in drawPlayer when he is the
+     * selected player.
+     */
+    private int mAuraColor;
+
+    /** The alpha value we should use for our aura. */
+    private byte mAuraAlpha;
+
+    /** How "whitened" our aura should be */
+    private int mAuraWhitening;
+
     /*================= Static =================*/
 
     /*================= Access =================*/
     public String getName() {
         return mV.mName;
-    }
-
-    /** Get the outline color for this player. Outline colors vary depending
-      * on how much health the player has left. */
-    public int getOutlineColor() {
-        int l = mV.mLife;
-        if (l <= 100) {
-            int whiteness = (l * 0xff) / 100;
-            return Color.argb(0xff, 0xff, whiteness, whiteness);
-        }
-        else {
-            if (l > MAX_LIFE) {
-                throw new RuntimeException("getOutlineColor: can't " +
-                        "handle life > MAXLIFE (" + MAX_LIFE + ")");
-            }
-            int blueness = ((l - 100) * 0xff) / 200;
-            return Color.argb(0xff, 0xff - blueness, 0xff - blueness, 0xff);
-        }
     }
 
     public String getIntroductionString() {
@@ -184,8 +190,20 @@ public class Player {
         return mArmory;
     }
 
-    public Player.PlayerColor getColor() {
+    public Player.PlayerColor getBaseColor() {
         return mV.mColor;
+    }
+
+    public int getBodyColor() {
+        return mBodyColor;
+    }
+
+    public int getAuraColor() {
+        return mAuraColor;
+    }
+
+    public int getOutlineColor() {
+        return mOutlineColor;
     }
 
     public boolean isAlive() {
@@ -212,6 +230,10 @@ public class Player {
         // TODO: use averaging mechanism here to set tank height
         short h[] = terrain.getBoard();
         return h[mV.mX];
+    }
+
+    public byte getAuraAlpha() {
+        return mAuraAlpha;
     }
 
     /*================= Operations =================*/
@@ -265,6 +287,70 @@ public class Player {
         mV.mLife -= damage;
         if (mV.mLife < 0)
             mV.mLife = 0;
+        // Aura color depends on the current amount of life
+        cacheAuraColor();
+    }
+
+    /** Set the current aura alpha. 0 will disable the aura */
+    public void setAuraAlpha(byte auraAlpha) {
+        mAuraAlpha = auraAlpha;
+        cacheAuraColor();
+    }
+
+    public void setAuraWhitening(int auraWhitening) {
+        mAuraWhitening = auraWhitening;
+        cacheAuraColor();
+    }
+
+    private void cacheAuraColor() {
+        int c0 = mV.mColor.toInt((byte)mAuraAlpha);
+        int cW = WHITENED_AURA_COLOR;
+
+        int auraA = Util.linearInterpolation(
+                            Color.alpha(c0), Color.alpha(cW),
+                            0, 100,
+                            mAuraWhitening);
+        int auraR = Util.linearInterpolation(
+                            Color.red(c0), Color.red(cW),
+                            0, 100,
+                            mAuraWhitening);
+        int auraG = Util.linearInterpolation(
+                            Color.green(c0), Color.green(cW),
+                            0, 100,
+                            mAuraWhitening);
+        int auraB = Util.linearInterpolation(
+                            Color.blue(c0), Color.blue(cW),
+                            0, 100,
+                            mAuraWhitening);
+        mAuraColor = Color.argb(auraA, auraR, auraG, auraB);
+    }
+
+    public void setFadeAmount(int fadeAmount) {
+        cachePlayerColor(fadeAmount);
+    }
+
+    private void cachePlayerColor(int fadeAmount) {
+        int alpha = Util.linearInterpolation(0xff, 0,
+                                          0, 100,
+                                          fadeAmount);
+        mBodyColor = mV.mColor.toInt((byte)alpha);
+        mOutlineColor = computeOutlineColor(alpha);
+    }
+
+    private int computeOutlineColor(int alpha) {
+        int l = mV.mLife;
+        if (l <= 100) {
+            int whiteness = (l * 0xff) / 100;
+            return Color.argb(alpha, 0xff, whiteness, whiteness);
+        }
+        else {
+            if (l > MAX_LIFE) {
+                throw new RuntimeException("getOutlineColor: can't " +
+                        "handle life > MAXLIFE (" + MAX_LIFE + ")");
+            }
+            int blueness = ((l - 100) * 0xff) / 200;
+            return Color.argb(alpha, 0xff - blueness, 0xff - blueness, 0xff);
+        }
     }
 
     /*================= Save =================*/
@@ -288,6 +374,12 @@ public class Player {
         mId = index;
         mBrain = brain;
         mArmory = armory;
+
+        mAuraAlpha = 0;
+        mAuraWhitening = 0;
+
+        cacheAuraColor();
+        cachePlayerColor(0);
 
         // update cached value of mAngleRad
         setAngleDeg(mV.mAngleDeg);

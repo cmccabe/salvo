@@ -5,6 +5,7 @@ import com.senchas.salvo.WeaponType.Armory;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Random;
 import java.util.SortedMap;
 
@@ -349,6 +350,21 @@ public class ModelFactory {
     /*================= Constants =================*/
     private final static String KEY_NUM_PLAYERS = "KEY_NUM_PLAYERS";
 
+    /*================= Static =================*/
+    /** Return a list of shorts representing valid x-coordinates for players
+     * to be placed in a game with "numPlayers" players
+     */
+    public static List < Short > getValidPlayerPlacements(int numPlayers) {
+        LinkedList < Short > positions = new LinkedList < Short >();
+        for (int i = 0; i < numPlayers; i++) {
+            int xe = Terrain.MAX_X - (2 * Terrain.SIDE_BUFFER_SIZE);
+            int yVal = Terrain.SIDE_BUFFER_SIZE +
+                        (i * (xe / (numPlayers - 1)));
+            positions.add(new Short((short)yVal));
+        }
+        return positions;
+    }
+
     /*================= Data =================*/
     public static class MyVars {
         public TerrainFactory mTerrainFac;
@@ -379,7 +395,7 @@ public class ModelFactory {
         return mV.mStartingCash;
     }
 
-    public  PlayerFactory getPlayerFactory(int index) {
+    public PlayerFactory getPlayerFactory(int index) {
         return mPlayers.get(index);
     }
 
@@ -404,13 +420,8 @@ public class ModelFactory {
         }
 
         // Place players
-        LinkedList < Short > positions = new LinkedList < Short >();
-        for (int i = 0; i < mPlayers.size(); i++) {
-            int xe = Terrain.MAX_X - (2 * Terrain.SIDE_BUFFER_SIZE);
-            int yVal = Terrain.SIDE_BUFFER_SIZE +
-                        (i * (xe / (mPlayers.size() - 1)));
-            positions.add(new Short((short)yVal));
-        }
+        List < Short > positions = getValidPlayerPlacements(mPlayers.size());
+
         if (mV.mUseRandomPlayerPlacement) {
             for (int i = 0; i < players.length; i++) {
                 int r = Util.mRandom.nextInt(positions.size());

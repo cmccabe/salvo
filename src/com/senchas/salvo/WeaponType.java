@@ -9,51 +9,68 @@ import java.util.TreeMap;
 import android.graphics.Color;
 import android.os.Bundle;
 
+/** Represents a type of weapon that can be fired or used.
+ *
+ * This class suffers a little bit from the fact that different weapons
+ * require fairly different interfaces.
+ * It could probably be refactored in terms of subtypes. For now I'm going to
+ * leave it, since it's not (yet) *too* confusing.
+ */
 public enum WeaponType {
     SMALL_MISSILE("Small Missile",
                     10,
                     WeaponType.UNLIMITED,
-                    EnumSet.noneOf(Attr.class),
+                    EnumSet.of(Attr.PROJECTILE),
                     125),
     MEDIUM_MISSILE("Medium Missile",
                     20,
                     2,
-                    EnumSet.noneOf(Attr.class),
+                    EnumSet.of(Attr.PROJECTILE),
                     175),
     LARGE_MISSILE("Large Missile",
                     35,
                     0,
-                    EnumSet.noneOf(Attr.class),
+                    EnumSet.of(Attr.PROJECTILE),
                     200),
     EARTHMOVER("Earthmover",
                     25,
                     0,
-                    EnumSet.of(Attr.EARTHMOVER),
+                    EnumSet.of(Attr.PROJECTILE),
                     0),
     LARGE_EARTHMOVER("Large Earthmover",
                     42,
                     0,
-                    EnumSet.of(Attr.EARTHMOVER),
+                    EnumSet.of(Attr.PROJECTILE),
                     0),
+    /*EXTRA_ARMOR("Extra Armor",
+                    0,
+                    0,
+                    EnumSet.of(Attr.EXTRA_ARMOR),
+                    100),*/
+    TELEPORTER("Teleporter",
+                    0,
+                    0,
+                    EnumSet.of(Attr.TELEPORTER),
+                    100),
     DOOMHAMMER("Doomhammer",
                     10,
                     0,
-                    EnumSet.of(Attr.DOOMHAMMER),
+                    EnumSet.of(Attr.PROJECTILE),
                     100),
-    MEDIUM_ROLLER("Medium Roller",
+    MEDIUM_ROLLER("Roller",
                     10,
                     0,
-                    EnumSet.of(Attr.ROLLER),
+                    EnumSet.of(Attr.PROJECTILE, Attr.ROLLER),
                     100),
     LARGE_ROLLER("Large Roller",
                     10,
                     0,
-                    EnumSet.of(Attr.ROLLER),
+                    EnumSet.of(Attr.PROJECTILE, Attr.ROLLER),
                     100),
     MIRV_WARHEAD("MIRV Warhead",
                     10,
                     0,
-                    EnumSet.of(Attr.MIRV),
+                    EnumSet.of(Attr.PROJECTILE, Attr.MIRV),
                     100);
 
     /*================= Constants =================*/
@@ -65,13 +82,21 @@ public enum WeaponType {
 
     /*================= Types =================*/
     public static enum Attr {
-        /** Weapon causes no damage, but just removes dirt.
-         *  Explosion color is grey. */
-        EARTHMOVER,
+        /** Teleports the user to a new location */
+        TELEPORTER,
+
+        /** Gives the user life */
+        EXTRA_ARMOR,
+
+        /** Represents a ballistic weapon */
+        PROJECTILE,
 
         /** Weapon rolls down hills to find its target */
         ROLLER,
+
         DOOMHAMMER,
+
+        /** Weapon splits into multiple warheads at apogee */
         MIRV
     }
 
@@ -170,7 +195,7 @@ public enum WeaponType {
 
         /** Uses one instance of WeaponType "type" from the armory
          *
-         * @returns     the new currently selected weapon
+         * @return     the new currently selected weapon
          */
         public WeaponType useWeapon(WeaponType type) {
             Integer amount = mWeapons.get(type);
@@ -212,8 +237,24 @@ public enum WeaponType {
     private final int mFullDamage;
 
     /*================= Access =================*/
+    public boolean isProjectile() {
+        return (mAttrs.contains(Attr.PROJECTILE));
+    }
+
+    public boolean isTeleporter() {
+        return (mAttrs.contains(Attr.TELEPORTER));
+    }
+
+    public boolean isExtraArmor() {
+        return (mAttrs.contains(Attr.EXTRA_ARMOR));
+    }
+
     public int getExplosionColor() {
-        if (mAttrs.contains(Attr.EARTHMOVER)) {
+        if (! mAttrs.contains(Attr.PROJECTILE)) {
+            throw new RuntimeException("Only PROJECTILE weapons have " +
+                                        "an explosion color");
+        }
+        if (mFullDamage == 0) {
             return GREY;
         }
         else {
@@ -226,6 +267,10 @@ public enum WeaponType {
     }
 
     public int getExplosionRadius() {
+        if (! mAttrs.contains(Attr.PROJECTILE)) {
+            throw new RuntimeException("Only PROJECTILE weapons have " +
+                                        "an explosion radius");
+        }
         return mExplosionRadius;
     }
 
@@ -246,9 +291,5 @@ public enum WeaponType {
         mStartingAmount = startingAmount;
         mAttrs = attrs;
         mFullDamage = fullDamage;
-        if (attrs.contains(Attr.EARTHMOVER) && (fullDamage != 0)) {
-            throw new RuntimeException("EARTHMOVER weapons can't " +
-                "cause damage. Please set fullDamage to 0 for " + name);
-        }
     }
 }
