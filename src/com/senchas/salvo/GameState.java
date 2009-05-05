@@ -18,7 +18,6 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.senchas.salvo.RunGameAct.RunGameActAccessor;
-import com.senchas.salvo.SalvoSlider.Listener;
 import com.senchas.salvo.WeaponType.Armory;
 
 

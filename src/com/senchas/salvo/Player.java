@@ -287,8 +287,8 @@ public class Player {
         mV.mLife -= damage;
         if (mV.mLife < 0)
             mV.mLife = 0;
-        // Aura color depends on the current amount of life
-        cacheAuraColor();
+        // Player color depends on the current amount of life
+        cachePlayerColor(0);
     }
 
     /** Set the current aura alpha. 0 will disable the aura */
