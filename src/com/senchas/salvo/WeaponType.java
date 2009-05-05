@@ -42,11 +42,11 @@ public enum WeaponType {
                     0,
                     EnumSet.of(Attr.PROJECTILE),
                     0),
-    /*EXTRA_ARMOR("Extra Armor",
+    EXTRA_ARMOR("Extra Armor",
                     0,
                     0,
                     EnumSet.of(Attr.EXTRA_ARMOR),
-                    100),*/
+                    100),
     TELEPORTER("Teleporter",
                     0,
                     0,

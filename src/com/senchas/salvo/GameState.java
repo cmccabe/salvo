@@ -482,6 +482,11 @@ public abstract class GameState {
                         curPlayer.getArmory().useWeapon(weapon));
                     return doTeleport(game);
                 }
+                else if (weapon.isExtraArmor()) {
+                    curPlayer.setCurWeaponType(
+                        curPlayer.getArmory().useWeapon(weapon));
+                    return ExtraArmorState.create();
+                }
             }
 
             int power = 0;
@@ -1066,6 +1071,104 @@ public abstract class GameState {
             mCurState = null;
             mStateStartTime = 0;
             mV = new MyVars();
+        }
+    }
+
+    /** Animate a player using extra armor */
+    public static class ExtraArmorState extends GameState {
+        /*================= Constants =================*/
+        public static final byte ID = 26;
+        public static final int EXTRA_ARMOR_AMOUNT = 100;
+
+        /*================= Types =================*/
+
+        /*================= Static =================*/
+        private static ExtraArmorState sMe = new ExtraArmorState();
+
+        /*================= Data =================*/
+        /** The time when the state began */
+        private long mStartTime;
+
+        /*================= Access =================*/
+
+        /*================= Operations =================*/
+        @Override
+        public void saveState(Bundle map) {
+            map.putByte(GAME_STATE_ID, ID);
+        }
+
+        @Override
+        public void onEnter(RunGameActAccessor game) {
+            Player curPlayer = game.getModel().getCurPlayer();
+
+            mStartTime = System.currentTimeMillis();
+
+            // display Toast
+            StringBuilder s = new StringBuilder(80);
+            s.append(curPlayer.getName());
+            s.append(" has gained extra armor!");
+            Util.DoToast doToast = new Util.DoToast(
+                game.getGameControlView().getContext(),
+                s.toString());
+            game.getRunGameAct().runOnUiThread(doToast);
+        }
+
+        @Override
+        public GameState main(RunGameActAccessor game) {
+            Player curPlayer = game.getModel().getCurPlayer();
+            long d = System.currentTimeMillis() - mStartTime;
+            boolean finished = false;
+
+            if (d < 2000) {
+                int percent = (int) ((d * 100) / 2000);
+                curPlayer.setAuraWhitening(percent);
+            }
+            else {
+                int percent = (int) (((d - 2000) * 100) / 2000);
+                if (percent > 100) {
+                    finished = true;
+                    percent = 100;
+                }
+                curPlayer.setAuraWhitening(100 - percent);
+            }
+
+            game.getGameControlView().
+                drawScreen(game, Player.INVALID_POWER, null, null);
+
+            if (finished)
+                return TurnStartState.create();
+            else
+                return null;
+        }
+
+        @Override
+        public void onExit(RunGameActAccessor game) {
+            Player curPlayer = game.getModel().getCurPlayer();
+            curPlayer.setAuraAlpha(Player.DESELECTED_AURA_ALPHA);
+            curPlayer.gainLife(EXTRA_ARMOR_AMOUNT);
+        }
+
+        @Override
+        public int getBlockingDelay() {
+            return 1;
+        }
+
+        /*================= Lifecycle =================*/
+        private void initialize() {
+        }
+
+        public static ExtraArmorState create() {
+            sMe.initialize();
+            return sMe;
+        }
+
+        public static ExtraArmorState createFromBundle(Bundle map) {
+            sMe.initialize();
+            return sMe;
+        }
+
+        private ExtraArmorState() {
+            mStartTime = 0;
         }
     }
 

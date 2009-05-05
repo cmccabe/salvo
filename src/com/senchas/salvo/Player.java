@@ -291,6 +291,18 @@ public class Player {
         cachePlayerColor(0);
     }
 
+    public void gainLife(int life) {
+        if (life < 0) {
+            throw new RuntimeException("gainLife: life gained cannot be " +
+                                       "less than 0");
+        }
+        mV.mLife += life;
+        if (mV.mLife > Player.MAX_LIFE)
+            mV.mLife = Player.MAX_LIFE;
+        // Player color depends on the current amount of life
+        cachePlayerColor(0);
+    }
+
     /** Set the current aura alpha. 0 will disable the aura */
     public void setAuraAlpha(byte auraAlpha) {
         mAuraAlpha = auraAlpha;
