@@ -154,6 +154,10 @@ public class Model {
         }
     }
 
+    public boolean foregroundIsLight() {
+        return mV.mForeground.isLight();
+    }
+
     /*================= Operations =================*/
     public void setCurPlayerId(int id) {
         if (id == Player.INVALID_PLAYER_ID) {

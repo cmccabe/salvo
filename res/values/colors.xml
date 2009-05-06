@@ -1,7 +1,11 @@
 <resources>
 <drawable name="armory_bg_color">#88888888</drawable>
+
 <drawable name="clear">#00000000</drawable>
+
 <drawable name="game_text_grey">#ffaaaaaa</drawable>
+
+<drawable name="game_text_dark">#ff111111</drawable>
 
 <!-- <string-array name="player_colors">
     <item>#ef2929</item>

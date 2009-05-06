@@ -20,6 +20,7 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.senchas.salvo.RunGameAct.RunGameActAccessor;
+import com.senchas.salvo.RunGameAct.XmlColors;
 import com.senchas.salvo.WeaponType.Armory;
 
 
@@ -457,6 +458,7 @@ public abstract class GameState {
         public void onEnter(RunGameActAccessor game) {
             GameState.setCurPlayerAngleText(game);
             game.getGameControlView().cacheTerrain(game);
+            game.getRunGameAct().runOnUiThread(new DoShowArmory(game));
             GameState.setCurPlayerArmoryText(game);
             game.getModel().getCurPlayer().setAuraAlpha(
                 Player.SELECTED_AURA_ALPHA);
@@ -1410,26 +1412,38 @@ public abstract class GameState {
 
     /** Hides the armory in the middle of the screen */
     private static void hideArmory(RunGameActAccessor game) {
-        game.getAngleText().setVisibility(View.INVISIBLE);
-        game.getArmoryMainText().setVisibility(View.INVISIBLE);
-        game.getArmorySecondaryText().setVisibility(View.INVISIBLE);
-        game.getArmoryLeftButton().setVisibility(View.INVISIBLE);
-        game.getArmoryRightButton().setVisibility(View.INVISIBLE);
-        int color = game.getRunGameAct().getResources().
-                        getColor(R.drawable.clear);
+        hideArmoryTextView(game.getAngleText());
+        hideArmoryTextView(game.getArmoryMainText());
+        hideArmoryTextView(game.getArmorySecondaryText());
+        hideArmoryTextView(game.getArmoryLeftButton());
+        hideArmoryTextView(game.getArmoryRightButton());
+        int color = game.getXmlColors().getClear();
         game.getArmoryCenter().setBackgroundColor(color);
+    }
+
+    private static void hideArmoryTextView(TextView t) {
+        t.setVisibility(View.INVISIBLE);
     }
 
     /** Un-hides the armory in the middle of the screen */
     private static void showArmory(RunGameActAccessor game) {
-        game.getAngleText().setVisibility(View.VISIBLE);
-        game.getArmoryMainText().setVisibility(View.VISIBLE);
-        game.getArmorySecondaryText().setVisibility(View.VISIBLE);
-        game.getArmoryLeftButton().setVisibility(View.VISIBLE);
-        game.getArmoryRightButton().setVisibility(View.VISIBLE);
-        int color = game.getRunGameAct().getResources().
-                        getColor(R.drawable.armory_bg_color);
-        game.getArmoryCenter().setBackgroundColor(color);
+        XmlColors xmlColors = game.getXmlColors();
+        int textColor = game.getModel().foregroundIsLight() ?
+                            xmlColors.getGameTextDark() :
+                            xmlColors.getGameTextGrey();
+
+        showArmoryTextView(game.getAngleText(), textColor);
+        showArmoryTextView(game.getArmoryMainText(), textColor);
+        showArmoryTextView(game.getArmorySecondaryText(), textColor);
+        showArmoryTextView(game.getArmoryLeftButton(), textColor);
+        showArmoryTextView(game.getArmoryRightButton(), textColor);
+        int bgColor = game.getXmlColors().getArmoryBackground();
+        game.getArmoryCenter().setBackgroundColor(bgColor);
+    }
+
+    private static void showArmoryTextView(TextView t, int textColor) {
+        t.setVisibility(View.VISIBLE);
+        t.setTextColor(textColor);
     }
 
     /** Initialize and return a game state object from a Bundle */

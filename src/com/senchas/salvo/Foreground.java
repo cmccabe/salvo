@@ -11,17 +11,29 @@ public enum Foreground {
     snow(Color.argb(0xff, 0xf0, 0xf0, 0xff), new Background[]
         { Background.berkeley_hills_s,
           Background.bridge_at_sunset_s,
-          Background.forest_sunrise_s }),
-    olive(Color.argb(0xff, 0x4a, 0x63, 0x42), new Background[] {}),
+          Background.forest_sunrise_s },
+        true),
+    olive(Color.argb(0xff, 0x4a, 0x63, 0x42), new Background[] {},
+        false),
     brown(Color.argb(0xff, 0x55, 0x43, 0x24), new Background[]
-        { Background.cloud_fortress_s }),
+        { Background.cloud_fortress_s },
+        false),
     light_grey(Color.argb(0xff,0x6d,0x6d,0x6d), new Background[]
-        { Background.berkeley_hills_s}),
-    dark_cyan(Color.argb(0xff,0x34,0x58,0x54), new Background[] {}),
-    light_green(Color.argb(0xff,0x57,0xae,0x61), new Background[] {}),
-    bright_green(Color.argb(0xff, 0x5f, 0xcf, 0x4d), new Background[]
+        { Background.berkeley_hills_s},
+        false),
+    dark_cyan(Color.argb(0xff,0x34,0x58,0x54), new Background[] {},
+        false),
+    tan(Color.argb(0xff,0xf8,0xd3,0x9c), new Background[]
+        { Background.berkeley_hills_s,
+          Background.forest_sunrise_s,
+          Background.snowy_mountains_s },
+        true),
+    light_green(Color.argb(0xff,0x57,0xae,0x61), new Background[] {},
+        true),
+    yellow_green(Color.argb(0xff, 0x8f, 0xbd, 0x2f), new Background[]
         { Background.snowy_mountains_s,
-          Background.bridge_at_sunset_s });
+          Background.bridge_at_sunset_s },
+        true);
 
     /*================= Static =================*/
     public static Foreground getRandomForeground(Background curBg) {
@@ -40,6 +52,10 @@ public enum Foreground {
     private final int mColor;
     private final Background mForbiddenBg[];
 
+    /** True if this foreground is very light. In this case, dark text will
+     * be used. */
+    private final boolean mIsLight;
+
     /*================= Access =================*/
     public int getColor() {
         return mColor;
@@ -55,9 +71,14 @@ public enum Foreground {
         return true;
     }
 
+    public boolean isLight() {
+        return mIsLight;
+    }
+
     /*================= Lifecycle =================*/
-    private Foreground(int color, Background[] forbiddenBg) {
+    private Foreground(int color, Background[] forbiddenBg, boolean isLight) {
         mColor = color;
         mForbiddenBg = forbiddenBg;
+        mIsLight = isLight;
     }
 }

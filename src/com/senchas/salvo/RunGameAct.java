@@ -3,6 +3,7 @@ package com.senchas.salvo;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -61,6 +62,8 @@ public class RunGameAct extends Activity {
     /** The main thread */
     private RunGameThread mThread;
 
+    private XmlColors mXmlColors;
+
     /*================= Permanent Data =================*/
     /** The important game data */
     private Model mModel;
@@ -69,6 +72,53 @@ public class RunGameAct extends Activity {
     private GameState mState;
 
     /*================= Types =================*/
+    /** Represents the colors in the colors.xml file */
+    public final static class XmlColors {
+        /*================= Data =================*/
+        private final int mArmoryBackground;
+
+        private final int mClear;
+
+        private final int mGameTextGrey;
+
+        private final int mGameTextDark;
+
+        /*================= Access =================*/
+        public int getArmoryBackground() {
+            return mArmoryBackground;
+        }
+
+        public int getClear() {
+            return mClear;
+        }
+
+        public int getGameTextGrey() {
+            return mGameTextGrey;
+        }
+
+        public int getGameTextDark() {
+            return mGameTextDark;
+        }
+
+        /*================= Lifecycle =================*/
+        public static XmlColors fromXml(Resources res) {
+            return new XmlColors(res.getColor(R.drawable.armory_bg_color),
+                            res.getColor(R.drawable.clear),
+                            res.getColor(R.drawable.game_text_grey),
+                            res.getColor(R.drawable.game_text_dark));
+        }
+
+        private XmlColors(int armoryBackground,
+                          int clear,
+                          int gameTextGrey,
+                          int gameTextDark) {
+            mArmoryBackground = armoryBackground;
+            mClear = clear;;
+            mGameTextGrey = gameTextGrey;
+            mGameTextDark = gameTextDark;
+        }
+    }
+
     /** Provides access to RunGameAct internals.
      *
      * Normally RunGameAct hides its internals pretty well. For some
@@ -115,6 +165,10 @@ public class RunGameAct extends Activity {
 
         public RelativeLayout getArmoryCenter() {
             return mArmoryCenter;
+        }
+
+        public XmlColors getXmlColors() {
+            return mXmlColors;
         }
     }
 
@@ -379,6 +433,7 @@ public class RunGameAct extends Activity {
     @Override
     public void onCreate(Bundle map) {
         super.onCreate(map);
+        mXmlColors = XmlColors.fromXml(getResources());
 
         if (map == null) {
             // We're starting up the game. Create the Model
