@@ -106,6 +106,11 @@ public enum WeaponType {
 
         /** The user can never select or buy this weapon */
         public static final int UNSELECTABLE = -2;
+
+        /** When a cluster bomb detonates and splits into fragments, this
+         * determines the initial power used to launch these fragments.
+         */
+        private static final float CLUSTER_BOMB_FRAG_INIT_POWER = 4;
     }
 
     /*================= Types =================*/
@@ -357,23 +362,37 @@ public enum WeaponType {
             }
             case MAKE_CLUSTER: {
                 WeaponType clusterType;
-                if (mAttrs.contains(Attr.EXTRA_LARGE))
+                int numFragments;
+                if (mAttrs.contains(Attr.EXTRA_LARGE)) {
                     clusterType = LARGE_MISSILE;
-                else if (mAttrs.contains(Attr.LARGE))
+                    numFragments = 5;
+                }
+                else if (mAttrs.contains(Attr.LARGE)) {
                     clusterType = MEDIUM_MISSILE;
-                else
+                    numFragments = 4;
+                }
+                else {
                     clusterType = SMALL_MISSILE;
+                    numFragments = 3;
+                }
 
-                // TODO: vary the angles that the projectiles are shot off
-                // at based on the local terrain shape
-                final float deltaX[] = { -2, 0, 2 };
-                final float deltaY[] = { -2, -4, -2 };
-                for (int i = 0; i < 3; i++) {
+                float terrainAngle = model.getTerrain().getTerrainAngle(x);
+                float fragAngle = (float)(Math.PI / (numFragments + 1));
+                for (int i = 0; i < numFragments; i++) {
+                    float launchAngle =
+                        (float)(Math.PI - terrainAngle -((i+1) * fragAngle));
+                    float deltaX = Const.CLUSTER_BOMB_FRAG_INIT_POWER *
+                        (float)Math.cos(launchAngle);
+                    float deltaY = -Const.CLUSTER_BOMB_FRAG_INIT_POWER *
+                        (float)Math.sin(launchAngle);
+                    Log.w(this.getClass().getName(),
+                        "launching fragment " + i +
+                        " at angle " + launchAngle +
+                        " deltaX = " + deltaX +
+                        " deltaY = " + deltaY);
                     Projectile proj = ball.newProjectile();
-                    proj.initialize(x, y, deltaX[i], deltaY[i],
+                    proj.initialize(x, y, deltaX, deltaY,
                                     model.getWind(), clusterType, 8);
-                    //Log.w(this.getClass().getName(),
-                    //        "initialized new projectile");
                 }
                 break;
             }

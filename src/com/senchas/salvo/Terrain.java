@@ -56,6 +56,8 @@ public class Terrain {
      * Wind is a purely horizontal constant acceleration on the projectile */
     public static final int MAX_WIND = 50;
 
+    public static final int TERRAIN_ANGLE_DELTA = 10;
+
     /*================= Data =================*/
     public static class MyVars {
         /** The playing field */
@@ -66,6 +68,46 @@ public class Terrain {
     /*================= Access =================*/
     public short[] getBoard() {
         return mV.mBoard;
+    }
+
+    /** Gets the average value of the samples between A and B.
+     *
+     * We treat values that are out of range as having the same value as
+     * the relevant edge.
+     */
+    public float getAverageValue(int a, int b) {
+        if (a > b) {
+            throw new RuntimeException("getAverageValue: must have a <= b");
+        }
+        short h[] = mV.mBoard;
+        int acc = 0;
+        for (int i = a; i <= b; i++) {
+            if (i < 0)
+                acc += h[0];
+            else if (i >= h.length)
+                acc += h[h.length - 1];
+            else
+                acc += h[i];
+        }
+        float ret = acc;
+        return ret / (b - a);
+    }
+
+    /** Given an x value, returns an angle which gives an idea of how far
+     * from the horizontal the terrain is around that X.
+     *
+     * Consider a small interval [x - delta, x + delta].
+     * We average the samples in the first half of the interval and call that
+     * value y0.
+     * We average the samples in the second half of the interval and call
+     * that value y1.
+     * Then the terrain angle is the angle between
+     * (x - delta, y0) and (x + delta, y1) in radians.
+     */
+    public float getTerrainAngle(int x) {
+        float y0 = getAverageValue(x - TERRAIN_ANGLE_DELTA, x);
+        float y1 = getAverageValue(x, x + TERRAIN_ANGLE_DELTA);
+        return (float)Math.atan2(y1 - y0, TERRAIN_ANGLE_DELTA * 2);
     }
 
     /*================= Operations =================*/
