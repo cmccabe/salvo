@@ -500,11 +500,13 @@ public abstract class GameState {
             int power = 0;
             if (mFireTime == 0) {
                 game.getGameControlView().
-                    drawScreen(game, Player.INVALID_POWER, null, null);
+                    drawScreen(game, Player.INVALID_POWER,
+                            Projectile.EMPTY_ARRAY, Explosion.EMPTY_ARRAY);
             }
             else {
                 power = timeToPower(System.currentTimeMillis());
-                game.getGameControlView().drawScreen(game, power, null, null);
+                game.getGameControlView().drawScreen(game, power,
+                        Projectile.EMPTY_ARRAY, Explosion.EMPTY_ARRAY);
                 if (power == Player.MAX_POWER)
                     doReleaseFire(game);
             }
@@ -729,17 +731,45 @@ public abstract class GameState {
         public static final byte ID = 20;
         public static final String BALLISTICS_POWER = "BALLISTICS_POWER";
         public static final String WEAPON_TYPE = "WEAPON_TYPE";
+        private static final int MAX_PROJECTILES = 5;
 
         /*================= Types =================*/
+        /** The Accessor is a convenient way for other classes to interface
+         * with BallisticsState */
+        public class Accessor {
+            /** Returns a valid uninitialized Projectile object */
+            public Projectile newProjectile() {
+                for (Projectile proj : mProjectiles) {
+                    if (! proj.getInUse())
+                        return proj;
+                }
+                throw new RuntimeException("newProjectile: there are " +
+                    "no more empty slots for projectiles. Perhaps " +
+                    "you should increase the number of slots?");
+            }
+
+            /** Returns a valid uninitialized Explosion object */
+            public Explosion newExplosion() {
+                for (Explosion expl : mExplosions) {
+                    if (! expl.getInUse())
+                        return expl;
+                }
+                throw new RuntimeException("newExplosion: there are " +
+                    "no more empty slots for explosions. Perhaps " +
+                    "you should increase the number of slots?");
+            }
+        }
 
         /*================= Static =================*/
         private static BallisticsState sMe = new BallisticsState();
 
         /*================= Data =================*/
         private int mPower;
-        private Projectile mProjectile;
-        private Explosion mExplosion;
-        private WeaponType mWeapon;
+        private WeaponType mInitWeapon;
+
+        private Projectile mProjectiles[];
+        private Explosion mExplosions[];
+        private Accessor mAcc;
 
         /*================= Access =================*/
 
@@ -748,7 +778,7 @@ public abstract class GameState {
         public void saveState(Bundle map) {
             map.putByte(GAME_STATE_ID, ID);
             map.putInt(BALLISTICS_POWER, mPower);
-            map.putInt(WEAPON_TYPE, mWeapon.ordinal());
+            map.putInt(WEAPON_TYPE, mInitWeapon.ordinal());
         }
 
         @Override
@@ -764,8 +794,8 @@ public abstract class GameState {
             float turretX = curPlayer.getX() + (Player.TURRET_LENGTH * cos);
             float turretY = curPlayer.getTurretCenterY()
                     + (Player.TURRET_LENGTH * sin);
-            mProjectile.initialize(turretX, turretY,
-                                   dx, dy, model.getWind());
+            mAcc.newProjectile().initialize((int)turretX, (int)turretY,
+                                   dx, dy, model.getWind(), mInitWeapon);
 
             game.getGameControlView().cacheTerrain(game);
         }
@@ -774,23 +804,20 @@ public abstract class GameState {
         public GameState main(RunGameActAccessor game) {
             boolean finished = true;
             final Model model = game.getModel();
-
-            if (mProjectile.getInUse()) {
+            for (Projectile proj : mProjectiles) {
+                if (!proj.getInUse())
+                    continue;
                 finished = false;
-                mProjectile.step();
-                if (mProjectile.hasExploded(game.getModel())) {
-                    mProjectile.changeInUse(false);
-                    mExplosion.initialize(
-                        mProjectile.getCurX(), mProjectile.getCurY(),
-                        mWeapon);
-                }
+                proj.step(model, mAcc);
             }
-            if (mExplosion.getInUse()) {
+            for (Explosion expl : mExplosions) {
+                if (! expl.getInUse())
+                    continue;
                 finished = false;
-                if (mExplosion.getFinished(System.currentTimeMillis())) {
-                    mExplosion.clearInUse();
-                    mExplosion.doDirectDamage(game);
-                    mExplosion.editTerrain(game);
+                if (expl.getFinished(System.currentTimeMillis())) {
+                    expl.clearInUse();
+                    expl.doDirectDamage(game);
+                    expl.editTerrain(game);
                     Terrain terrain = model.getTerrain();
                     for (Player p : model.getPlayers()) {
                         p.doFalling(terrain);
@@ -802,7 +829,7 @@ public abstract class GameState {
 
             game.getGameControlView().
                 drawScreen(game, Player.INVALID_POWER,
-                           mProjectile, mExplosion);
+                           mProjectiles, mExplosions);
 
             if (finished)
                 return TurnStartState.create();
@@ -824,13 +851,16 @@ public abstract class GameState {
         /*================= Lifecycle =================*/
         private void initialize(int power, WeaponType weapon) {
             mPower = power;
-            mProjectile.changeInUse(false);
-            mExplosion.clearInUse();
-            mWeapon = weapon;
+            mInitWeapon = weapon;
+            for (Projectile p : mProjectiles)
+                p.changeInUse(false);
+            for (Explosion e : mExplosions)
+                e.clearInUse();
         }
 
-        public static BallisticsState create(int power, WeaponType weapon) {
-            sMe.initialize(power, weapon);
+        public static BallisticsState create(int power,
+                                            WeaponType initWeapon) {
+            sMe.initialize(power, initWeapon);
             return sMe;
         }
 
@@ -838,14 +868,21 @@ public abstract class GameState {
             int power = map.getInt(BALLISTICS_POWER);
             int wType = map.getInt(WEAPON_TYPE);
             WeaponType weapons[] = WeaponType.values();
-            WeaponType weapon = weapons[wType];
-            sMe.initialize(power, weapon);
+            WeaponType initWeapon = weapons[wType];
+            sMe.initialize(power, initWeapon);
             return sMe;
         }
 
         private BallisticsState() {
-            mProjectile = new Projectile();
-            mExplosion = new Explosion();
+            mProjectiles = new Projectile[MAX_PROJECTILES];
+            for (int i = 0; i < mProjectiles.length; i++) {
+                mProjectiles[i] = new Projectile();
+            }
+            mExplosions = new Explosion[MAX_PROJECTILES];
+            for (int i = 0; i < mExplosions.length; i++) {
+                mExplosions[i] = new Explosion();
+            }
+            mAcc = new Accessor();
         }
     }
 
@@ -1005,7 +1042,8 @@ public abstract class GameState {
                 mCurState.applySpecialEffect(p2, percent);
 
             game.getGameControlView().
-                drawScreen(game, Player.INVALID_POWER, null, null);
+                drawScreen(game, Player.INVALID_POWER,
+                        Projectile.EMPTY_ARRAY, Explosion.EMPTY_ARRAY);
 
             if (percent == 100) {
                 State values[] = State.values();
@@ -1183,7 +1221,8 @@ public abstract class GameState {
             }
 
             game.getGameControlView().
-                drawScreen(game, Player.INVALID_POWER, null, null);
+                drawScreen(game, Player.INVALID_POWER,
+                        Projectile.EMPTY_ARRAY, Explosion.EMPTY_ARRAY);
 
             if (finished)
                 return TurnStartState.create();
@@ -1328,7 +1367,7 @@ public abstract class GameState {
                                                            type.getName()));
         StringBuilder b = new StringBuilder(14);
         b.append("[");
-        if (amount.intValue() == WeaponType.UNLIMITED)
+        if (amount.intValue() == WeaponType.Const.UNLIMITED)
             b.append("∞");
         else
             b.append(amount);

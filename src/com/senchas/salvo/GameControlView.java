@@ -82,7 +82,7 @@ class GameControlView extends SurfaceView  {
      *                  be displayed.
      */
     public void drawScreen(RunGameActAccessor acc, int power,
-                            Projectile proj, Explosion expl) {
+                       Projectile projectiles[], Explosion explosions[]) {
         // TODO: draw this stuff into a bitmap to speed things up?
         Canvas canvas = null;
         SurfaceHolder holder = getHolder();
@@ -103,7 +103,9 @@ class GameControlView extends SurfaceView  {
                                 bar_x, Terrain.MAX_Y,
                                 mTempPlayerPaint);
             }
-            if ((proj != null) && proj.getInUse()) {
+            for (Projectile proj : projectiles) {
+                if (! proj.getInUse())
+                    continue;
                 mTempPlayerPaint.setColor(Projectile.PROJECTILE_COLOR);
                 mTempPlayerPaint.setStyle(Paint.Style.FILL);
                 if (proj.isOffscreen()) {
@@ -115,13 +117,16 @@ class GameControlView extends SurfaceView  {
                             Projectile.PROJECTILE_RADIUS, mTempPlayerPaint);
                 }
             }
-            if ((expl != null) && expl.getInUse()) {
-                WeaponType weapon = expl.getWeaponType();
-                mTempPlayerPaint.setColor(weapon.getExplosionColor());
+            for (Explosion expl : explosions) {
+                if (! expl.getInUse())
+                    continue;
+                mTempPlayerPaint.setColor(
+                    expl.getExplosionAttributes().getColor());
+                //mTempPlayerPaint.setColor(Projectile.PROJECTILE_COLOR);
                 mTempPlayerPaint.setStyle(Paint.Style.FILL);
+                int size = expl.getCurExplosionSize(System.currentTimeMillis());
                 canvas.drawCircle(expl.getX(), expl.getY(),
-                    expl.getCurExplosionSize(System.currentTimeMillis()),
-                    mTempPlayerPaint);
+                                  size, mTempPlayerPaint);
             }
         }
         finally {

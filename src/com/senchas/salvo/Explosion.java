@@ -1,6 +1,7 @@
 package com.senchas.salvo;
 
 import com.senchas.salvo.RunGameAct.RunGameActAccessor;
+import com.senchas.salvo.WeaponType.ExplosionAttributes;
 import android.util.Log;
 
 /* Represents an ongoing explosion
@@ -18,15 +19,17 @@ public class Explosion {
     public static final int BULLSEYE_RADIUS =
         Projectile.PROJECTILE_COLLISION_RADIUS + Player.COLLISION_RADIUS + 2;
 
+    public static final Explosion EMPTY_ARRAY[] = new Explosion[0];
+
     /*================= Data =================*/
     /** X coordinate of the center of the explosion */
-    private float mX;
+    private int mX;
 
     /** Y coordinate of the center of the explosion */
-    private float mY;
+    private int mY;
 
-    /** The weapon that is causing this explosion */
-    private WeaponType mWeapon;
+    /** The attributes of this explosion */
+    private ExplosionAttributes mAttr;
 
     /** True if this object is in use-- otherwise, it should be ignored */
     private boolean mInUse;
@@ -38,11 +41,11 @@ public class Explosion {
     private long mStartTime;
 
     /*================= Access =================*/
-    public float getX() {
+    public int getX() {
         return mX;
     }
 
-    public float getY() {
+    public int getY() {
         return mY;
     }
 
@@ -56,7 +59,7 @@ public class Explosion {
     }
 
     public int getCurExplosionSize(long time) {
-        int full = mWeapon.getExplosionRadius();
+        int full = mAttr.getRadius();
         long diff = time - mStartTime;
         if (diff > MAX_TIME)
             return full;
@@ -65,8 +68,8 @@ public class Explosion {
         }
     }
 
-    public WeaponType getWeaponType() {
-        return mWeapon;
+    public ExplosionAttributes getExplosionAttributes() {
+        return mAttr;
     }
 
     /*================= Operations =================*/
@@ -76,7 +79,7 @@ public class Explosion {
 
     /** Deal direct damage to players */
     public void doDirectDamage(RunGameActAccessor game) {
-        int full = mWeapon.getFullDamage();
+        int full = mAttr.getFullDamage();
         if (full == 0)
             return;
         Player players[] = game.getModel().getPlayers();
@@ -84,8 +87,7 @@ public class Explosion {
             if (! p.isAlive())
                 continue;
             float dist = Util.calcDistance(mX, mY, p.getX(), p.getY());
-            int safeDist = Player.COLLISION_RADIUS +
-                                mWeapon.getExplosionRadius();
+            int safeDist = Player.COLLISION_RADIUS + mAttr.getRadius();
             if (dist < safeDist) {
                 StringBuilder b = new StringBuilder(80 * 5);
                 b.append("doDirectDamage(player=").append(p.getName());
@@ -108,15 +110,12 @@ public class Explosion {
         short board[] = terrain.getBoard();
 
         Util.Pair pair = new Util.Pair();
-        int eSize = mWeapon.getExplosionRadius();
-
+        int eSize = mAttr.getRadius();
         // do the circle collision algorithm on each height
-        int x = (int)mX;
-        int y = (int)mY;
-        for (int slice = Math.max(0, x - eSize);
-                 slice < Math.min(x + eSize, Terrain.MAX_X);
+        for (int slice = Math.max(0, mX - eSize);
+                 slice < Math.min(mX + eSize, Terrain.MAX_X);
                  slice++) {
-            Util.circAt(x, y, eSize, slice, pair);
+            Util.circAt(mX, mY, eSize, slice, pair);
             editTerrainSlice(board, slice, pair);
         }
     }
@@ -146,10 +145,10 @@ public class Explosion {
     }
 
     /*================= Lifecycle =================*/
-    public void initialize(float x, float y, WeaponType weapon) {
+    public void initialize(int x, int y, ExplosionAttributes attr) {
         mX = x;
         mY = y;
-        mWeapon = weapon;
+        mAttr = attr;
 
         mStartTime = System.currentTimeMillis();
         mFinished = false;

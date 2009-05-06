@@ -10,94 +10,165 @@ import android.graphics.Color;
 import android.os.Bundle;
 
 /** Represents a type of weapon that can be fired or used.
- *
- * This class suffers a little bit from the fact that different weapons
- * require fairly different interfaces.
- * It could probably be refactored in terms of subtypes. For now I'm going to
- * leave it, since it's not (yet) *too* confusing.
  */
 public enum WeaponType {
-    SMALL_MISSILE("Small Missile",
-                    10,
-                    WeaponType.UNLIMITED,
-                    EnumSet.of(Attr.PROJECTILE),
-                    125),
-    MEDIUM_MISSILE("Medium Missile",
-                    20,
-                    2,
-                    EnumSet.of(Attr.PROJECTILE),
-                    175),
-    LARGE_MISSILE("Large Missile",
-                    35,
-                    0,
-                    EnumSet.of(Attr.PROJECTILE),
-                    200),
-    EARTHMOVER("Earthmover",
-                    25,
-                    0,
-                    EnumSet.of(Attr.PROJECTILE),
-                    0),
-    LARGE_EARTHMOVER("Large Earthmover",
-                    42,
-                    0,
-                    EnumSet.of(Attr.PROJECTILE),
-                    0),
-    EXTRA_ARMOR("Extra Armor",
-                    0,
-                    0,
-                    EnumSet.of(Attr.EXTRA_ARMOR),
-                    100),
-    TELEPORTER("Teleporter",
-                    0,
-                    0,
-                    EnumSet.of(Attr.TELEPORTER),
-                    100),
-    DOOMHAMMER("Doomhammer",
-                    10,
-                    0,
-                    EnumSet.of(Attr.PROJECTILE),
-                    100),
-    MEDIUM_ROLLER("Roller",
-                    10,
-                    0,
-                    EnumSet.of(Attr.PROJECTILE, Attr.ROLLER),
-                    100),
-    LARGE_ROLLER("Large Roller",
-                    10,
-                    0,
-                    EnumSet.of(Attr.PROJECTILE, Attr.ROLLER),
-                    100),
-    MIRV_WARHEAD("MIRV Warhead",
-                    10,
-                    0,
-                    EnumSet.of(Attr.PROJECTILE, Attr.MIRV),
-                    100);
+    SMALL_MISSILE("Small Missile", Const.UNLIMITED,
+        new ExplosionAttributes(10, Const.RED, 125),
+        DetonationAttr.EXPLODE,
+        EnumSet.of(Attr.PROJECTILE)
+    ),
+    MEDIUM_MISSILE("Medium Missile", 2,
+        new ExplosionAttributes(20, Const.RED, 175),
+        DetonationAttr.EXPLODE,
+        EnumSet.of(Attr.PROJECTILE)
+    ),
+    LARGE_MISSILE("Large Missile", 0,
+        new ExplosionAttributes(35, Const.RED, 200),
+        DetonationAttr.EXPLODE,
+        EnumSet.of(Attr.PROJECTILE)
+    ),
+    EARTHMOVER("Earthmover", 0,
+        new ExplosionAttributes(25, Const.GREY, 0),
+        DetonationAttr.EXPLODE,
+        EnumSet.of(Attr.PROJECTILE)
+    ),
+    LARGE_EARTHMOVER("Large Earthmover", 0,
+        new ExplosionAttributes(42, Const.GREY, 0),
+        DetonationAttr.EXPLODE,
+        EnumSet.of(Attr.PROJECTILE)
+    ),
+    EXTRA_ARMOR("Extra Armor", 0,
+        null,
+        DetonationAttr.CANNOT_DETONATE,
+        EnumSet.of(Attr.EXTRA_ARMOR)
+    ),
+    TELEPORTER("Teleporter", 0,
+        null,
+        DetonationAttr.CANNOT_DETONATE,
+        EnumSet.of(Attr.TELEPORTER)
+    ),
+    ROLLER("Roller", 0,
+        null,
+        DetonationAttr.MAKE_ROLLER,
+        EnumSet.of(Attr.PROJECTILE)
+    ),
+    ROLLER_IMPL("RollerImpl", Const.UNSELECTABLE,
+        new ExplosionAttributes(22, Const.RED, 150),
+        DetonationAttr.EXPLODE,
+        EnumSet.of(Attr.ROLLER)
+    ),
+    LARGE_ROLLER("Large Roller", 0,
+        null,
+        DetonationAttr.MAKE_ROLLER,
+        EnumSet.of(Attr.PROJECTILE, Attr.LARGE)
+    ),
+    LARGE_ROLLER_IMPL("LargeRollerImpl", Const.UNSELECTABLE,
+        new ExplosionAttributes(35, Const.RED, 200),
+        DetonationAttr.EXPLODE,
+        EnumSet.of(Attr.ROLLER)
+    ),
+    CLUSTER_BOMB("Cluster Bomb", 0,
+        null,
+        DetonationAttr.MAKE_CLUSTER,
+        EnumSet.of(Attr.PROJECTILE)
+    ),
+    LARGE_CLUSTER_BOMB("Large Cluster Bomb", 0,
+        null,
+        DetonationAttr.MAKE_CLUSTER,
+        EnumSet.of(Attr.PROJECTILE, Attr.LARGE)
+    ),
+    DOOMHAMMER("Doomhammer", 0,
+        null,
+        DetonationAttr.MAKE_CLUSTER,
+        EnumSet.of(Attr.PROJECTILE, Attr.EXTRA_LARGE)
+    );
 
     /*================= Constants =================*/
-    public static final int UNLIMITED = -1;
+    /** Contains the constants for WeaponType.
+     *
+     * Unfortunately, it is not safe to refer to an enum's own static
+     * variables in its constructor. It's unclear whether they will be
+     * initialized by the time the constructor is run.
+     * This is a big issue for primitive types, because we could end up capturing
+     * the pre-initialization value in the enum constructor (that means 0, or false.)
+     *
+     * We get around this by putting the constants in a "fake" static class that
+     * doesn't do anything.
+     */
+    public static abstract class Const {
+        public static final int RED = Color.argb(0xff, 0xff, 0, 0);
 
-    public static final int RED = Color.argb(0xff, 0xff, 0, 0);
+        public static final int GREY = Color.argb(0xff, 0xaa, 0xaa, 0xaa);
 
-    public static final int GREY = Color.argb(0xff, 0xaa, 0xaa, 0xaa);
+        /** There is an infinite supply of this weapon */
+        public static final int UNLIMITED = -1;
+
+        /** The user can never select or buy this weapon */
+        public static final int UNSELECTABLE = -2;
+    }
 
     /*================= Types =================*/
+    public static enum DetonationAttr {
+        /** This weapon can't detonate */
+        CANNOT_DETONATE,
+
+        /** On detonation, this weapon explodes */
+        EXPLODE,
+
+        /** On detonation, weapon creates a rolling projectile which slides
+         * downhill to find its target */
+        MAKE_ROLLER,
+
+        /** On detonation, weapon splits into 3 missiles */
+        MAKE_CLUSTER,
+    }
+
     public static enum Attr {
+        /** Represents a ballistic weapon */
+        PROJECTILE,
+
+        /** Represents a roller */
+        ROLLER,
+
         /** Teleports the user to a new location */
         TELEPORTER,
 
         /** Gives the user life */
         EXTRA_ARMOR,
 
-        /** Represents a ballistic weapon */
-        PROJECTILE,
+        /** This weapon is LARGE */
+        LARGE,
 
-        /** Weapon rolls down hills to find its target */
-        ROLLER,
+        /** This weapon is EXTRA_LARGE */
+        EXTRA_LARGE,
+    }
 
-        DOOMHAMMER,
+    /** Represents the attributes of an explosion */
+    public static class ExplosionAttributes {
+        /*================= Data =================*/
+        private final int mRadius;
+        private final int mColor;
+        private final int mFullDamage;
 
-        /** Weapon splits into multiple warheads at apogee */
-        MIRV
+        /*================= Access =================*/
+        public int getRadius() {
+            return mRadius;
+        }
+
+        public int getColor() {
+            return mColor;
+        }
+
+        public int getFullDamage() {
+            return mFullDamage;
+        }
+
+        /*================= Lifecycle =================*/
+        public ExplosionAttributes(int radius, int color, int fullDamage) {
+            mRadius = radius;
+            mColor = color;
+            mFullDamage = fullDamage;
+        }
     }
 
     /** An armory is a collection of weapons owned by a player.
@@ -124,7 +195,8 @@ public enum WeaponType {
                 if (startingAmount == 0)
                     startingAmount = 4;
 
-                if (startingAmount != 0)
+                if ((startingAmount != 0) &
+                        (startingAmount != Const.UNSELECTABLE))
                     weapons.put(types[i], new Integer(startingAmount));
             }
             return new Armory(weapons);
@@ -200,7 +272,7 @@ public enum WeaponType {
         public WeaponType useWeapon(WeaponType type) {
             Integer amount = mWeapons.get(type);
             int amt = amount.intValue();
-            if (amt == UNLIMITED) {
+            if (amt == Const.UNLIMITED) {
                 // Weapons with an unlimited supply can never be used up
                 return type;
             }
@@ -231,12 +303,24 @@ public enum WeaponType {
 
     /*================= Data =================*/
     private final String mName;
-    private final int mExplosionRadius;
     private final int mStartingAmount;
+    private final ExplosionAttributes mExplosionAttributes;
+    private final DetonationAttr mDetonationAttr;
     private final EnumSet<Attr> mAttrs;
-    private final int mFullDamage;
 
     /*================= Access =================*/
+    public String getName() {
+        return mName;
+    }
+
+    public int getStartingAmount() {
+        return mStartingAmount;
+    }
+
+    public ExplosionAttributes getExplosionAttributes() {
+        return mExplosionAttributes;
+    }
+
     public boolean isProjectile() {
         return (mAttrs.contains(Attr.PROJECTILE));
     }
@@ -249,47 +333,76 @@ public enum WeaponType {
         return (mAttrs.contains(Attr.EXTRA_ARMOR));
     }
 
-    public int getExplosionColor() {
-        if (! mAttrs.contains(Attr.PROJECTILE)) {
-            throw new RuntimeException("Only PROJECTILE weapons have " +
-                                        "an explosion color");
-        }
-        if (mFullDamage == 0) {
-            return GREY;
-        }
-        else {
-            return RED;
-        }
+    public boolean isRoller() {
+        return (mAttrs.contains(Attr.ROLLER));
     }
 
-    public String getName() {
-        return mName;
-    }
+    /*================= Operations =================*/
+    public void detonate(Model model,
+                        int x, int y,
+                        GameState.BallisticsState.Accessor ball) {
+        switch (mDetonationAttr) {
+            case CANNOT_DETONATE: {
+                throw new RuntimeException("logic error: tried to " +
+                "detonate a weapon which cannot detonate.");
+            }
+            case EXPLODE: {
+                Explosion expl = ball.newExplosion();
+                expl.initialize(x, y, mExplosionAttributes);
+                break;
+            }
+            case MAKE_ROLLER: {
+                throw new RuntimeException("unimplemented");
+            }
+            case MAKE_CLUSTER: {
+                WeaponType clusterType;
+                if (mAttrs.contains(Attr.EXTRA_LARGE))
+                    clusterType = LARGE_MISSILE;
+                else if (mAttrs.contains(Attr.LARGE))
+                    clusterType = MEDIUM_MISSILE;
+                else
+                    clusterType = SMALL_MISSILE;
 
-    public int getExplosionRadius() {
-        if (! mAttrs.contains(Attr.PROJECTILE)) {
-            throw new RuntimeException("Only PROJECTILE weapons have " +
-                                        "an explosion radius");
+                // TODO: vary the angles that the projectiles are shot off
+                // at based on the local terrain shape
+                final float deltaX[] = { -1, 0, 1 };
+                final float deltaY[] = { 1, 2, 1 };
+                for (int i = 0; i < 3; i++) {
+                    Projectile proj = ball.newProjectile();
+                    proj.initialize(x, y, deltaX[i], deltaY[i],
+                                    model.getWind(), clusterType);
+                }
+                break;
+            }
         }
-        return mExplosionRadius;
-    }
-
-    public int getStartingAmount() {
-        return mStartingAmount;
-    }
-
-    public int getFullDamage() {
-        return mFullDamage;
     }
 
     /*================= Lifecycle =================*/
-    private WeaponType(String name, int explosionRadius,
-                        int startingAmount, EnumSet<Attr> attrs,
-                        int fullDamage) {
-        mName = name;
-        mExplosionRadius = explosionRadius;
-        mStartingAmount = startingAmount;
+    private WeaponType(String name, int startingAmount,
+                       ExplosionAttributes explosionAttributes,
+                       DetonationAttr detonationAttr,
+                       EnumSet<Attr> attrs)
+    {
+        // validation
+        if (detonationAttr == DetonationAttr.EXPLODE) {
+            if (explosionAttributes == null) {
+                throw new RuntimeException("can't have " +
+                    "DetonationAttr.EXPLODE with no explosion " +
+                    "attributes");
+            }
+        }
+        else {
+            if (explosionAttributes != null) {
+                throw new RuntimeException("can't have " +
+                    "explosion attributes without " +
+                    "DetonationAttr.EXPLODE");
+            }
+        }
+
+        // fill in fields
+        mName = name; mStartingAmount = startingAmount;
+        mExplosionAttributes = explosionAttributes;
+        mDetonationAttr = detonationAttr;
         mAttrs = attrs;
-        mFullDamage = fullDamage;
     }
 }
