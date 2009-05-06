@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.os.Bundle;
 import java.lang.System;
 import java.util.Collection;
@@ -584,19 +585,28 @@ public abstract class GameState {
                     GameState.setCurPlayerArmoryText(game);
                     return true;
                 }
-                case PRESS_FIRE:
+                case PRESS_FIRE: {
                     Player curPlayer = game.getModel().getCurPlayer();
                     if (curPlayer.getCurWeaponType().isProjectile()) {
                         hideArmory(game);
                         mFireTime = System.currentTimeMillis();
                     }
                     else {
+                        highlightFireButton(game);
+                    }
+                    return true;
+                }
+                case RELEASE_FIRE: {
+                    Player curPlayer = game.getModel().getCurPlayer();
+                    if (curPlayer.getCurWeaponType().isProjectile()) {
+                        doReleaseFire(game);
+                    }
+                    else {
+                        deHighlightFireButton(game);
                         mFireSpecial = true;
                     }
                     return true;
-                case RELEASE_FIRE:
-                    doReleaseFire(game);
-                    return true;
+                }
                 default:
                     return false;
             }
@@ -1417,8 +1427,13 @@ public abstract class GameState {
         hideArmoryTextView(game.getArmorySecondaryText());
         hideArmoryTextView(game.getArmoryLeftButton());
         hideArmoryTextView(game.getArmoryRightButton());
+        highlightFireButton(game);
         int color = game.getXmlColors().getClear();
         game.getArmoryCenter().setBackgroundColor(color);
+    }
+
+    private static void highlightFireButton(RunGameActAccessor game) {
+        game.getFireButton().setTextColor(Color.argb(0xff, 0xff, 0xff, 0xff));
     }
 
     private static void hideArmoryTextView(TextView t) {
@@ -1437,6 +1452,7 @@ public abstract class GameState {
         showArmoryTextView(game.getArmorySecondaryText(), textColor);
         showArmoryTextView(game.getArmoryLeftButton(), textColor);
         showArmoryTextView(game.getArmoryRightButton(), textColor);
+        deHighlightFireButton(game);
         int bgColor = game.getXmlColors().getArmoryBackground();
         game.getArmoryCenter().setBackgroundColor(bgColor);
     }
@@ -1444,6 +1460,14 @@ public abstract class GameState {
     private static void showArmoryTextView(TextView t, int textColor) {
         t.setVisibility(View.VISIBLE);
         t.setTextColor(textColor);
+    }
+
+    private static void deHighlightFireButton(RunGameActAccessor game) {
+        XmlColors xmlColors = game.getXmlColors();
+        int textColor = game.getModel().foregroundIsLight() ?
+                            xmlColors.getGameTextDark() :
+                            xmlColors.getGameTextGrey();
+        game.getFireButton().setTextColor(textColor);
     }
 
     /** Initialize and return a game state object from a Bundle */

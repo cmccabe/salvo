@@ -167,6 +167,10 @@ public class RunGameAct extends Activity {
             return mArmoryCenter;
         }
 
+        public Button getFireButton() {
+            return mFireButton;
+        }
+
         public XmlColors getXmlColors() {
             return mXmlColors;
         }
