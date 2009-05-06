@@ -70,7 +70,17 @@ public class Terrain {
         return mV.mBoard;
     }
 
-    /** Gets the average value of the samples between A and B.
+    public short safeGetVal(int x) {
+        short h[] = mV.mBoard;
+        if (x < 0)
+            return h[0];
+        else if (x >= h.length)
+            return h[h.length - 1];
+        else
+            return h[x];
+    }
+
+    /** Gets the average value of the samples between A and B, inclusive.
      *
      * We treat values that are out of range as having the same value as
      * the relevant edge.
@@ -82,12 +92,7 @@ public class Terrain {
         short h[] = mV.mBoard;
         int acc = 0;
         for (int i = a; i <= b; i++) {
-            if (i < 0)
-                acc += h[0];
-            else if (i >= h.length)
-                acc += h[h.length - 1];
-            else
-                acc += h[i];
+            acc += safeGetVal(i);
         }
         float ret = acc;
         return ret / (b - a);
@@ -108,6 +113,31 @@ public class Terrain {
         float y0 = getAverageValue(x - TERRAIN_ANGLE_DELTA, x);
         float y1 = getAverageValue(x, x + TERRAIN_ANGLE_DELTA);
         return (float)Math.atan2(y1 - y0, TERRAIN_ANGLE_DELTA * 2);
+    }
+
+    /** Given an x value, returns true if a tangent line drawn at that X
+     * would have a downward slope.
+     *
+     * Keep in mind that our coordinate system is wacky (Y increases
+     * downwards)
+     *
+     * Since we're in discrete-land, we really consider x and x+1.
+     * One additional wrinkle: if the tangent would have a slope that is
+     * neither downward nor upward at x, we keep considering x+n for larger
+     * and larger n, until we find a non-flat slope between x and x+n.
+     *
+     * Corner case: if we go off the screen while looking for a slope, we
+     * just decide arbitrarily.
+     */
+    public boolean hasDownwardTangent(int x) {
+        for (int n = 1; x + n < MAX_X; n++) {
+            int diff = safeGetVal(x) - safeGetVal(x + n);
+            if (diff > 0)
+                return false;
+            else if (diff < 0)
+                return true;
+        }
+        return false; // corner case
     }
 
     /*================= Operations =================*/

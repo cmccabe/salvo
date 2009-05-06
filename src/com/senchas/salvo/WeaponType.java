@@ -53,7 +53,7 @@ public enum WeaponType {
         DetonationAttr.MAKE_ROLLER,
         EnumSet.of(Attr.PROJECTILE)
     ),
-    ROLLER_IMPL("RollerImpl", Const.UNSELECTABLE,
+    ROLLER_PAYLOAD("Roller Payload", Const.UNSELECTABLE,
         new ExplosionAttributes(22, Const.RED, 150),
         DetonationAttr.EXPLODE,
         EnumSet.of(Attr.ROLLER)
@@ -63,7 +63,7 @@ public enum WeaponType {
         DetonationAttr.MAKE_ROLLER,
         EnumSet.of(Attr.PROJECTILE, Attr.LARGE)
     ),
-    LARGE_ROLLER_IMPL("LargeRollerImpl", Const.UNSELECTABLE,
+    LARGE_ROLLER_PAYLOAD("Large Roller Payload", Const.UNSELECTABLE,
         new ExplosionAttributes(35, Const.RED, 200),
         DetonationAttr.EXPLODE,
         EnumSet.of(Attr.ROLLER)
@@ -111,6 +111,11 @@ public enum WeaponType {
          * determines the initial power used to launch these fragments.
          */
         private static final float CLUSTER_BOMB_FRAG_INIT_POWER = 4;
+
+        /** When a roller deploys its payload, this determines how fast it
+         * moves.
+         */
+        private static final float ROLLER_PAYLOAD_INIT_POWER = 1;
     }
 
     /*================= Types =================*/
@@ -350,7 +355,7 @@ public enum WeaponType {
         switch (mDetonationAttr) {
             case CANNOT_DETONATE: {
                 throw new RuntimeException("logic error: tried to " +
-                "detonate a weapon which cannot detonate.");
+                    "detonate a weapon which cannot detonate.");
             }
             case EXPLODE: {
                 Explosion expl = ball.newExplosion();
@@ -358,7 +363,23 @@ public enum WeaponType {
                 break;
             }
             case MAKE_ROLLER: {
-                throw new RuntimeException("unimplemented");
+                WeaponType rollerType;
+                if (mAttrs.contains(Attr.LARGE))
+                    rollerType = LARGE_ROLLER_PAYLOAD;
+                else
+                    rollerType = ROLLER_PAYLOAD;
+
+                // start rolling in the downhill direction
+                Terrain terrain = model.getTerrain();
+                float deltaX = (terrain.hasDownwardTangent(x)) ?
+                                    Const.ROLLER_PAYLOAD_INIT_POWER :
+                                    -Const.ROLLER_PAYLOAD_INIT_POWER;
+
+                // initialize payload
+                Projectile proj = ball.newProjectile();
+                proj.initialize(x, y, deltaX, 0,
+                                model.getWind(), rollerType, 0);
+                break;
             }
             case MAKE_CLUSTER: {
                 WeaponType clusterType;
@@ -385,11 +406,6 @@ public enum WeaponType {
                         (float)Math.cos(launchAngle);
                     float deltaY = -Const.CLUSTER_BOMB_FRAG_INIT_POWER *
                         (float)Math.sin(launchAngle);
-                    Log.w(this.getClass().getName(),
-                        "launching fragment " + i +
-                        " at angle " + launchAngle +
-                        " deltaX = " + deltaX +
-                        " deltaY = " + deltaY);
                     Projectile proj = ball.newProjectile();
                     proj.initialize(x, y, deltaX, deltaY,
                                     model.getWind(), clusterType, 8);

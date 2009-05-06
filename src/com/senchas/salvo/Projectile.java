@@ -64,30 +64,61 @@ public class Projectile {
 
     public void step(Model model, GameState.BallisticsState.Accessor ball) {
         // TODO: implement roller by moving delta logic off to WeaponType
-        mX += mDeltaX;
-        mY += mDeltaY;
-        mDeltaY += Terrain.GRAVITY;
-        mDeltaX += mWind;
+        if (mWeapon.isProjectile()) {
+            mX += mDeltaX;
+            mY += mDeltaY;
+            mDeltaY += Terrain.GRAVITY;
+            mDeltaX += mWind;
 
-        mCurStep++;
-        if (mCurStep > mFirstCollidableStep) {
-            if ((mCurStep > MAX_STEPS) || checkCollisions(model)) {
+            mCurStep++;
+            if (mCurStep > mFirstCollidableStep) {
+                if ((mCurStep >= MAX_STEPS) ||
+                        checkBoundaryCollisions(model) ||
+                        checkTerrainCollisions(model) ||
+                        checkPlayerCollisions(model)) {
+                    mWeapon.detonate(model, (int)mX, (int)mY, ball);
+                    mInUse = false;
+                }
+            }
+        }
+        else if (mWeapon.isRoller()) {
+            short h[] = model.getTerrain().getBoard();
+            mX += mDeltaX;
+            int prevY = (int)mY;
+            mY = model.getTerrain().safeGetVal((int)mX);
+
+            mCurStep++;
+            if ((mCurStep >= MAX_STEPS) || (mY < prevY) ||
+                    checkBoundaryCollisions(model) ||
+                    checkPlayerCollisions(model)) {
                 mWeapon.detonate(model, (int)mX, (int)mY, ball);
                 mInUse = false;
             }
         }
+        else {
+            throw new RuntimeException("weapon is not a roller or " +
+                                       "projectile");
+        }
     }
 
-    private boolean checkCollisions(Model model) {
+    /** Return true if the projectile has collided with a world boundary.
+     *
+     * NOTE: there is no check for min Y.
+     * Projectiles can sail as far up as they want.
+     */
+    private boolean checkBoundaryCollisions(Model model) {
         if (mX < 0)
             return true;
         else if (mX > Terrain.MAX_X)
             return true;
         else if (mY > Terrain.MAX_Y)
             return true;
-        // NOTE: no check for min Y.
-        // Projectiles can sail as far up as they want.
+        else
+            return false;
+    }
 
+    /** Return true if the projectile has collided with the terrain */
+    private boolean checkTerrainCollisions(Model model) {
         // Check collisions against terrain
         Util.Pair pair = new Util.Pair();
         short board[] = model.getTerrain().getBoard();
@@ -101,7 +132,10 @@ public class Projectile {
                 return true;
             }
         }
+        return false;
+    }
 
+    private boolean checkPlayerCollisions(Model model) {
         // Check collisions against players
         Player players[] = model.getPlayers();
         for (Player p : players) {
