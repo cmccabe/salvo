@@ -35,7 +35,7 @@
             
             <Button
                 android:id="@+id/armory_left_button"
-                android:background="@drawable/left_arrow"
+                android:background="@drawable/salvo_left_arrow"
                 android:layout_width="wrap_content"
                 android:layout_height="fill_parent" 
                 android:layout_alignParentLeft="true"
@@ -70,7 +70,7 @@
             
             <Button
                 android:id="@+id/armory_right_button"
-                android:background="@drawable/right_arrow"
+                android:background="@drawable/salvo_right_arrow"
                 android:layout_width="wrap_content"
                 android:layout_height="fill_parent" 
                 android:layout_alignParentRight="true"
