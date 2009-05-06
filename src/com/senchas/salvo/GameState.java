@@ -731,7 +731,7 @@ public abstract class GameState {
         public static final byte ID = 20;
         public static final String BALLISTICS_POWER = "BALLISTICS_POWER";
         public static final String WEAPON_TYPE = "WEAPON_TYPE";
-        private static final int MAX_PROJECTILES = 5;
+        private static final int MAX_PROJECTILES = 6;
 
         /*================= Types =================*/
         /** The Accessor is a convenient way for other classes to interface
@@ -795,7 +795,7 @@ public abstract class GameState {
             float turretY = curPlayer.getTurretCenterY()
                     + (Player.TURRET_LENGTH * sin);
             mAcc.newProjectile().initialize((int)turretX, (int)turretY,
-                                   dx, dy, model.getWind(), mInitWeapon);
+                                   dx, dy, model.getWind(), mInitWeapon, 0);
 
             game.getGameControlView().cacheTerrain(game);
         }
@@ -818,6 +818,8 @@ public abstract class GameState {
                     expl.clearInUse();
                     expl.doDirectDamage(game);
                     expl.editTerrain(game);
+                    game.getGameControlView().cacheTerrain(game);
+
                     Terrain terrain = model.getTerrain();
                     for (Player p : model.getPlayers()) {
                         p.doFalling(terrain);

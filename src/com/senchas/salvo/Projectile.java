@@ -13,7 +13,7 @@ public class Projectile {
     /** The maximum number of steps we will take before simply detonating the
      * projectile in the air. This is to avoid the game getting "stuck"
      */
-    private static final int MAX_STEPS = 50000;
+    private static final int MAX_STEPS = 700;
 
     /** Radius of the projectile */
     public static final int PROJECTILE_RADIUS = 5;
@@ -29,6 +29,11 @@ public class Projectile {
     private boolean mIsRolling;
     private float mWind;
     private boolean mInUse;
+
+    /** The first step on which we'll check for collisions.
+     * Prior to this step, we'll just pass through terrain!
+     */
+    private int mFirstCollidableStep;
 
     private int mCurStep;
 
@@ -65,9 +70,11 @@ public class Projectile {
         mDeltaX += mWind;
 
         mCurStep++;
-        if ((mCurStep > MAX_STEPS) || checkCollisions(model)) {
-            mWeapon.detonate(model, (int)mX, (int)mY, ball);
-            mInUse = false;
+        if (mCurStep > mFirstCollidableStep) {
+            if ((mCurStep > MAX_STEPS) || checkCollisions(model)) {
+                mWeapon.detonate(model, (int)mX, (int)mY, ball);
+                mInUse = false;
+            }
         }
     }
 
@@ -111,13 +118,21 @@ public class Projectile {
 
     /*================= Lifecycle =================*/
     public void initialize(int x, int y, float deltaX, float deltaY,
-                           int wind, WeaponType weapon) {
+                           int wind, WeaponType weapon,
+                           int firstCollidableStep) {
+        if (firstCollidableStep > MAX_STEPS) {
+            throw new RuntimeException(
+                "can't have firstCollidableStep > MAX_STEPS because " +
+                "it would interfere with the MAX_STEPS mechanism");
+        }
+
         mX = x;
         mY = y;
         mDeltaX = deltaX;
         mDeltaY = deltaY;
         mWind = wind;
         mWind /= 1300;
+        mFirstCollidableStep = firstCollidableStep;
 
         mCurStep = 0;
         mInUse = true;

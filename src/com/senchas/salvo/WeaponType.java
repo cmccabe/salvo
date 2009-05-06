@@ -8,6 +8,7 @@ import java.util.TreeMap;
 
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 
 /** Represents a type of weapon that can be fired or used.
  */
@@ -365,12 +366,14 @@ public enum WeaponType {
 
                 // TODO: vary the angles that the projectiles are shot off
                 // at based on the local terrain shape
-                final float deltaX[] = { -1, 0, 1 };
-                final float deltaY[] = { 1, 2, 1 };
+                final float deltaX[] = { -2, 0, 2 };
+                final float deltaY[] = { -2, -4, -2 };
                 for (int i = 0; i < 3; i++) {
                     Projectile proj = ball.newProjectile();
                     proj.initialize(x, y, deltaX[i], deltaY[i],
-                                    model.getWind(), clusterType);
+                                    model.getWind(), clusterType, 8);
+                    //Log.w(this.getClass().getName(),
+                    //        "initialized new projectile");
                 }
                 break;
             }
