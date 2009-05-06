@@ -89,13 +89,13 @@ public class Model {
         /** The wind we have this round */
         public int mWind;
     }
-    MyVars mV;
+    private final MyVars mV;
 
     /** The playing field */
-    private Terrain mTerrain;
+    private final Terrain mTerrain;
 
     /** The players */
-    private Player mPlayers[];
+    private final Player mPlayers[];
 
     /*================= Access =================*/
     public Background getBackground() {

@@ -31,6 +31,9 @@ public class Explosion {
     /** The attributes of this explosion */
     private ExplosionAttributes mAttr;
 
+    /** The perpetrator of this explosion */
+    private int mPerp;
+
     /** True if this object is in use-- otherwise, it should be ignored */
     private boolean mInUse;
 
@@ -72,6 +75,10 @@ public class Explosion {
         return mAttr;
     }
 
+    public int getPerp() {
+        return mPerp;
+    }
+
     /*================= Operations =================*/
     public void clearInUse() {
         mStartTime = 0;
@@ -88,6 +95,7 @@ public class Explosion {
                 continue;
             float dist = Util.calcDistance(mX, mY, p.getX(), p.getY());
             int safeDist = Player.COLLISION_RADIUS + mAttr.getRadius();
+            boolean damagedUs = false;
             if (dist < safeDist) {
                 StringBuilder b = new StringBuilder(80 * 5);
                 b.append("doDirectDamage(player=").append(p.getName());
@@ -100,6 +108,10 @@ public class Explosion {
                 b.append(" damage=").append(damage);
                 Log.w(this.getClass().getName(), b.toString());
                 p.takeDamage(damage);
+                damagedUs = true;
+            }
+            if (dist < Brain.AGGRESSION_NOTIFICATION_DISTANCE) {
+                p.getBrain().notifyAggression(mPerp, dist, damagedUs);
             }
         }
     }
@@ -145,10 +157,11 @@ public class Explosion {
     }
 
     /*================= Lifecycle =================*/
-    public void initialize(int x, int y, ExplosionAttributes attr) {
+    public void initialize(int x, int y, ExplosionAttributes attr, int perp) {
         mX = x;
         mY = y;
         mAttr = attr;
+        mPerp = perp;
 
         mStartTime = System.currentTimeMillis();
         mFinished = false;

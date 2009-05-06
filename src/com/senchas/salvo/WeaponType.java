@@ -359,7 +359,7 @@ public enum WeaponType {
             }
             case EXPLODE: {
                 Explosion expl = ball.newExplosion();
-                expl.initialize(x, y, mExplosionAttributes);
+                expl.initialize(x, y, mExplosionAttributes, ball.getPerp());
                 break;
             }
             case MAKE_ROLLER: {

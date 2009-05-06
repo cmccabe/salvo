@@ -770,6 +770,12 @@ public abstract class GameState {
                     "no more empty slots for explosions. Perhaps " +
                     "you should increase the number of slots?");
             }
+
+            /** Returns the perpetrator of these explosions (the current
+             * player) */
+            public int getPerp() {
+                return mCurPlayerId;
+            }
         }
 
         /*================= Static =================*/
@@ -782,6 +788,7 @@ public abstract class GameState {
         private Projectile mProjectiles[];
         private Explosion mExplosions[];
         private Accessor mAcc;
+        private int mCurPlayerId;
 
         /*================= Access =================*/
 
@@ -797,6 +804,7 @@ public abstract class GameState {
         public void onEnter(RunGameActAccessor game) {
             Model model = game.getModel();
             Player curPlayer = model.getCurPlayer();
+            mCurPlayerId = curPlayer.getId();
 
             float angle = curPlayer.getAngleRad();
             float cos = (float)Math.cos(angle);
@@ -833,8 +841,17 @@ public abstract class GameState {
                     game.getGameControlView().cacheTerrain(game);
 
                     Terrain terrain = model.getTerrain();
-                    for (Player p : model.getPlayers()) {
-                        p.doFalling(terrain);
+                    for (Player victim : model.getPlayers()) {
+                        if (victim.doFalling(terrain)) {
+                            // notify Brains about the fall
+                            int perp = expl.getPerp();
+                            for (Player p : game.getModel().getPlayers()) {
+                                if (! p.isAlive())
+                                    continue;
+                                p.getBrain().notifyPlayerFell(
+                                    perp, victim.getId());
+                            }
+                        }
                     }
                     // TODO: potentially start other explosions here as
                     // players die
@@ -1081,6 +1098,17 @@ public abstract class GameState {
         public void onExit(RunGameActAccessor game) {
             game.getModel().getCurPlayer().setAuraAlpha(
                     Player.DESELECTED_AURA_ALPHA);
+
+            // notify Brains about the teleport
+            for (Player p : game.getModel().getPlayers()) {
+                if (! p.isAlive())
+                    continue;
+                Brain brain = p.getBrain();
+                brain.notifyPlayerTeleported(mV.mP1Index);
+                if ((mV.mP2Index != Player.INVALID_PLAYER_ID) &&
+                    (game.getModel().getPlayers()[mV.mP2Index].isAlive()))
+                    brain.notifyPlayerTeleported(mV.mP2Index);
+            }
         }
 
         @Override

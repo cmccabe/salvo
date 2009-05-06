@@ -227,7 +227,7 @@ public class Player {
     /** Get the height that we would be at when resting comfortably on the
       * ground. */
     public int getCorrectHeight(Terrain terrain) {
-        // TODO: use averaging mechanism here to set tank height
+        // TODO: use averaging mechanism here to set tank height ?
         short h[] = terrain.getBoard();
         return h[mV.mX];
     }
@@ -250,20 +250,25 @@ public class Player {
      *
      * If the player has to fall, apply fall damage.
      * If the player is already at that height, do nothing.
+     *
+     * @return true if the player actually fell
      */
-    public void doFalling(Terrain terrain) {
+    public boolean doFalling(Terrain terrain) {
         int cy = getCorrectHeight(terrain);
-        if (mV.mY < cy) {
+        if (mV.mY > cy) {
             Log.e(this.getClass().getName(), "can't understand " +
                 "why the player is lower than expected");
             mV.mY = cy;
+            return false;
         }
-        else if (mV.mY > cy) {
+        else if (mV.mY < cy) {
             int fallDist = mV.mY - cy;
             takeDamage(fallDist); // TODO: determine best
                                   // multiplier setting here
             mV.mY = cy;
+            return true;
         }
+        return false;
     }
 
     /** set turret angle.
