@@ -292,6 +292,11 @@ class GameControlView extends SurfaceView  {
         mForegroundPaint.setColor(fg.getColor());
         mForegroundPaint.setAntiAlias(false);
 
+        StringBuilder b = new StringBuilder(80);
+        b.append("Using foreground=").append(fg.name());
+        b.append(" background=").append(bg.name());
+        Log.w(this.getClass().getName(), b.toString());
+
         mCachedTerrain = Bitmap.createBitmap(Terrain.MAX_X, Terrain.MAX_Y,
                                              mBackgroundImage.getConfig());
         mCachedTerrainCanvas = new Canvas(mCachedTerrain);

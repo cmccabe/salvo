@@ -8,6 +8,10 @@ import com.senchas.salvo.Background;
  *
  */
 public enum Foreground {
+    snow(Color.argb(0xff, 0xf0, 0xf0, 0xff), new Background[]
+        { Background.berkeley_hills_s,
+          Background.bridge_at_sunset_s,
+          Background.forest_sunrise_s }),
     olive(Color.argb(0xff, 0x4a, 0x63, 0x42), new Background[] {}),
     brown(Color.argb(0xff, 0x55, 0x43, 0x24), new Background[]
         { Background.cloud_fortress_s }),
