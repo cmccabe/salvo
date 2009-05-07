@@ -202,6 +202,8 @@ public class ModelFactory {
             v.mName = mV.mName;
             v.mCurWeaponType = armory.getMap().firstKey();
             v.mColor = mV.mColor;
+            v.mEarnings = Util.mRandom.nextInt(2000); //TODO: change this to 0
+            v.mCredits = 0;
             Brain brain = mV.mBrainFac.createBrain();
             return new Player(index, v, brain, armory);
         }

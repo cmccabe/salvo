@@ -1,10 +1,19 @@
 package com.senchas.salvo;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Random;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.TypedValue;
+import android.view.Gravity;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.BaseAdapter;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 /**
  * Model for the Scorched Android game.
@@ -75,6 +84,138 @@ public class Model {
         }
     }
 
+    /** Provides a view of the players, sorted by earnings */
+    public static class LeaderboardAdaptor extends BaseAdapter {
+        /*================= Types =================*/
+        public static class Entry implements Comparable <Entry> {
+            /*================= Data =================*/
+            private Player mPlayer;
+
+            /*================= Access =================*/
+            public String getName() {
+                return mPlayer.getName();
+            }
+
+            public int getEarnings() {
+                return mPlayer.getEarnings();
+            }
+
+            public int getColor() {
+                return mPlayer.getBaseColor().toInt();
+            }
+
+            public int compareTo(Entry another) {
+                if (getEarnings() < another.getEarnings())
+                    return 1;
+                else if (getEarnings() > another.getEarnings())
+                    return -1;
+                else {
+                    int c = getName().compareTo(another.getName());
+                    if (c < 0)
+                    	return 1;
+                    else if (c > 0)
+                    	return -1;
+                    else
+                    	return 0;
+                }
+            }
+
+            /*================= Lifecycle =================*/
+            public void initialize(Player player) {
+                mPlayer = player;
+            }
+
+            public Entry() {
+            }
+        }
+
+        /*================= Data =================*/
+        private Entry mEntries[];
+
+        /** Number of players */
+        private int mLen;
+
+        /*================= Access =================*/
+        public boolean areAllItemsEnabled() { return true; }
+
+        public boolean isEnabled(int position) { return true; }
+
+        public boolean areAllItemsSelectable() { return false; }
+
+        public long getItemId(int position) { return position; }
+
+        public int getCount() { return mLen; }
+
+        public Object getItem(int position) {
+            return mEntries[position];
+        }
+
+        public View getView(int position, View convertView,
+                            ViewGroup parent) {
+            Context c = parent.getContext();
+            LinearLayout lay = null;
+            TextView left = null, right = null;
+
+            // Figure out if we can reuse convertView for our purposes
+            if (convertView != null) {
+                if (convertView instanceof LinearLayout) {
+                    LinearLayout ll = (LinearLayout)convertView;
+                    if (ll.getChildCount() == 2) {
+                        View u = ll.getChildAt(0);
+                        View l = ll.getChildAt(1);
+                        if ((u instanceof TextView) &&
+                            (l instanceof TextView)) {
+                            left = (TextView)u;
+                            right = (TextView)l;
+                            lay = ll;
+                        }
+                    }
+                }
+            }
+            if (lay == null) {
+                lay = new LinearLayout(c);
+                left = new TextView(c);
+                right = new TextView(c);
+                lay.addView(left);
+                lay.addView(right);
+            }
+
+            // Set up the layout
+            lay.setOrientation(LinearLayout.HORIZONTAL);
+            lay.setHorizontalGravity(Gravity.LEFT);
+
+            Entry entry = mEntries[position];
+
+            // Set up left view
+            left.setTextSize(TypedValue.COMPLEX_UNIT_MM, 3);
+            left.setTextColor(entry.getColor());
+            //left.setTypeface(BOLD);
+            left.setText(entry.getName());
+
+            right.setTextSize(TypedValue.COMPLEX_UNIT_MM, 3);
+            right.setTextColor(entry.getColor());
+            right.setText(Integer.toString(entry.getEarnings()));
+            return lay;
+        }
+
+        /*================= Lifecycle =================*/
+        public void initialize(Model model) {
+            Player plays[] = model.getPlayers();
+            for (int i = 0; i < plays.length; i++) {
+                mEntries[i].initialize(plays[i]);
+            }
+            mLen = plays.length;
+            Arrays.sort(mEntries, 0, mLen);
+        }
+
+        public LeaderboardAdaptor() {
+            mEntries = new Entry[MAX_PLAYERS];
+            for (int i = 0; i < mEntries.length; i++)
+            	mEntries[i] = new Entry();
+            mLen = 0;
+        }
+    }
+
     /*================= Data =================*/
     public static class MyVars {
         /** The index of the current player */
@@ -96,6 +237,8 @@ public class Model {
 
     /** The players */
     private final Player mPlayers[];
+
+    private final LeaderboardAdaptor mLeaderboardAdaptor;
 
     /*================= Access =================*/
     public Background getBackground() {
@@ -158,6 +301,11 @@ public class Model {
         return mV.mForeground.isLight();
     }
 
+    public LeaderboardAdaptor getLeaderboardAdaptor() {
+        mLeaderboardAdaptor.initialize(this);
+        return mLeaderboardAdaptor;
+    }
+
     /*================= Operations =================*/
     public void setCurPlayerId(int id) {
         if (id == Player.INVALID_PLAYER_ID) {
@@ -192,5 +340,6 @@ public class Model {
         mV = v;
         mTerrain = terrain;
         mPlayers = players;
+        mLeaderboardAdaptor = new LeaderboardAdaptor();
     }
 }

@@ -1,0 +1,7 @@
+<resources>
+    <style name="leaderboard_dialog" parent="android:Theme.Dialog">
+        <item name="android:windowNoTitle">true</item> 
+        <!-- <item name="android:windowBackground">@drawable/blue</item>
+        <item name="android:colorForeground">#f0f0</item> -->
+    </style> 
+</resources>

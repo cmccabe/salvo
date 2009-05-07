@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+    <!--- android:layout_height="20mm" -->
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical"
+    >
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textSize="4mm"
+        android:textColor="#000"
+        android:maxLines="1"
+        android:text="High Scores"
+    />
+    <ListView
+        android:id="@+id/scores"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:visibility="visible"
+        android:clickable="true"
+        android:focusableInTouchMode="true"
+        android:choiceMode="singleChoice"
+        android:cacheColorHint="#00000000"
+    />
+    <Button
+        android:id="@+id/ok"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" 
+        android:text="OK"
+    />
+</LinearLayout>

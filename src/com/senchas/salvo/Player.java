@@ -104,6 +104,12 @@ public class Player {
 
         /** Our color */
         public PlayerColor mColor;
+
+        /** Our total earnings so far */
+        public int mEarnings;
+
+        /** How many credits we currently have */
+        public int mCredits;
     }
     private MyVars mV;
 
@@ -142,6 +148,14 @@ public class Player {
     /*================= Static =================*/
 
     /*================= Access =================*/
+    public int getEarnings() {
+        return mV.mEarnings;
+    }
+
+    public int getCredits() {
+        return mV.mCredits;
+    }
+
     public String getName() {
         return mV.mName;
     }

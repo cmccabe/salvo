@@ -16,6 +16,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.ZoomButton;
@@ -389,6 +390,7 @@ public class RunGameAct extends Activity {
         }
     }
 
+    /** Implements the Buy Weapons dialog box */
     public class BuyWeaponsDialog extends Dialog implements OnClickListener {
         /*================= Data =================*/
         private TextView mCreditText;
@@ -422,6 +424,44 @@ public class RunGameAct extends Activity {
 
         public BuyWeaponsDialog(Context context) {
             super(context);
+        }
+    }
+
+    /** Implements the Leaderboard dialog box */
+    public class LeaderboardDialog extends Dialog implements OnClickListener {
+        /*================= Types =================*/
+
+        /*================= Operations =================*/
+        public void onClick(View view) {
+            switch (view.getId()) {
+                case R.id.ok:
+                    synchronized (mStateLock) {
+                        if (mState.onButton(mAcc,
+                                GameState.GameButton.OK)) {
+                            mStateLock.notify();
+                        }
+                    }
+                    dismiss();
+                    break;
+            }
+        }
+
+        /*================= Lifecycle =================*/
+        @Override
+        protected void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            setCancelable(false);
+            setContentView(R.layout.leaderboard);
+
+            Button ok = (Button) findViewById(R.id.ok);
+            ok.setOnClickListener(this);
+
+            ListView scoresList = (ListView) findViewById(R.id.scores);
+            scoresList.setAdapter(mModel.getLeaderboardAdaptor());
+        }
+
+        public LeaderboardDialog(Context context) {
+            super(context, R.style.leaderboard_dialog);
         }
     }
 

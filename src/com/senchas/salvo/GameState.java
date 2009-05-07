@@ -23,6 +23,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.senchas.salvo.RunGameAct.BuyWeaponsDialog;
+import com.senchas.salvo.RunGameAct.LeaderboardDialog;
 import com.senchas.salvo.RunGameAct.RunGameActAccessor;
 import com.senchas.salvo.RunGameAct.XmlColors;
 import com.senchas.salvo.WeaponType.Armory;
@@ -81,6 +82,7 @@ public abstract class GameState {
         ARMORY_LEFT,
         ARMORY_RIGHT,
         DONE,
+        OK,
         PRESS_FIRE,
         RELEASE_FIRE
     }
@@ -109,7 +111,7 @@ public abstract class GameState {
         }
     }
 
-    /** Runnable which starts a dialog box */
+    /** Runnable which starts the 'buy weapons' dialog box */
     private static class StartBuyWeaponsDialog implements Runnable {
         /*================= Data =================*/
         RunGameAct mRunGameAct;
@@ -123,6 +125,24 @@ public abstract class GameState {
 
         /*================= Lifecycle=================*/
         StartBuyWeaponsDialog(RunGameAct runGameAct) {
+            mRunGameAct = runGameAct;
+        }
+    }
+
+    /** Runnable which starts the 'leaderboard' dialog box */
+    private static class StartLeaderboardDialog implements Runnable {
+        /*================= Data =================*/
+        RunGameAct mRunGameAct;
+
+        /*================= Operations =================*/
+        public void run() {
+            LeaderboardDialog leaderboard =
+                mRunGameAct.new LeaderboardDialog(mRunGameAct);
+            leaderboard.show();
+        }
+
+        /*================= Lifecycle=================*/
+        StartLeaderboardDialog(RunGameAct runGameAct) {
             mRunGameAct = runGameAct;
         }
     }
@@ -241,29 +261,18 @@ public abstract class GameState {
 
         @Override
         public void onEnter(RunGameActAccessor game) {
-            // TODO: give a reward to the 'surviving' player
-            // use: int newPlayer = model.getCurPlayerId();, etc.
+            mFinished = false;
+            RunGameAct runGameAct = game.getRunGameAct();
+            StartLeaderboardDialog dial =
+                new StartLeaderboardDialog(runGameAct);
+            runGameAct.runOnUiThread(dial);
 
-            // TODO: set leaderboard layout...
-            // TODO: set leaderboard menus...
+            game.getGameControlView().drawSky();
         }
 
         @Override
         public GameState main(RunGameActAccessor game) {
-            Util.DoToast doToast = new Util.DoToast(
-                game.getGameControlView().getContext(),
-                "LeaderboardState!");
-            game.getRunGameAct().runOnUiThread(doToast);
-            return TurnStartState.create();
-
-            /*
-            if (mFinished) {
-                return BuyWeaponsState.create();
-            }
-            else {
-                return null;
-            }
-            */
+            return (mFinished) ? BuyWeaponsState.create() : null;
         }
 
         @Override
@@ -273,7 +282,7 @@ public abstract class GameState {
 
         @Override
         public boolean onButton(RunGameActAccessor game, GameButton b) {
-            if (b == GameButton.DONE) {
+            if (b == GameButton.OK) {
                 mFinished = true;
                 return true;
             }
@@ -284,7 +293,6 @@ public abstract class GameState {
 
         /*================= Lifecycle =================*/
         private void initialize() {
-            mFinished = false;
         }
 
         public static LeaderboardState create() {
@@ -1538,6 +1546,6 @@ public abstract class GameState {
     }
 
     public static GameState createInitialGameState() {
-        return BuyWeaponsState.create();
+        return LeaderboardState.create();
     }
 }
