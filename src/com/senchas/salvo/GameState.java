@@ -1,5 +1,6 @@
 package com.senchas.salvo;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -20,6 +21,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.senchas.salvo.RunGameAct.BuyWeaponsDialog;
 import com.senchas.salvo.RunGameAct.RunGameActAccessor;
 import com.senchas.salvo.RunGameAct.XmlColors;
 import com.senchas.salvo.WeaponType.Armory;
@@ -77,7 +80,7 @@ public abstract class GameState {
     public static enum GameButton {
         ARMORY_LEFT,
         ARMORY_RIGHT,
-        OK,
+        DONE,
         PRESS_FIRE,
         RELEASE_FIRE
     }
@@ -103,6 +106,24 @@ public abstract class GameState {
         SetTextView(TextView textView, String str) {
             mTextView = textView;
             mStr = str;
+        }
+    }
+
+    /** Runnable which starts a dialog box */
+    private static class StartBuyWeaponsDialog implements Runnable {
+        /*================= Data =================*/
+        RunGameAct mRunGameAct;
+
+        /*================= Operations =================*/
+        public void run() {
+            BuyWeaponsDialog buyWeapons =
+                mRunGameAct.new BuyWeaponsDialog(mRunGameAct);
+            buyWeapons.show();
+        }
+
+        /*================= Lifecycle=================*/
+        StartBuyWeaponsDialog(RunGameAct runGameAct) {
+            mRunGameAct = runGameAct;
         }
     }
 
@@ -252,7 +273,7 @@ public abstract class GameState {
 
         @Override
         public boolean onButton(RunGameActAccessor game, GameButton b) {
-            if (b == GameButton.OK) {
+            if (b == GameButton.DONE) {
                 mFinished = true;
                 return true;
             }
@@ -299,24 +320,21 @@ public abstract class GameState {
         @Override
         public void onEnter(RunGameActAccessor game) {
             mFinished = false;
-            // TODO: implement weapons layout...
-            // TODO: implement weapons menus...
+            RunGameAct runGameAct = game.getRunGameAct();
+            StartBuyWeaponsDialog dial =
+                new StartBuyWeaponsDialog(runGameAct);
+            runGameAct.runOnUiThread(dial);
+
+            game.getGameControlView().drawSky();
         }
 
         @Override
         public GameState main(RunGameActAccessor game) {
-            if (mFinished) {
-                return BuyWeaponsState.create();
-            }
-            else {
-                return null;
-            }
+            return (mFinished) ? TurnStartState.create() : null;
         }
 
         @Override
         public void onExit(RunGameActAccessor game) {
-            // TODO: implement game layout
-            // TODO: implement game menus
         }
 
         @Override
@@ -326,7 +344,7 @@ public abstract class GameState {
 
         @Override
         public boolean onButton(RunGameActAccessor game, GameButton b) {
-            if (b == GameButton.OK) {
+            if (b == GameButton.DONE) {
                 mFinished = true;
                 return true;
             }
@@ -337,7 +355,6 @@ public abstract class GameState {
 
         /*================= Lifecycle =================*/
         private void initialize() {
-            mFinished = false;
         }
 
         public static BuyWeaponsState create() {
@@ -373,7 +390,6 @@ public abstract class GameState {
         @Override
         public void onEnter(RunGameActAccessor game) {
             game.getModel().getNextPlayerInfo(mInfo);
-            // TODO: set location of floating arrow thing to current player
         }
 
         @Override
@@ -395,7 +411,6 @@ public abstract class GameState {
                 Util.DoToast doToast = new Util.DoToast(
                     game.getGameControlView().getContext(),
                     play.getIntroductionString());
-                game.getRunGameAct().runOnUiThread(doToast);
 
                 model.setCurPlayerId(mInfo.getNextPlayerId());
                 return play.getBrain().getMoveState();
@@ -1523,6 +1538,6 @@ public abstract class GameState {
     }
 
     public static GameState createInitialGameState() {
-        return TurnStartState.create();
+        return BuyWeaponsState.create();
     }
 }

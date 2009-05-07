@@ -2,6 +2,8 @@ package com.senchas.salvo;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.Resources;
 import android.os.Bundle;
@@ -13,6 +15,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.ZoomButton;
@@ -131,7 +134,7 @@ public class RunGameAct extends Activity {
      */
     public class RunGameActAccessor {
         /*================= Access =================*/
-        public Activity getRunGameAct() {
+        public RunGameAct getRunGameAct() {
             return RunGameAct.this;
         }
 
@@ -383,6 +386,42 @@ public class RunGameAct extends Activity {
         /*================= Lifecycle =================*/
         public RunGameThread() {
             mStateController = new RunGameThreadStateController();
+        }
+    }
+
+    public class BuyWeaponsDialog extends Dialog implements OnClickListener {
+        /*================= Data =================*/
+        private TextView mCreditText;
+
+        /*================= Operations =================*/
+        public void onClick(View view) {
+            switch (view.getId()) {
+                case R.id.done:
+                    synchronized (mStateLock) {
+                        if (mState.onButton(mAcc,
+                                GameState.GameButton.DONE)) {
+                            mStateLock.notify();
+                        }
+                    }
+                    dismiss();
+                    break;
+            }
+        }
+
+        /*================= Lifecycle =================*/
+        @Override
+        protected void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            setCancelable(false);
+            setContentView(R.layout.buy_weapons);
+
+            Button done = (Button) findViewById(R.id.done);
+            mCreditText = (TextView) findViewById(R.id.credits);
+            done.setOnClickListener(this);
+        }
+
+        public BuyWeaponsDialog(Context context) {
+            super(context);
         }
     }
 

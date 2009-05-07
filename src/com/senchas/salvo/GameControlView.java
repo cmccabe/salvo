@@ -73,6 +73,23 @@ class GameControlView extends SurfaceView  {
     private Canvas mCachedTerrainCanvas;
 
     /*================= Operations =================*/
+    /** Draws just the sky.
+     */
+    public void drawSky() {
+        Canvas canvas = null;
+        SurfaceHolder holder = getHolder();
+        try {
+            canvas = holder.lockCanvas(null);
+            canvas.drawBitmap(mBackgroundImage, 0, 0, null);
+        }
+        finally {
+            if (canvas != null) {
+                // Don't leave the Surface in an inconsistent state
+                holder.unlockCanvasAndPost(canvas);
+            }
+        }
+    }
+
     /** Draws the screen.
      *
      * @param acc       The RunGameActAccessor
@@ -83,7 +100,6 @@ class GameControlView extends SurfaceView  {
      */
     public void drawScreen(RunGameActAccessor acc, int power,
                        Projectile projectiles[], Explosion explosions[]) {
-        // TODO: draw this stuff into a bitmap to speed things up?
         Canvas canvas = null;
         SurfaceHolder holder = getHolder();
         Model model = acc.getModel();
