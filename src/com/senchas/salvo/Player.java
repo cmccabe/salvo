@@ -72,6 +72,7 @@ public class Player {
     public static final byte SELECTED_AURA_ALPHA = (byte)0x55;
     private static final int WHITENED_AURA_COLOR =
         Color.argb(0xcc, 0xdd, 0xdd, 0xdd);
+    private static final float FALL_DAMAGE_MULTIPLIER = 0.4f;
 
     /*================= Members =================*/
     public static class MyVars {
@@ -262,7 +263,7 @@ public class Player {
             return false;
         }
         else if (mV.mY < cy) {
-            int fallDist = mV.mY - cy;
+            int fallDist = (int)(FALL_DAMAGE_MULTIPLIER * (cy - mV.mY));
             takeDamage(fallDist); // TODO: determine best
                                   // multiplier setting here
             mV.mY = cy;
