@@ -151,7 +151,7 @@ public class PlayerSetupAct extends Activity {
         });
 
         mPlayerColorSpinnerA =
-            new ArrayAdapter < PlayerColor >(getBaseContext(),
+            new ArrayAdapter < PlayerColor >(this,
                 R.layout.player_spinner_item,
                 R.id.player_spinner_item_text);
         mPlayerColorSpinner.setAdapter(mPlayerColorSpinnerA);
@@ -178,7 +178,7 @@ public class PlayerSetupAct extends Activity {
             });
 
         ArrayAdapter < BrainFactory > playerTypeSpinnerA =
-            new ArrayAdapter < BrainFactory >(getApplicationContext(),
+            new ArrayAdapter < BrainFactory >(this,
                 R.layout.player_spinner_item,
                 R.id.player_spinner_item_text,
                 BrainFactory.values());

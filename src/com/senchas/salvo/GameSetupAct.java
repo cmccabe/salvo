@@ -74,7 +74,7 @@ public class GameSetupAct extends Activity {
         ////////////////// Initialize stuff
         ArrayAdapter< TerrainFactory > terrainSpinnerA =
             new ArrayAdapter < TerrainFactory >
-                (getApplicationContext(),
+                (this,
                 R.layout.game_setup_spinner_item,
                 R.id.game_setup_spinner_item_text,
                 TerrainFactory.values());
@@ -94,7 +94,7 @@ public class GameSetupAct extends Activity {
 
         ArrayAdapter < ModelFactory.NumRounds > numRoundsA =
             new ArrayAdapter < ModelFactory.NumRounds >
-                (getApplicationContext(),
+                (this,
                 R.layout.game_setup_spinner_item,
                 R.id.game_setup_spinner_item_text,
                 ModelFactory.NumRounds.values());
@@ -117,7 +117,7 @@ public class GameSetupAct extends Activity {
 
         ArrayAdapter < ModelFactory.StartingCash > cashAmountSpinnerA =
             new ArrayAdapter < ModelFactory.StartingCash >
-                (getApplicationContext(),
+                (this,
                 R.layout.game_setup_spinner_item,
                 R.id.game_setup_spinner_item_text,
                 ModelFactory.StartingCash.values());
