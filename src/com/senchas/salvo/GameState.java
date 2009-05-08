@@ -506,14 +506,19 @@ public abstract class GameState {
                 Player curPlayer = game.getModel().getCurPlayer();
                 WeaponType weapon = curPlayer.getCurWeaponType();
                 if (weapon.isTeleporter()) {
-                    curPlayer.setCurWeaponType(
-                        curPlayer.getArmory().useWeapon(weapon));
+                    Armory armory = curPlayer.getArmory();
+                    armory.useWeapon(weapon);
+                    if (armory.getAmount(weapon) == 0) {
+                        curPlayer.setCurWeaponType(armory.
+                            getNextWeapon(curPlayer.getCurWeaponType()));
+                    }
                     return doTeleport(game);
                 }
                 else if (weapon.isExtraArmor()) {
                     if (curPlayer.canUseExtraArmor()) {
-                        curPlayer.setCurWeaponType(
-                            curPlayer.getArmory().useWeapon(weapon));
+                        Armory armory = curPlayer.getArmory();
+                        curPlayer.setCurWeaponType(armory.
+                                getNextWeapon(curPlayer.getCurWeaponType()));
                         return ExtraArmorState.create();
                     }
                     else {
@@ -545,8 +550,11 @@ public abstract class GameState {
                 // The user released the fire button
                 Player curPlayer = game.getModel().getCurPlayer();
                 WeaponType weapon = curPlayer.getCurWeaponType();
-                curPlayer.setCurWeaponType(
-                    curPlayer.getArmory().useWeapon(weapon));
+                Armory arm = curPlayer.getArmory();
+                arm.useWeapon(weapon);
+                if (arm.getAmount(weapon) == 0)
+                	curPlayer.setCurWeaponType(arm.getNextWeapon(weapon));
+
                 return BallisticsState.create(power, weapon);
             }
         }
@@ -1423,7 +1431,7 @@ public abstract class GameState {
     private static void setCurPlayerArmoryText(RunGameActAccessor game) {
         Player curPlayer = game.getModel().getCurPlayer();
         WeaponType type = curPlayer.getCurWeaponType();
-        Integer amount = curPlayer.getArmory().getMap().get(type);
+        int amount = curPlayer.getArmory().getAmount(type);
 
         TextView armoryMain = game.getArmoryMainText();
         TextView armorySecondary = game.getArmorySecondaryText();
@@ -1432,7 +1440,7 @@ public abstract class GameState {
                                                            type.getName()));
         StringBuilder b = new StringBuilder(14);
         b.append("[");
-        if (amount.intValue() == WeaponType.Const.UNLIMITED)
+        if (amount == WeaponType.Const.UNLIMITED)
             b.append("∞");
         else
             b.append(amount);

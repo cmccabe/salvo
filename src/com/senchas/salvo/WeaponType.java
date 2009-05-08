@@ -188,49 +188,11 @@ public enum WeaponType {
      * to amounts.
      */
     public static class Armory {
-        /*================= Types =================*/
-        private static class MyMap extends TreeMap < WeaponType, Integer > {
-            private static final long serialVersionUID = 1L;
-        }
-
-        /*================= Static =================*/
-        /** Returns the Armory of weapons that all players start with */
-        public static Armory fromDefault() {
-            MyMap weapons = new MyMap();
-            WeaponType types[] = WeaponType.values();
-            for (int i = 0; i < types.length; i++) {
-                int startingAmount = types[i].getStartingAmount();
-
-                // Give a good selection of weapons...
-                // TODO: take this out
-                if (startingAmount == 0)
-                    startingAmount = 4;
-
-                if ((startingAmount != 0) &
-                        (startingAmount != Const.UNSELECTABLE))
-                    weapons.put(types[i], new Integer(startingAmount));
-            }
-            return new Armory(weapons);
-        }
-
-        public static Armory fromBundle(int index, Bundle map) {
-            MyMap weapons = new MyMap();
-            WeaponType types[] = WeaponType.values();
-            for (int i = 0; i < types.length; i++) {
-                String name = types[i].getName();
-                String keyName =
-                    AutoPack.fieldNameToKey(Util.indexToString(index), name);
-                if (map.containsKey(keyName)) {
-                    int amount = map.getInt(keyName);
-                    weapons.put(types[i], new Integer(amount));
-                }
-            }
-            return new Armory(weapons);
-        }
-
         /*================= Access =================*/
-        public TreeMap < WeaponType, Integer > getMap() {
-            return (TreeMap < WeaponType, Integer >) mWeapons;
+        /** Returns the first valid weapon choice in our armory */
+        public WeaponType getFirstValidWeapon() {
+        	WeaponType weapons[] = WeaponType.values();
+        	return getNextWeapon(weapons[weapons.length - 1]);
         }
 
         /** Returns the weapon after 'curWeapon' in the armory.
@@ -239,16 +201,16 @@ public enum WeaponType {
          * enforce because we have an unlimited supply of small missiles...
          */
         public WeaponType getNextWeapon(WeaponType curWeapon) {
-            if (curWeapon == mWeapons.lastKey()) {
-                return mWeapons.firstKey();
+            WeaponType weapons[] = WeaponType.values();
+            for (int i = 1; i < weapons.length; i++) {
+                int j = (curWeapon.ordinal() + i) % weapons.length;
+                int w = mV.mWeapons[j];
+                if ((w != Const.UNSELECTABLE) & (w > 0) |
+                		(w == Const.UNLIMITED))
+                    return weapons[j];
             }
-            else {
-                WeaponType nextWeapon =
-                    WeaponType.values()[curWeapon.ordinal() + 1];
-                SortedMap < WeaponType, Integer > smap =
-                    mWeapons.tailMap(nextWeapon);
-                return smap.firstKey();
-            }
+            throw new RuntimeException("getNextWeapon: there is " +
+                                         "no valid next weapon");
         }
 
         /** Returns the weapon before 'curWeapon' in the armory.
@@ -257,58 +219,84 @@ public enum WeaponType {
          * enforce because we have an unlimited supply of small missiles...
          */
         public WeaponType getPrevWeapon(WeaponType curWeapon) {
-            if (curWeapon == mWeapons.firstKey()) {
-                return mWeapons.lastKey();
+            WeaponType weapons[] = WeaponType.values();
+            for (int i = 1; i < weapons.length; i++) {
+                int j = (weapons.length + curWeapon.ordinal() - i) %
+                            weapons.length;
+                int w = mV.mWeapons[j];
+                if ((w != Const.UNSELECTABLE) & (w > 0) | 
+                		(w == Const.UNLIMITED))
+                    return weapons[j];
             }
-            else {
-                SortedMap < WeaponType, Integer > smap =
-                    mWeapons.headMap(curWeapon);
-                return smap.lastKey();
-            }
+            throw new RuntimeException("getPrevWeapon: there is " +
+                                         "no valid previous weapon");
+        }
+
+        /** Returns how much we have left of a particular weapon type */
+        public int getAmount(WeaponType weapon) {
+            return mV.mWeapons[weapon.ordinal()];
         }
 
         /*================= Operations =================*/
         public void saveState(int index, Bundle map) {
-            for (WeaponType type : mWeapons.keySet()) {
-                int amount = mWeapons.get(type).intValue();
-                map.putInt(AutoPack.fieldNameToKey(Util.indexToString(index),
-                                   type.getName()), amount);
-            }
+            AutoPack.autoPack(map, Util.indexToString(index), mV);
         }
 
-        /** Uses one instance of WeaponType "type" from the armory
-         *
-         * @return     the new currently selected weapon
-         */
-        public WeaponType useWeapon(WeaponType type) {
-            Integer amount = mWeapons.get(type);
-            int amt = amount.intValue();
-            if (amt == Const.UNLIMITED) {
-                // Weapons with an unlimited supply can never be used up
-                return type;
+        /** Uses one instance of WeaponType "weapon" from the armory */
+        public void useWeapon(WeaponType weapon) {
+            int amount = mV.mWeapons[weapon.ordinal()];
+            if (amount == Const.UNLIMITED) {
+                return;
             }
-            if (amt <= 0) {
+            else if (amount == Const.UNSELECTABLE) {
                 throw new RuntimeException("useWeapon: used a weapon " +
-                                           "that we don't have?");
+                                           "that is UNSELECTABLE!");
             }
-            amt--;
-            if (amt == 0) {
-                WeaponType ret = getNextWeapon(type);
-                mWeapons.remove(type);
-                return ret;
+            else if (amount <= 0) {
+                throw new RuntimeException("useWeapon: used a weapon " +
+                           "that we don't have! amount = " + amount);
             }
             else {
-                mWeapons.put(type, new Integer(amt));
-                return type;
+                amount--;
+                mV.mWeapons[weapon.ordinal()] = amount;
             }
         }
 
         /*================= Data =================*/
-        private MyMap mWeapons;
+        public static class MyVars {
+            public int mWeapons[];
+        }
+        private MyVars mV;
 
         /*================= Lifecycle =================*/
-        private Armory(MyMap weapons) {
-            mWeapons = weapons;
+        /** Returns the Armory of weapons that all players start with */
+        public static Armory fromDefault() {
+            WeaponType weapons[] = WeaponType.values();
+
+            MyVars v = new MyVars();
+            v.mWeapons = new int[weapons.length];
+            for (int i = 0; i < weapons.length; i++) {
+                int startingAmount = weapons[i].getStartingAmount();
+
+                // Give a good selection of weapons...
+                // TODO: take this out
+                if (startingAmount == 0)
+                    startingAmount = 4;
+
+                v.mWeapons[i] = startingAmount;
+            }
+
+            return new Armory(v);
+        }
+
+        public static Armory fromBundle(int index, Bundle map) {
+            MyVars v = (MyVars) AutoPack.
+                autoUnpack(map, Util.indexToString(index), MyVars.class);
+            return new Armory(v);
+        }
+
+        private Armory(MyVars v) {
+            mV = v;
         }
     }
 

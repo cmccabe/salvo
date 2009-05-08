@@ -200,7 +200,7 @@ public class ModelFactory {
             v.mY = -1;
             v.mAngleDeg = Player.MAX_TURRET_ANGLE / 4;
             v.mName = mV.mName;
-            v.mCurWeaponType = armory.getMap().firstKey();
+            v.mCurWeaponType = armory.getFirstValidWeapon();
             v.mColor = mV.mColor;
             v.mEarnings = Util.mRandom.nextInt(2000); //TODO: change this to 0
             v.mCredits = 0;

@@ -112,11 +112,11 @@ public class Model {
                 else {
                     int c = getName().compareTo(another.getName());
                     if (c < 0)
-                    	return 1;
+                        return 1;
                     else if (c > 0)
-                    	return -1;
+                        return -1;
                     else
-                    	return 0;
+                        return 0;
                 }
             }
 
@@ -211,7 +211,7 @@ public class Model {
         public LeaderboardAdaptor() {
             mEntries = new Entry[MAX_PLAYERS];
             for (int i = 0; i < mEntries.length; i++)
-            	mEntries[i] = new Entry();
+                mEntries[i] = new Entry();
             mLen = 0;
         }
     }
