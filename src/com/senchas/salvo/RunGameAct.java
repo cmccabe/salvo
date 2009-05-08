@@ -458,6 +458,9 @@ public class RunGameAct extends Activity {
 
             ListView scoresList = (ListView) findViewById(R.id.scores);
             scoresList.setAdapter(mModel.getLeaderboardAdaptor());
+            scoresList.setDivider(null);
+            scoresList.setDividerHeight(0);
+            scoresList.setChoiceMode(ListView.CHOICE_MODE_NONE);
         }
 
         public LeaderboardDialog(Context context) {
