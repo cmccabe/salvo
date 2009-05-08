@@ -3,6 +3,8 @@ package com.senchas.salvo;
 import com.senchas.salvo.GameState.ComputerMoveState;
 import com.senchas.salvo.GameState.HumanMoveState;
 import com.senchas.salvo.ModelFactory.MyVars;
+import com.senchas.salvo.WeaponType.Armory;
+
 import android.os.Bundle;
 
 /**
@@ -46,6 +48,61 @@ public abstract class Brain {
     // OUTPUTS
     // Weapons to buy
     //
+
+    /*================= Types =================*/
+    public static class ArmoryView {
+        /** Probability that a given weapon will be chosen, in terms of
+         * 100ths of a percent.
+         * If a given slot has a probability of -1, that means that that
+         * weapon cannot be selected. */
+        private int mProbs[];
+
+        /*================= Access =================*/
+        public void verifyStats() {
+            // verify that all probabilities sum to 10000
+            int sum = 0;
+            for (int i = 0; i < mProbs.length; i++) {
+                sum += i;
+            }
+            if (sum != 10000) {
+                throw new RuntimeException("verifyStats: " +
+                        "probabilities must sum to 10000");
+            }
+        }
+
+        /** Chooses a random weapon.
+         *
+         * The probability that any given weapon will be chosen is
+         * linearly proportional to its mProbs entry.
+         */
+        public WeaponType getRandomWeapon() {
+            verifyStats();
+            int num = Util.mRandom.nextInt(10000);
+            int sum = 0;
+            for (int i = 0; i < mProbs.length; i++) {
+                sum += i;
+                if (sum > num)
+                    return WeaponType.values()[i];
+            }
+            throw new RuntimeException("getRandomWeapon: " +
+                    "probabilities must sum to 10000");
+        }
+
+        /*================= Lifecycle =================*/
+        public void initialize(Armory arm) {
+            WeaponType weapons[] = WeaponType.values();
+            for (int i = 0; i < weapons.length; i++) {
+                int amount = arm.getAmount(weapons[i]);
+                if ((amount == WeaponType.Const.UNLIMITED) || (amount > 0))
+                    mProbs[i] = 0;
+                else
+                    mProbs[i] = -1;
+            }
+        }
+
+        public ArmoryView() {
+        }
+    }
 
     /*================= Constants =================*/
     public static final int AGGRESSION_NOTIFICATION_DISTANCE = 20;

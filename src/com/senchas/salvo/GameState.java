@@ -553,7 +553,7 @@ public abstract class GameState {
                 Armory arm = curPlayer.getArmory();
                 arm.useWeapon(weapon);
                 if (arm.getAmount(weapon) == 0)
-                	curPlayer.setCurWeaponType(arm.getNextWeapon(weapon));
+                    curPlayer.setCurWeaponType(arm.getNextWeapon(weapon));
 
                 return BallisticsState.create(power, weapon);
             }

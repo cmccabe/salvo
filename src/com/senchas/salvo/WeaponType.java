@@ -191,8 +191,8 @@ public enum WeaponType {
         /*================= Access =================*/
         /** Returns the first valid weapon choice in our armory */
         public WeaponType getFirstValidWeapon() {
-        	WeaponType weapons[] = WeaponType.values();
-        	return getNextWeapon(weapons[weapons.length - 1]);
+            WeaponType weapons[] = WeaponType.values();
+            return getNextWeapon(weapons[weapons.length - 1]);
         }
 
         /** Returns the weapon after 'curWeapon' in the armory.
@@ -206,7 +206,7 @@ public enum WeaponType {
                 int j = (curWeapon.ordinal() + i) % weapons.length;
                 int w = mV.mWeapons[j];
                 if ((w != Const.UNSELECTABLE) & (w > 0) |
-                		(w == Const.UNLIMITED))
+                        (w == Const.UNLIMITED))
                     return weapons[j];
             }
             throw new RuntimeException("getNextWeapon: there is " +
@@ -224,8 +224,8 @@ public enum WeaponType {
                 int j = (weapons.length + curWeapon.ordinal() - i) %
                             weapons.length;
                 int w = mV.mWeapons[j];
-                if ((w != Const.UNSELECTABLE) & (w > 0) | 
-                		(w == Const.UNLIMITED))
+                if ((w != Const.UNSELECTABLE) & (w > 0) |
+                        (w == Const.UNLIMITED))
                     return weapons[j];
             }
             throw new RuntimeException("getPrevWeapon: there is " +
