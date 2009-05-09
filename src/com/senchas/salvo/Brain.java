@@ -3,9 +3,11 @@ package com.senchas.salvo;
 import com.senchas.salvo.GameState.ComputerMoveState;
 import com.senchas.salvo.GameState.HumanMoveState;
 import com.senchas.salvo.ModelFactory.MyVars;
+import com.senchas.salvo.RunGameAct.RunGameActAccessor;
 import com.senchas.salvo.WeaponType.Armory;
 
 import android.os.Bundle;
+import android.util.Log;
 
 /**
  * Controls a player.
@@ -51,6 +53,12 @@ public abstract class Brain {
 
     /*================= Types =================*/
     public static class ArmoryView {
+        /*================= Constants =================*/
+        public static final int TOTAL_PROB = 10000;
+
+        public static final int INVALID_PROB = -1;
+
+        /*================= Data =================*/
         /** Probability that a given weapon will be chosen, in terms of
          * 100ths of a percent.
          * If a given slot has a probability of -1, that means that that
@@ -59,15 +67,31 @@ public abstract class Brain {
 
         /*================= Access =================*/
         public void verifyStats() {
-            // verify that all probabilities sum to 10000
+            // verify that all probabilities sum to TOTAL_PROB
             int sum = 0;
             for (int i = 0; i < mProbs.length; i++) {
-                sum += i;
+                if (mProbs[i] != INVALID_PROB)
+                    sum += mProbs[i];
             }
-            if (sum != 10000) {
+            if (sum != TOTAL_PROB) {
+                logStats();
                 throw new RuntimeException("verifyStats: " +
-                        "probabilities must sum to 10000");
+                        "probabilities must sum to TOTAL_PROB");
             }
+        }
+
+        public void logStats() {
+            WeaponType values[] = WeaponType.values();
+            StringBuilder b = new StringBuilder(80 * 20);
+            int total = 0;
+            for (int i = 0; i < mProbs.length; i++) {
+                b.append("P[").append(values[i].getName()).append("]=");
+                b.append(mProbs[i]).append(" ");
+                if (mProbs[i] != INVALID_PROB)
+                    total += mProbs[i];
+            }
+            b.append("total=").append(total);
+            Log.w(this.getClass().getName(), b.toString());
         }
 
         /** Chooses a random weapon.
@@ -77,15 +101,20 @@ public abstract class Brain {
          */
         public WeaponType getRandomWeapon() {
             verifyStats();
-            int num = Util.mRandom.nextInt(10000);
+            int num = Util.mRandom.nextInt(TOTAL_PROB);
             int sum = 0;
             for (int i = 0; i < mProbs.length; i++) {
-                sum += i;
+                if (mProbs[i] != INVALID_PROB)
+                    sum += mProbs[i];
                 if (sum > num)
                     return WeaponType.values()[i];
             }
             throw new RuntimeException("getRandomWeapon: " +
-                    "probabilities must sum to 10000");
+                    "probabilities must sum to TOTAL_PROB");
+        }
+
+        public int[] getProbs() {
+            return mProbs;
         }
 
         /*================= Lifecycle =================*/
@@ -96,11 +125,12 @@ public abstract class Brain {
                 if ((amount == WeaponType.Const.UNLIMITED) || (amount > 0))
                     mProbs[i] = 0;
                 else
-                    mProbs[i] = -1;
+                    mProbs[i] = INVALID_PROB;
             }
         }
 
         public ArmoryView() {
+            mProbs = new int[WeaponType.values().length];
         }
     }
 
@@ -108,10 +138,6 @@ public abstract class Brain {
     public static final int AGGRESSION_NOTIFICATION_DISTANCE = 20;
 
     /*================= Access =================*/
-    public abstract GameState getMoveState();
-
-    /*================= Operations =================*/
-    public abstract void saveState(int index, Bundle map);
 
     /*================= Inputs =================*/
     /** Notify us that player 'playerId' has teleported. */
@@ -136,6 +162,108 @@ public abstract class Brain {
                             float distance, boolean damagedUs)
     {}
 
+    /*================= Outputs =================*/
+    /** Make a move */
+    public abstract void makeMove(RunGameActAccessor game, Move out);
+
+    /*================= Operations =================*/
+    public abstract void saveState(int index, Bundle map);
+
+    /*================= Types =================*/
+    /** Represents a move that the Brain wants to make.
+     *
+     * Move objects can be frozen using the saveState mechanism.
+     * If move objects could *not* be frozen, and we were interrupted in the
+     * middle of executing a computer move, we would have to call
+     * curPlayer.getBrain().makeMove() again to get another move.
+     * That would mean that makeMove() would not be able to have any side
+     * effects, which seems a heavy burden to bear.
+     *
+     * So forgive the ugliness of having the clanking fromBundle() machinery
+     * here-- it makes things nicer elsewhere.
+     */
+    public static class Move {
+        /*================= Data =================*/
+        public class MyVars {
+            public boolean mIsHuman;
+            public float mAngle;
+            public int mPower;
+            public WeaponType mWeapon;
+        }
+        private MyVars mV;
+
+        /*================= Access =================*/
+        public boolean isHuman() {
+            return mV.mIsHuman;
+        }
+
+        public boolean isProjectile() {
+            return mV.mWeapon.isProjectile();
+        }
+
+        public float getAngle() {
+            if (mV.mIsHuman)
+                throw new RuntimeException("getAngle: " +
+                                    "not valid for human move");
+            if (! mV.mWeapon.isProjectile())
+                throw new RuntimeException("getAngle: not a " +
+                                    "projectile firing move");
+            return mV.mAngle;
+        }
+
+        public int getPower() {
+            if (mV.mIsHuman)
+                throw new RuntimeException("getPower: " +
+                                    "not valid for human move");
+            if (! mV.mWeapon.isProjectile())
+                throw new RuntimeException("getPower: not a " +
+                                    "projectile firing move");
+            return mV.mPower;
+        }
+
+        public WeaponType getWeapon() {
+            if (mV.mIsHuman)
+                throw new RuntimeException("getWeapon: " +
+                                    "not valid for human move");
+            return mV.mWeapon;
+        }
+
+        /*================= Operations =================*/
+        public void saveState(Bundle map) {
+            AutoPack.autoPack(map, AutoPack.EMPTY_STRING, mV);
+        }
+
+        /*================= Lifecycle =================*/
+        public void initializeAsHuman() {
+            mV.mIsHuman = true;
+            mV.mAngle = 0;
+            mV.mPower = 0;
+            mV.mWeapon = null;
+        }
+
+        public void initializeAsCpu(float angle, int power, WeaponType weapon) {
+            mV.mIsHuman = false;
+            mV.mAngle = angle;
+            mV.mPower = power;
+            mV.mWeapon = weapon;
+        }
+
+        public static Move fromBundle(Bundle map) {
+            MyVars v = (MyVars)AutoPack.
+                autoUnpack(map, AutoPack.EMPTY_STRING, MyVars.class);
+            return new Move(v);
+        }
+
+        private Move(MyVars v) {
+            mV = v;
+        }
+
+        public Move() {
+            mV = new MyVars();
+        }
+    }
+
+
     /*================= Brains =================*/
     public static class HumanBrain extends Brain {
         /*================= Constants =================*/
@@ -154,8 +282,12 @@ public abstract class Brain {
         private MyVars mV;
 
         /*================= Access =================*/
-        public GameState getMoveState() {
-            return HumanMoveState.create();
+
+        /*================= Input =================*/
+
+        /*================= Output =================*/
+        public void makeMove(RunGameActAccessor game, Move out) {
+            out.initializeAsHuman();
         }
 
         /*================= Operations =================*/
@@ -188,13 +320,49 @@ public abstract class Brain {
         }
 
         /*================= Data =================*/
+        private ArmoryView mArmTmp;
+
         public static class MyVars {
         }
         private MyVars mV;
 
         /*================= Access =================*/
-        public GameState getMoveState() {
-            return HumanMoveState.create();
+
+        /*================= Inputs =================*/
+
+        /*================= Outputs =================*/
+        /** Make a move */
+        public void makeMove(RunGameActAccessor game, Move out) {
+            Player curPlayer = game.getModel().getCurPlayer();
+            int power = Util.mRandom.nextInt(Player.MAX_POWER);
+            float angle = (float)(Util.mRandom.nextFloat() * Math.PI);
+
+            // Decide which weapon to choose
+            Armory armory = curPlayer.getArmory();
+            mArmTmp.initialize(armory);
+            int probs[] = mArmTmp.getProbs();
+            int validProbs = 0;
+            for (int i = 0; i < probs.length; i++) {
+                if (probs[i] != ArmoryView.INVALID_PROB)
+                    validProbs++;
+            }
+
+            int share = ArmoryView.TOTAL_PROB / validProbs;
+            int lastShare = ArmoryView.TOTAL_PROB -
+                (share * (validProbs - 1));
+            int v = 0;
+            for (int i = 0; i < probs.length; i++) {
+                if (probs[i] != ArmoryView.INVALID_PROB) {
+                    if (v != (validProbs-1))
+                        probs[i] = share;
+                    else
+                        probs[i] = lastShare;
+                    v++;
+                }
+            }
+
+            WeaponType weapon = mArmTmp.getRandomWeapon();
+            out.initializeAsCpu(angle, power, weapon);
         }
 
         /*================= Operations =================*/
@@ -207,11 +375,13 @@ public abstract class Brain {
         public SillyBrain() {
             super();
             mV = new MyVars();
+            mArmTmp = new ArmoryView();
         }
 
         public SillyBrain(MyVars v) {
             super();
             mV = v;
+            mArmTmp = new ArmoryView();
         }
     }
 
@@ -232,8 +402,12 @@ public abstract class Brain {
         private MyVars mV;
 
         /*================= Access =================*/
-        public GameState getMoveState() {
-            return HumanMoveState.create();
+
+        /*================= Inputs =================*/
+
+        /*================= Outputs =================*/
+        public void makeMove(RunGameActAccessor game, Move out) {
+            out.initializeAsHuman();
         }
 
         /*================= Operations =================*/
@@ -269,8 +443,12 @@ public abstract class Brain {
         private MyVars mV;
 
         /*================= Access =================*/
-        public GameState getMoveState() {
-            return HumanMoveState.create();
+
+        /*================= Inputs =================*/
+
+        /*================= Outputs =================*/
+        public void makeMove(RunGameActAccessor game, Move out) {
+            out.initializeAsHuman();
         }
 
         /*================= Operations =================*/
@@ -307,8 +485,12 @@ public abstract class Brain {
         private MyVars mV;
 
         /*================= Access =================*/
-        public GameState getMoveState() {
-            return ComputerMoveState.create();
+
+        /*================= Inputs =================*/
+
+        /*================= Outputs =================*/
+        public void makeMove(RunGameActAccessor game, Move out) {
+            out.initializeAsHuman();
         }
 
         /*================= Operations =================*/

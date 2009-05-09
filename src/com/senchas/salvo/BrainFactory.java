@@ -7,8 +7,8 @@ import com.senchas.salvo.Brain.*;
  */
 public enum BrainFactory {
     HUMAN("Human player", HumanBrain.class),
-    SILLY("Silly Computer", EasyBrain.class),
-    EASY("Easy Computer", SillyBrain.class),
+    SILLY("Silly Computer", SillyBrain.class),
+    EASY("Easy Computer", EasyBrain.class),
     MEDIUM("Medium Computer", MediumBrain.class),
     HARD("Hard Computer", HardBrain.class);
 

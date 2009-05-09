@@ -388,6 +388,7 @@ public abstract class GameState {
 
         /*================= Data =================*/
         private Model.NextTurnInfo mInfo;
+        private Brain.Move mMove;
 
         /*================= Operations =================*/
         @Override
@@ -421,7 +422,12 @@ public abstract class GameState {
                     play.getIntroductionString());
 
                 model.setCurPlayerId(mInfo.getNextPlayerId());
-                return play.getBrain().getMoveState();
+
+                play.getBrain().makeMove(game, mMove);
+                if (mMove.isHuman())
+                    return HumanMoveState.create();
+                else
+                    return ComputerMoveState.create(mMove);
             }
         }
 
@@ -446,6 +452,7 @@ public abstract class GameState {
 
         private TurnStartState() {
             mInfo = new Model.NextTurnInfo();
+            mMove = new Brain.Move();
         }
     }
 
@@ -717,11 +724,13 @@ public abstract class GameState {
         private static ComputerMoveState sMe = new ComputerMoveState();
 
         /*================= Data =================*/
+        private Brain.Move mMove;
 
         /*================= Operations =================*/
         @Override
         public void saveState(Bundle map) {
             map.putByte(GAME_STATE_ID, ID);
+            mMove.saveState(map);
         }
 
         @Override
@@ -733,8 +742,28 @@ public abstract class GameState {
 
         @Override
         public GameState main(RunGameActAccessor game) {
-                //return BallisticsState.create(power, weapon);
-            return null;
+            Player curPlayer = game.getModel().getCurPlayer();
+            WeaponType weapon = mMove.getWeapon();
+            if (mMove.isProjectile())
+                return BallisticsState.create
+                    (mMove.getPower(), mMove.getWeapon());
+            else if (weapon.isTeleporter()) {
+                Armory arm = curPlayer.getArmory();
+                arm.useWeapon(weapon);
+                if (arm.getAmount(weapon) == 0)
+                    curPlayer.setCurWeaponType(arm.getNextWeapon(weapon));
+                return doTeleport(game);
+            }
+            else if (weapon.isExtraArmor()) {
+                Armory arm = curPlayer.getArmory();
+                arm.useWeapon(weapon);
+                if (arm.getAmount(weapon) == 0)
+                    curPlayer.setCurWeaponType(arm.getNextWeapon(weapon));
+                return ExtraArmorState.create();
+            }
+            else {
+                return null;
+            }
         }
 
         @Override
@@ -750,17 +779,18 @@ public abstract class GameState {
         }
 
         /*================= Lifecycle =================*/
-        private void initialize() {
+        private void initialize(Brain.Move move) {
+            mMove = move;
         }
 
-        public static ComputerMoveState create() {
-            return ComputerMoveState.create();
-            //sMe.initialize();
-            //return sMe;
+        public static ComputerMoveState create(Brain.Move move) {
+            sMe.initialize(move);
+            return sMe;
         }
 
         public static ComputerMoveState createFromBundle(Bundle map) {
-            sMe.initialize();
+            Brain.Move move = Brain.Move.fromBundle(map);
+            sMe.initialize(move);
             return sMe;
         }
 
@@ -1554,6 +1584,6 @@ public abstract class GameState {
     }
 
     public static GameState createInitialGameState() {
-        return LeaderboardState.create();
+        return TurnStartState.create();
     }
 }

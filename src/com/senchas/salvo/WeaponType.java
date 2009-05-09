@@ -89,12 +89,13 @@ public enum WeaponType {
      *
      * Unfortunately, it is not safe to refer to an enum's own static
      * variables in its constructor. It's unclear whether they will be
-     * initialized by the time the constructor is run.
-     * This is a big issue for primitive types, because we could end up capturing
-     * the pre-initialization value in the enum constructor (that means 0, or false.)
+     * initialized by the time the constructor is run.  This is a big issue
+     * for primitive types, because we could end up capturing the
+     * pre-initialization value in the enum constructor (that means 0, or
+     * false.)
      *
-     * We get around this by putting the constants in a "fake" static class that
-     * doesn't do anything.
+     * We get around this by putting the constants in a "fake" static class
+     * that doesn't do anything.
      */
     public static abstract class Const {
         public static final int RED = Color.argb(0xff, 0xff, 0, 0);
