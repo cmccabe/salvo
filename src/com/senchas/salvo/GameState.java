@@ -744,9 +744,11 @@ public abstract class GameState {
         public GameState main(RunGameActAccessor game) {
             Player curPlayer = game.getModel().getCurPlayer();
             WeaponType weapon = mMove.getWeapon();
-            if (mMove.isProjectile())
+            if (mMove.isProjectile()) {
+                curPlayer.setAngleDeg(mMove.getAngle());
                 return BallisticsState.create
                     (mMove.getPower(), mMove.getWeapon());
+            }
             else if (weapon.isTeleporter()) {
                 Armory arm = curPlayer.getArmory();
                 arm.useWeapon(weapon);

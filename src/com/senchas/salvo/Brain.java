@@ -186,7 +186,7 @@ public abstract class Brain {
         /*================= Data =================*/
         public class MyVars {
             public boolean mIsHuman;
-            public float mAngle;
+            public int mAngle;
             public int mPower;
             public WeaponType mWeapon;
         }
@@ -201,7 +201,7 @@ public abstract class Brain {
             return mV.mWeapon.isProjectile();
         }
 
-        public float getAngle() {
+        public int getAngle() {
             if (mV.mIsHuman)
                 throw new RuntimeException("getAngle: " +
                                     "not valid for human move");
@@ -241,7 +241,8 @@ public abstract class Brain {
             mV.mWeapon = null;
         }
 
-        public void initializeAsCpu(float angle, int power, WeaponType weapon) {
+        public void initializeAsCpu(int angle, int power,
+                                    WeaponType weapon) {
             mV.mIsHuman = false;
             mV.mAngle = angle;
             mV.mPower = power;
@@ -335,7 +336,7 @@ public abstract class Brain {
         public void makeMove(RunGameActAccessor game, Move out) {
             Player curPlayer = game.getModel().getCurPlayer();
             int power = Util.mRandom.nextInt(Player.MAX_POWER);
-            float angle = (float)(Util.mRandom.nextFloat() * Math.PI);
+            int angle = Util.mRandom.nextInt(Player.MAX_TURRET_ANGLE + 1);
 
             // Decide which weapon to choose
             Armory armory = curPlayer.getArmory();
