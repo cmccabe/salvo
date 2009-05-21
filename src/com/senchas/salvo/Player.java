@@ -145,9 +145,17 @@ public class Player {
     /** How "whitened" our aura should be */
     private int mAuraWhitening;
 
+    /** True only if the player has just died and a death
+     * explosion is pending */
+    private boolean mDeathExplosionPending;
+
     /*================= Static =================*/
 
     /*================= Access =================*/
+    public boolean getDeathExplosionPending() {
+        return mDeathExplosionPending;
+    }
+
     public int getEarnings() {
         return mV.mEarnings;
     }
@@ -256,6 +264,10 @@ public class Player {
     }
 
     /*================= Operations =================*/
+    public void resetDeathExplosion() {
+        mDeathExplosionPending = false;
+    }
+
     public void setX(int x, Terrain terrain) {
         mV.mX = x;
         mV.mY = getCorrectHeight(terrain);
@@ -308,9 +320,13 @@ public class Player {
             throw new RuntimeException("takeDamage: damage cannot be " +
                                        "less than 0");
         }
+        if (mV.mLife == 0)
+            return;
         mV.mLife -= damage;
-        if (mV.mLife < 0)
+        if (mV.mLife <= 0) {
             mV.mLife = 0;
+            mDeathExplosionPending = true;
+        }
         // Player color depends on the current amount of life
         cachePlayerColor(0);
     }
@@ -419,5 +435,6 @@ public class Player {
 
         // update cached value of mAngleRad
         setAngleDeg(mV.mAngleDeg);
+        mDeathExplosionPending = false;
     }
 }

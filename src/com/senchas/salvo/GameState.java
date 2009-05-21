@@ -1065,6 +1065,7 @@ public abstract class GameState {
         public GameState main(RunGameActAccessor game) {
             boolean finished = true;
             final Model model = game.getModel();
+            final Player allPlayers[] = model.getPlayers();
             for (Projectile proj : mProjectiles) {
                 if (!proj.getInUse())
                     continue;
@@ -1082,11 +1083,11 @@ public abstract class GameState {
                     game.getGameControlView().cacheTerrain(game);
 
                     Terrain terrain = model.getTerrain();
-                    for (Player victim : model.getPlayers()) {
+                    for (Player victim : allPlayers) {
                         if (victim.doFalling(terrain)) {
                             // notify Brains about the fall
                             int perp = expl.getPerp();
-                            for (Player p : game.getModel().getPlayers()) {
+                            for (Player p : allPlayers) {
                                 if (! p.isAlive())
                                     continue;
                                 p.getBrain().notifyPlayerFell(
@@ -1094,8 +1095,15 @@ public abstract class GameState {
                             }
                         }
                     }
-                    // TODO: potentially start other explosions here as
-                    // players die
+                }
+            }
+
+            for (Player p : allPlayers) {
+                if (p.getDeathExplosionPending()) {
+                    finished = false;
+                    p.resetDeathExplosion();
+                    WeaponType.PLAYER_DEATH.detonate(model,
+                        p.getX(), p.getY(), mAcc);
                 }
             }
 
@@ -1150,7 +1158,7 @@ public abstract class GameState {
             for (int i = 0; i < mProjectiles.length; i++) {
                 mProjectiles[i] = new Projectile();
             }
-            mExplosions = new Explosion[MAX_PROJECTILES];
+            mExplosions = new Explosion[MAX_PROJECTILES + Model.MAX_PLAYERS];
             for (int i = 0; i < mExplosions.length; i++) {
                 mExplosions[i] = new Explosion();
             }

@@ -82,6 +82,11 @@ public enum WeaponType {
         null,
         DetonationAttr.MAKE_CLUSTER,
         EnumSet.of(Attr.PROJECTILE, Attr.EXTRA_LARGE)
+    ),
+    PLAYER_DEATH("Player Death", Const.UNSELECTABLE,
+        new ExplosionAttributes(36, Const.RED, 200),
+        DetonationAttr.EXPLODE,
+        EnumSet.of(Attr.PROJECTILE)
     );
 
     /*================= Constants =================*/
