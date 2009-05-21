@@ -456,13 +456,123 @@ public abstract class GameState {
         }
     }
 
+    /** Superclass of HumanMoveState and ComputerMoveState */
+    public abstract static class MoveState extends GameState {
+        /*================= Constants =================*/
+        private static final long MAX_FIRE_TIME = 2400;
+
+        /*================= Static =================*/
+
+        /*================= Data =================*/
+
+        /*================= Operations =================*/
+        @Override
+        public void onEnter(RunGameActAccessor game) {
+            GameState.setCurPlayerAngleText(game);
+            game.getGameControlView().cacheTerrain(game);
+            game.getRunGameAct().runOnUiThread(new DoShowArmory(game));
+            GameState.setCurPlayerArmoryText(game);
+            game.getModel().getCurPlayer().setAuraAlpha(
+                Player.SELECTED_AURA_ALPHA);
+        }
+
+        /** Calculate what the power should be, given the current time, and
+         * the time that the user pressed the fire button.
+         */
+        protected int timeToPower(long diff) {
+            if (diff > MAX_FIRE_TIME)
+                return Player.MAX_POWER;
+            else {
+                return (int)((diff * Player.MAX_POWER) / MAX_FIRE_TIME);
+            }
+        }
+
+        /** Given a specified power, and a starting time, calculate how
+         * long the animation should go on.
+         */
+        protected long powerToDuration(int power) {
+            if ((power < 0) || (power > Player.MAX_POWER)) {
+                throw new RuntimeException("can't have power = " + power);
+            }
+            return (power * MAX_FIRE_TIME) / Player.MAX_POWER;
+        }
+
+        /** Execute a non-projectile move.
+         *
+         * @return        the state we're in after the move, or null if
+         *                the move was aborted. Computer moves should never be
+         *                aborted.
+         */
+        protected GameState doNonProjectileMove(RunGameActAccessor game,
+                                        boolean isHuman) {
+            Player curPlayer = game.getModel().getCurPlayer();
+            WeaponType weapon = curPlayer.getCurWeaponType();
+            if (weapon.isTeleporter()) {
+                Armory armory = curPlayer.getArmory();
+                armory.useWeapon(weapon);
+                if (armory.getAmount(weapon) == 0) {
+                    curPlayer.setCurWeaponType(armory.
+                        getNextWeapon(curPlayer.getCurWeaponType()));
+                }
+                return doTeleport(game);
+            }
+            else if (weapon.isExtraArmor()) {
+                if (isHuman) {
+                    // Special sanity check for humans only. Will bring up
+                    // dialog box if we can't use the armor.
+                    if (!curPlayer.canUseExtraArmor()) {
+                        ExtraArmorState.notifyPlayerThatArmorIsMaxed(game);
+                        return null;
+                    }
+                }
+                Armory armory = curPlayer.getArmory();
+                curPlayer.setCurWeaponType(armory.
+                        getNextWeapon(curPlayer.getCurWeaponType()));
+                return ExtraArmorState.create();
+            }
+            else {
+                throw new RuntimeException("don't know how to handle " +
+                            "firing weapon: " + weapon.toString());
+            }
+        }
+
+        /** Execute a projectile move.
+         *
+         * @return        the state we're in after the move
+         */
+        protected GameState doProjectileMove(RunGameActAccessor game,
+                                          int power) {
+            Player curPlayer = game.getModel().getCurPlayer();
+            WeaponType weapon = curPlayer.getCurWeaponType();
+            Armory arm = curPlayer.getArmory();
+            arm.useWeapon(weapon);
+            if (arm.getAmount(weapon) == 0)
+                curPlayer.setCurWeaponType(arm.getNextWeapon(weapon));
+            return BallisticsState.create(power, weapon);
+        }
+
+        @Override
+        public void onExit(RunGameActAccessor game) {
+            GameState.setCustomAngleText(game, EMPTY_STRING);
+            GameState.clearCurPlayerArmoryText(game);
+        }
+
+        class DoShowArmory implements Runnable {
+            private RunGameActAccessor mGame;
+            public void run() {
+                showArmory(mGame);
+            }
+            DoShowArmory(RunGameActAccessor game) {
+                mGame = game;
+            }
+        }
+    }
+
     /** A human turn. We will accept input from the touchscreen and do all
      * that stuff. */
-    public static class HumanMoveState extends GameState {
+    public static class HumanMoveState extends MoveState {
         /*================= Constants =================*/
         public static final byte ID = 15;
-
-        private static final long MAX_FIRE_TIME = 2400;
 
         /*================= Static =================*/
         private static HumanMoveState sMe = new HumanMoveState();
@@ -487,52 +597,16 @@ public abstract class GameState {
 
         @Override
         public void onEnter(RunGameActAccessor game) {
-            GameState.setCurPlayerAngleText(game);
-            game.getGameControlView().cacheTerrain(game);
-            game.getRunGameAct().runOnUiThread(new DoShowArmory(game));
-            GameState.setCurPlayerArmoryText(game);
-            game.getModel().getCurPlayer().setAuraAlpha(
-                Player.SELECTED_AURA_ALPHA);
-        }
-
-        /** Calculate what the power should be, given the current time, and
-         * the time that the user pressed the fire button.
-         */
-        private int timeToPower(long time) {
-            long diff = time - mFireTime;
-            if (diff > MAX_FIRE_TIME)
-                return Player.MAX_POWER;
-            else {
-                return (int)((diff * Player.MAX_POWER) / MAX_FIRE_TIME);
-            }
+            super.onEnter(game);
         }
 
         @Override
         public GameState main(RunGameActAccessor game) {
             if (mFireSpecial) {
-                Player curPlayer = game.getModel().getCurPlayer();
-                WeaponType weapon = curPlayer.getCurWeaponType();
-                if (weapon.isTeleporter()) {
-                    Armory armory = curPlayer.getArmory();
-                    armory.useWeapon(weapon);
-                    if (armory.getAmount(weapon) == 0) {
-                        curPlayer.setCurWeaponType(armory.
-                            getNextWeapon(curPlayer.getCurWeaponType()));
-                    }
-                    return doTeleport(game);
-                }
-                else if (weapon.isExtraArmor()) {
-                    if (curPlayer.canUseExtraArmor()) {
-                        Armory armory = curPlayer.getArmory();
-                        curPlayer.setCurWeaponType(armory.
-                                getNextWeapon(curPlayer.getCurWeaponType()));
-                        return ExtraArmorState.create();
-                    }
-                    else {
-                        ExtraArmorState.notifyPlayerThatArmorIsMaxed(game);
-                        mFireSpecial = false;
-                    }
-                }
+                GameState ret = doNonProjectileMove(game, true);
+                if (ret != null)
+                    return ret;
+                mFireSpecial = false;
             }
 
             int power = 0;
@@ -542,7 +616,7 @@ public abstract class GameState {
                             Projectile.EMPTY_ARRAY, Explosion.EMPTY_ARRAY);
             }
             else {
-                power = timeToPower(System.currentTimeMillis());
+                power = timeToPower(System.currentTimeMillis() - mFireTime);
                 game.getGameControlView().drawScreen(game, power,
                         Projectile.EMPTY_ARRAY, Explosion.EMPTY_ARRAY);
                 if (power == Player.MAX_POWER)
@@ -555,22 +629,13 @@ public abstract class GameState {
             }
             else {
                 // The user released the fire button
-                Player curPlayer = game.getModel().getCurPlayer();
-                WeaponType weapon = curPlayer.getCurWeaponType();
-                Armory arm = curPlayer.getArmory();
-                arm.useWeapon(weapon);
-                if (arm.getAmount(weapon) == 0)
-                    curPlayer.setCurWeaponType(arm.getNextWeapon(weapon));
-
-                return BallisticsState.create(power, weapon);
+                return doProjectileMove(game, power);
             }
         }
 
         @Override
         public void onExit(RunGameActAccessor game) {
-            // TODO: grey out buttons and whatnot
-            GameState.setCustomAngleText(game, EMPTY_STRING);
-            GameState.clearCurPlayerArmoryText(game);
+            super.onExit(game);
         }
 
         @Override
@@ -584,16 +649,6 @@ public abstract class GameState {
                 // If the user has already pressed the fire button, update
                 // every 1 ms or so
                 return 1;
-            }
-        }
-
-        class DoShowArmory implements Runnable {
-            private RunGameActAccessor mGame;
-            public void run() {
-                showArmory(mGame);
-            }
-            DoShowArmory(RunGameActAccessor game) {
-                mGame = game;
             }
         }
 
@@ -713,18 +768,135 @@ public abstract class GameState {
         }
     }
 
-    /** A computer turn. We use the Brain object to determine what to do.
-     * This code is mostly concerned with animating the action.
+    /** A computer turn. We use the Move object to determine what to do.
+     * This code is concerned with animating the action.
      */
-    public static class ComputerMoveState extends GameState {
+    public static class ComputerMoveState extends MoveState {
         /*================= Constants =================*/
         public static final byte ID = 16;
 
         /*================= Static =================*/
         private static ComputerMoveState sMe = new ComputerMoveState();
 
+        /*================= Types =================*/
+        private abstract class Stage {
+            /*================= Data =================*/
+            private final long mTimeAfterStart;
+
+            /*================= Access =================*/
+            public long getTimeAfterStart() {
+                return mTimeAfterStart;
+            }
+
+            /*================= Operations =================*/
+            public abstract GameState doStage(RunGameActAccessor game);
+
+            /*================= Lifecycle =================*/
+            private Stage(long timeAfterStart) {
+                mTimeAfterStart = timeAfterStart;
+            }
+        }
+
+        private class Initial extends Stage {
+            /*================= Operations =================*/
+            public GameState doStage(RunGameActAccessor game) {
+                // just draw the screen
+                game.getGameControlView().
+                    drawScreen(game, Player.INVALID_POWER,
+                            Projectile.EMPTY_ARRAY, Explosion.EMPTY_ARRAY);
+                return null;
+            }
+
+            /*================= Lifecycle =================*/
+            private Initial() {
+                super(0);
+            }
+        }
+
+        private class SetWeapon extends Stage {
+            /*================= Operations =================*/
+            public GameState doStage(RunGameActAccessor game) {
+                // change which weapon we're pointing to in the armory
+                Player curPlayer = game.getModel().getCurPlayer();
+                curPlayer.setCurWeaponType(mMove.getWeapon());
+                GameState.setCurPlayerArmoryText(game);
+
+                game.getGameControlView().
+                    drawScreen(game, Player.INVALID_POWER,
+                            Projectile.EMPTY_ARRAY, Explosion.EMPTY_ARRAY);
+                return null;
+            }
+
+            /*================= Lifecycle =================*/
+            private SetWeapon() {
+                super(500);
+            }
+        }
+
+        private class SetTurret extends Stage {
+            /*================= Operations =================*/
+            public GameState doStage(RunGameActAccessor game) {
+                // No need to rotate the turret for non-projectile moves
+                if (!mMove.isProjectile())
+                    return null;
+
+                // Change where turret is pointing
+                game.getModel().getCurPlayer().setAngleDeg(mMove.getAngle());
+                GameState.setCurPlayerAngleText(game);
+
+                game.getGameControlView().
+                    drawScreen(game, Player.INVALID_POWER,
+                            Projectile.EMPTY_ARRAY, Explosion.EMPTY_ARRAY);
+                return null;
+            }
+
+            /*================= Lifecycle =================*/
+            private SetTurret() {
+                super(1000);
+            }
+        }
+
+        private class StartFire extends Stage {
+            /*================= Operations =================*/
+            public GameState doStage(RunGameActAccessor game) {
+                // For non-projectile moves, we immediately transition to
+                // some other state
+                if (!mMove.isProjectile()) {
+                    return doNonProjectileMove(game, false);
+                }
+
+                // For projectile moves, we set the stage for the firing
+                // animation
+                mFireStartTime = System.currentTimeMillis();
+                mFireReleaseTime = mFireStartTime +
+                                powerToDuration(mMove.getPower());
+                return null;
+            }
+
+            /*================= Lifecycle =================*/
+            private StartFire() {
+                super(2500);
+            }
+        }
+
         /*================= Data =================*/
+        /** All of the animation stages */
+        private final Stage mStages[];
+
+        /** The move we're going to make */
         private Brain.Move mMove;
+
+        /** The current animation stage */
+        private int mCurStage;
+
+        /** The time when the state began */
+        private long mStartTime;
+
+        /** The time when we started pressing the fire button */
+        private long mFireStartTime;
+
+        /** The time when we're going to release the fire button */
+        private long mFireReleaseTime;
 
         /*================= Operations =================*/
         @Override
@@ -735,42 +907,43 @@ public abstract class GameState {
 
         @Override
         public void onEnter(RunGameActAccessor game) {
-            GameState.setCurPlayerAngleText(game);
-            game.getGameControlView().cacheTerrain(game);
-            GameState.setCurPlayerArmoryText(game);
+            super.onEnter(game);
+            mCurStage = 0;
+            mStartTime = System.currentTimeMillis();
+            mFireStartTime = 0;
+            mFireReleaseTime = 0;
         }
 
         @Override
         public GameState main(RunGameActAccessor game) {
-            Player curPlayer = game.getModel().getCurPlayer();
-            WeaponType weapon = mMove.getWeapon();
-            if (mMove.isProjectile()) {
-                curPlayer.setAngleDeg(mMove.getAngle());
-                return BallisticsState.create
-                    (mMove.getPower(), mMove.getWeapon());
+            long curTime = System.currentTimeMillis();
+            if (mCurStage < mStages.length) {
+                long diff = curTime - mStartTime;
+                Stage stage = mStages[mCurStage];
+                if (diff > stage.getTimeAfterStart()) {
+                    mCurStage++;
+                    GameState ret = stage.doStage(game);
+                    if (ret != null)
+                        return ret;
+                }
             }
-            else if (weapon.isTeleporter()) {
-                Armory arm = curPlayer.getArmory();
-                arm.useWeapon(weapon);
-                if (arm.getAmount(weapon) == 0)
-                    curPlayer.setCurWeaponType(arm.getNextWeapon(weapon));
-                return doTeleport(game);
-            }
-            else if (weapon.isExtraArmor()) {
-                Armory arm = curPlayer.getArmory();
-                arm.useWeapon(weapon);
-                if (arm.getAmount(weapon) == 0)
-                    curPlayer.setCurWeaponType(arm.getNextWeapon(weapon));
-                return ExtraArmorState.create();
-            }
+
+            if (mFireReleaseTime == 0)
+                return null;
             else {
+                if (curTime > mFireReleaseTime) {
+                    return doProjectileMove(game, mMove.getPower());
+                }
+                // Draw the power bar
+                int power = timeToPower(curTime - mFireStartTime);
+                game.getGameControlView().drawScreen(game, power,
+                        Projectile.EMPTY_ARRAY, Explosion.EMPTY_ARRAY);
                 return null;
             }
         }
 
         @Override
         public void onExit(RunGameActAccessor game) {
-            // TODO: grey out buttons and whatnot
             GameState.setCustomAngleText(game, EMPTY_STRING);
             GameState.clearCurPlayerArmoryText(game);
         }
@@ -797,6 +970,11 @@ public abstract class GameState {
         }
 
         public ComputerMoveState() {
+            mStages = new Stage[4];
+            mStages[0] = new Initial();
+            mStages[1] = new SetWeapon();
+            mStages[2] = new SetTurret();
+            mStages[3] = new StartFire();
         }
     }
 
