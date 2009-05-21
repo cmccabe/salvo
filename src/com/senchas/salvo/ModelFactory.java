@@ -587,7 +587,7 @@ public class ModelFactory {
 
     public static ModelFactory fromDefaults() {
         MyVars v = new MyVars();
-        v.mTerrainFac = TerrainFactory.Jagged;
+        v.mTerrainFac = TerrainFactory.Rolling;
         v.mUseRandomPlayerPlacement = true;
         v.mNumRounds = (short)3;
         v.mStartingCash = (short)0;

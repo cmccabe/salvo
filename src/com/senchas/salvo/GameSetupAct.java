@@ -60,8 +60,6 @@ public class GameSetupAct extends Activity {
             mInitialized = true;
 
         ////////////////// Get pointers to stuff
-        final Spinner terrainSpinner =
-            (Spinner)findViewById(R.id.terrain_spinner);
         final Spinner numRoundsSpinner =
             (Spinner)findViewById(R.id.num_rounds_spinner);
         final Spinner cashAmountSpinner =
@@ -72,26 +70,6 @@ public class GameSetupAct extends Activity {
             (Button)findViewById(R.id.choose_players);
 
         ////////////////// Initialize stuff
-        ArrayAdapter< TerrainFactory > terrainSpinnerA =
-            new ArrayAdapter < TerrainFactory >
-                (this,
-                R.layout.game_setup_spinner_item,
-                R.id.game_setup_spinner_item_text,
-                TerrainFactory.values());
-        terrainSpinner.setAdapter(terrainSpinnerA);
-        terrainSpinner.setOnItemSelectedListener(
-            new Spinner.OnItemSelectedListener(){
-                public void onItemSelected(AdapterView<?> parent,
-                                    View v, int position, long id) {
-                    TerrainFactory t[] = TerrainFactory.values();
-                    TerrainFactory fac = t[position];
-                    mModelFactory.setTerrainFactory(fac);
-                }
-                public void onNothingSelected(AdapterView<?> arg0) { }
-            });
-        terrainSpinner.setSelection
-            (mModelFactory.getTerrainFactory().ordinal());
-
         ArrayAdapter < ModelFactory.NumRounds > numRoundsA =
             new ArrayAdapter < ModelFactory.NumRounds >
                 (this,
