@@ -29,12 +29,12 @@ public enum WeaponType {
         EnumSet.of(Attr.PROJECTILE)
     ),
     EARTHMOVER("Earthmover", 0,
-        new ExplosionAttributes(25, Const.GREY, 0),
+        new ExplosionAttributes(45, Const.GREY, 0),
         DetonationAttr.EXPLODE,
         EnumSet.of(Attr.PROJECTILE)
     ),
     LARGE_EARTHMOVER("Large Earthmover", 0,
-        new ExplosionAttributes(42, Const.GREY, 0),
+        new ExplosionAttributes(74, Const.GREY, 0),
         DetonationAttr.EXPLODE,
         EnumSet.of(Attr.PROJECTILE)
     ),
@@ -71,12 +71,12 @@ public enum WeaponType {
     CLUSTER_BOMB("Cluster Bomb", 0,
         null,
         DetonationAttr.MAKE_CLUSTER,
-        EnumSet.of(Attr.PROJECTILE)
-    ),
-    LARGE_CLUSTER_BOMB("Large Cluster Bomb", 0,
-        null,
-        DetonationAttr.MAKE_CLUSTER,
         EnumSet.of(Attr.PROJECTILE, Attr.LARGE)
+    ),
+    CLUSTER_BOMB_PAYLOAD("Cluster Bomb Payload", Const.UNSELECTABLE,
+        new ExplosionAttributes(30, Const.RED, 50),
+        DetonationAttr.EXPLODE,
+        EnumSet.of(Attr.PROJECTILE)
     ),
     DOOMHAMMER("Doomhammer", 0,
         null,
@@ -116,7 +116,12 @@ public enum WeaponType {
         /** When a cluster bomb detonates and splits into fragments, this
          * determines the initial power used to launch these fragments.
          */
-        private static final float CLUSTER_BOMB_FRAG_INIT_POWER = 4;
+        private static final float CLUSTER_BOMB_FRAG_INIT_POWER = 2;
+
+        /** When a doomhammer detonates and splits into fragments, this
+         * determines the initial power used to launch these fragments.
+         */
+        private static final float DOOMHAMMER_FRAG_INIT_POWER = 4;
 
         /** When a roller deploys its payload, this determines how fast it
          * moves.
@@ -378,17 +383,19 @@ public enum WeaponType {
             case MAKE_CLUSTER: {
                 WeaponType clusterType;
                 int numFragments;
+                float init_power = 0;
                 if (mAttrs.contains(Attr.EXTRA_LARGE)) {
                     clusterType = LARGE_MISSILE;
                     numFragments = 5;
+                    init_power = Const.DOOMHAMMER_FRAG_INIT_POWER;
                 }
                 else if (mAttrs.contains(Attr.LARGE)) {
-                    clusterType = MEDIUM_MISSILE;
+                    clusterType = CLUSTER_BOMB_PAYLOAD;
                     numFragments = 4;
+                    init_power = Const.CLUSTER_BOMB_FRAG_INIT_POWER;
                 }
                 else {
-                    clusterType = SMALL_MISSILE;
-                    numFragments = 3;
+                    throw new RuntimeException("wrong Attrs for MAKE_CLUSTER");
                 }
 
                 float terrainAngle = model.getTerrain().getTerrainAngle(x);
@@ -396,10 +403,8 @@ public enum WeaponType {
                 for (int i = 0; i < numFragments; i++) {
                     float launchAngle =
                         (float)(Math.PI - terrainAngle -((i+1) * fragAngle));
-                    float deltaX = Const.CLUSTER_BOMB_FRAG_INIT_POWER *
-                        (float)Math.cos(launchAngle);
-                    float deltaY = -Const.CLUSTER_BOMB_FRAG_INIT_POWER *
-                        (float)Math.sin(launchAngle);
+                    float deltaX = init_power * (float)Math.cos(launchAngle);
+                    float deltaY = -init_power * (float)Math.sin(launchAngle);
                     Projectile proj = ball.newProjectile();
                     proj.initialize(x, y, deltaX, deltaY,
                                     model.getWind(), clusterType, 8);
