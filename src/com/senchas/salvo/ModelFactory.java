@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.SortedMap;
 
-import com.senchas.salvo.Player.PlayerColor;
+import com.senchas.salvo.PlayerColor;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -140,7 +140,7 @@ public class ModelFactory {
     {
         /*================= Static =================*/
         /** Gets a list of colors that aren't currently in use by a player */
-        public static LinkedList < Player.PlayerColor >
+        public static LinkedList < PlayerColor >
                 getAvailableColors(LinkedList < PlayerFactory > plays) {
             HashSet < PlayerColor > used = new HashSet<PlayerColor>();
             LinkedList < PlayerColor > unused = new LinkedList<PlayerColor>();
@@ -187,25 +187,24 @@ public class ModelFactory {
             public String mName;
             public short mLife;
             public BrainFactory mBrainFac;
-            public Player.PlayerColor mColor;
+            public PlayerColor mColor;
         }
         private MyVars mV;
 
         /*================= Access =================*/
-        public  Player createPlayer(int index) {
-            Armory armory = Armory.fromDefault();
+        public  Player createPlayer(int index, Cosmos cosmos) {
+            Armory arm = cosmos.getArmory(index);
             Player.MyVars v = new Player.MyVars();
             v.mLife = mV.mLife;
             v.mX = -1;
             v.mY = -1;
             v.mAngleDeg = Player.MAX_TURRET_ANGLE / 4;
             v.mName = mV.mName;
-            v.mCurWeaponType = armory.getFirstValidWeapon();
+            v.mCurWeaponType = arm.getFirstValidWeapon();
             v.mColor = mV.mColor;
-            v.mEarnings = Util.mRandom.nextInt(2000); //TODO: change this to 0
-            v.mCredits = 0;
+            v.mRoundEarnings = 0;
             Brain brain = mV.mBrainFac.createBrain();
-            return new Player(index, v, brain, armory);
+            return new Player(index, v, brain);
         }
 
         public  void saveState(int index, Bundle map) {
@@ -226,7 +225,7 @@ public class ModelFactory {
             return mV.mLife;
         }
 
-        public  Player.PlayerColor getColor() {
+        public  PlayerColor getColor() {
             return mV.mColor;
         }
 
@@ -243,7 +242,7 @@ public class ModelFactory {
             mV.mLife = life;
         }
 
-        public  void setColor(Player.PlayerColor color) {
+        public  void setColor(PlayerColor color) {
             mV.mColor = color;
         }
 
@@ -401,7 +400,11 @@ public class ModelFactory {
         return mPlayers.get(index);
     }
 
-    public  Model createModel() {
+    public int getNumPlayers() {
+        return mPlayers.size();
+    }
+
+    public Model createModel(Cosmos cosmos) {
         Background bg = Background.getRandomBackground();
         Foreground fg = Foreground.getRandomForeground(bg);
 
@@ -418,7 +421,7 @@ public class ModelFactory {
         // Create players
         Player[] players = new Player[mPlayers.size()];
         for (int i = 0; i < mPlayers.size(); i++) {
-            players[i] = mPlayers.get(i).createPlayer(i);
+            players[i] = mPlayers.get(i).createPlayer(i, cosmos);
         }
 
         // Place players
@@ -465,7 +468,7 @@ public class ModelFactory {
     }
 
     /** Returns true if a player is already using the given color */
-    public  boolean colorInUse(Player.PlayerColor color) {
+    public  boolean colorInUse(PlayerColor color) {
         for (PlayerFactory p: mPlayers) {
             if (p.getColor() == color)
                 return true;
@@ -474,7 +477,7 @@ public class ModelFactory {
     }
 
     /** Gets a list of colors that aren't currently in use by a player */
-    public  LinkedList < Player.PlayerColor >
+    public  LinkedList < PlayerColor >
             getAvailableColors() {
         return PlayerFactory.getAvailableColors(mPlayers);
     }

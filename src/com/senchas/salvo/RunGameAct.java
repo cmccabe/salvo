@@ -69,7 +69,10 @@ public class RunGameAct extends Activity {
     private XmlColors mXmlColors;
 
     /*================= Permanent Data =================*/
-    /** The important game data */
+    /** The game data */
+    private Cosmos mCosmos;
+
+    /** The round data */
     private Model mModel;
 
     /** The current game state. */
@@ -141,6 +144,10 @@ public class RunGameAct extends Activity {
 
         public GameControlView getGameControlView() {
             return mGameControlView;
+        }
+
+        public Cosmos getCosmos() {
+            return mCosmos;
         }
 
         public Model getModel() {
@@ -457,7 +464,7 @@ public class RunGameAct extends Activity {
             ok.setOnClickListener(this);
 
             ListView scoresList = (ListView) findViewById(R.id.scores);
-            scoresList.setAdapter(mModel.getLeaderboardAdaptor());
+            scoresList.setAdapter(mCosmos.getLeaderboardAdaptor(mModel));
             scoresList.setDivider(null);
             scoresList.setDividerHeight(0);
             scoresList.setChoiceMode(ListView.CHOICE_MODE_NONE);
@@ -526,7 +533,8 @@ public class RunGameAct extends Activity {
             Bundle smap =
                 getIntent().getBundleExtra(GameSetupAct.GAME_SETUP_BUNDLE);
             ModelFactory fac = ModelFactory.fromBundle(smap);
-            mModel = fac.createModel();
+            mCosmos = Cosmos.fromInitial(fac.getNumPlayers());
+            mModel = fac.createModel(mCosmos);
             mState = GameState.createInitialGameState();
         }
         else {

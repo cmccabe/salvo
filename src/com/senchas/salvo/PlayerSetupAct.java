@@ -4,7 +4,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 
 import com.senchas.salvo.ModelFactory.PlayerFactory;
-import com.senchas.salvo.Player.PlayerColor;
+import com.senchas.salvo.PlayerColor;
 
 import android.app.Activity;
 import android.app.AlertDialog;

@@ -11,40 +11,6 @@ import android.util.Log;
 
 public class Player {
     /*================= Types =================*/
-    public static enum PlayerColor {
-        RED("red", Color.argb(0xff, 0xef,0x29, 0x29)),
-        ORANGE("orange", Color.argb(0xff, 0xff, 0xbb, 0x44)),
-        BROWN("brown", Color.argb(0xff, 0xa6, 0x7a, 0x3e)),
-        YELLOW("yellow", Color.argb(0xff, 0xfc, 0xe9, 0x4f)),
-        GREEN("green", Color.argb(0xff, 0x06, 0xd0, 0x30)),
-        CYAN("cyan", Color.argb(0xff, 0x8d, 0xef, 0xef)),
-        BLUE("blue", Color.argb(0xff, 0x72, 0x9f, 0xcf)),
-        PINK("pink", Color.argb(0xff, 0xff, 0x83, 0xe9)),
-        PURPLE("purple", Color.argb(0xff, 0xad, 0x7f, 0xa8)),
-        GREY("grey", Color.argb(0xff, 0xd3, 0xd7, 0xcf));
-
-        /*================= Static =================*/
-
-        /*================= Data =================*/
-        private final String mName;
-        private final int mColor;
-
-        /*================= Access =================*/
-        public String toString() { return mName; }
-        public int toInt() { return mColor; }
-
-        /** Returns the color, using 'alpha' as the new alpha channel value */
-        public int toInt(byte alpha) {
-            int ret = mColor & 0x00ffffff;
-            return ret | (alpha << 24);
-        }
-
-        /*================= Lifecycle =================*/
-        private PlayerColor(String name, int color) {
-            mName = name;
-            mColor = color;
-        }
-    }
 
     /*================= Constants =================*/
     public static final int MIN_STARTING_LIFE = 25;
@@ -106,18 +72,12 @@ public class Player {
         public PlayerColor mColor;
 
         /** Our total earnings so far */
-        public int mEarnings;
-
-        /** How many credits we currently have */
-        public int mCredits;
+        public int mRoundEarnings;
     }
     private MyVars mV;
 
     /** The brain that controls this player */
     public Brain mBrain;
-
-    /** The weapons that this player owns */
-    Armory mArmory;
 
     /** The index of this player in the players array */
     public int mId;
@@ -156,12 +116,8 @@ public class Player {
         return mDeathExplosionPending;
     }
 
-    public int getEarnings() {
-        return mV.mEarnings;
-    }
-
-    public int getCredits() {
-        return mV.mCredits;
+    public int getRoundEarnings() {
+        return mV.mRoundEarnings;
     }
 
     public String getName() {
@@ -209,11 +165,11 @@ public class Player {
         return mV.mCurWeaponType;
     }
 
-    public Armory getArmory () {
-        return mArmory;
+    public Armory getArmory(Cosmos cosmos) {
+        return cosmos.getArmory(mId);
     }
 
-    public Player.PlayerColor getBaseColor() {
+    public PlayerColor getBaseColor() {
         return mV.mColor;
     }
 
@@ -409,7 +365,6 @@ public class Player {
     public void saveState(int index, Bundle map) {
         AutoPack.autoPack(map, Util.indexToString(index), mV);
         mBrain.saveState(index, map);
-        mArmory.saveState(index, map);
     }
 
     /*================= Lifecycle =================*/
@@ -417,15 +372,13 @@ public class Player {
         MyVars v = (MyVars)AutoPack.autoUnpack(map,
                         Util.indexToString(index), MyVars.class);
         Brain brain = Brain.fromBundle(index, map);
-        Armory armory = Armory.fromBundle(index, map);
-        return new Player(index, v, brain, armory);
+        return new Player(index, v, brain);
     }
 
-    public Player(int index, MyVars v, Brain brain, Armory armory) {
+    public Player(int index, MyVars v, Brain brain) {
         mV = v;
         mId = index;
         mBrain = brain;
-        mArmory = armory;
 
         mAuraAlpha = 0;
         mAuraWhitening = 0;

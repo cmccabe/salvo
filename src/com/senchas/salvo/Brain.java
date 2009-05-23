@@ -339,7 +339,7 @@ public abstract class Brain {
             int angle = Util.mRandom.nextInt(Player.MAX_TURRET_ANGLE + 1);
 
             // Decide which weapon to choose
-            Armory armory = curPlayer.getArmory();
+            Armory armory = curPlayer.getArmory(game.getCosmos());
             mArmTmp.initialize(armory);
             int probs[] = mArmTmp.getProbs();
             int validProbs = 0;

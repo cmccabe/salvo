@@ -508,7 +508,7 @@ public abstract class GameState {
             Player curPlayer = game.getModel().getCurPlayer();
             WeaponType weapon = curPlayer.getCurWeaponType();
             if (weapon.isTeleporter()) {
-                Armory armory = curPlayer.getArmory();
+                Armory armory = curPlayer.getArmory(game.getCosmos());
                 armory.useWeapon(weapon);
                 if (armory.getAmount(weapon) == 0) {
                     curPlayer.setCurWeaponType(armory.
@@ -525,7 +525,7 @@ public abstract class GameState {
                         return null;
                     }
                 }
-                Armory armory = curPlayer.getArmory();
+                Armory armory = curPlayer.getArmory(game.getCosmos());
                 curPlayer.setCurWeaponType(armory.
                         getNextWeapon(curPlayer.getCurWeaponType()));
                 return ExtraArmorState.create();
@@ -544,7 +544,7 @@ public abstract class GameState {
                                           int power) {
             Player curPlayer = game.getModel().getCurPlayer();
             WeaponType weapon = curPlayer.getCurWeaponType();
-            Armory arm = curPlayer.getArmory();
+            Armory arm = curPlayer.getArmory(game.getCosmos());
             arm.useWeapon(weapon);
             if (arm.getAmount(weapon) == 0)
                 curPlayer.setCurWeaponType(arm.getNextWeapon(weapon));
@@ -664,16 +664,18 @@ public abstract class GameState {
             switch (b) {
                 case ARMORY_LEFT: {
                     Player curPlayer = game.getModel().getCurPlayer();
+                    Armory arm = curPlayer.getArmory(game.getCosmos());
                     curPlayer.setCurWeaponType(
-                        curPlayer.getArmory().getPrevWeapon(
+                        arm.getPrevWeapon(
                             curPlayer.getCurWeaponType()));
                     GameState.setCurPlayerArmoryText(game);
                     return true;
                 }
                 case ARMORY_RIGHT: {
                     Player curPlayer = game.getModel().getCurPlayer();
+                    Armory arm = curPlayer.getArmory(game.getCosmos());
                     curPlayer.setCurWeaponType(
-                        curPlayer.getArmory().getNextWeapon(
+                        arm.getNextWeapon(
                             curPlayer.getCurWeaponType()));
                     GameState.setCurPlayerArmoryText(game);
                     return true;
@@ -1649,7 +1651,8 @@ public abstract class GameState {
     private static void setCurPlayerArmoryText(RunGameActAccessor game) {
         Player curPlayer = game.getModel().getCurPlayer();
         WeaponType type = curPlayer.getCurWeaponType();
-        int amount = curPlayer.getArmory().getAmount(type);
+        Armory arm = curPlayer.getArmory(game.getCosmos());
+        int amount = arm.getAmount(type);
 
         TextView armoryMain = game.getArmoryMainText();
         TextView armorySecondary = game.getArmorySecondaryText();
