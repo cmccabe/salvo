@@ -478,10 +478,12 @@ public class RunGameAct extends Activity {
     /*================= Operations =================*/
     /** Called from GameControlView to handle keystrokes */
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        switch(keyCode) {
-            case KeyEvent.KEYCODE_BACK:
-                showAreYouSureYouWantToQuit();
-                return true;
+        synchronized (mStateLock) {
+            switch(keyCode) {
+                case KeyEvent.KEYCODE_BACK:
+                    showAreYouSureYouWantToQuit();
+                    return true;
+            }
         }
         return false;
     }
@@ -522,95 +524,117 @@ public class RunGameAct extends Activity {
         b.show();
     };
 
+    /** Starts a new round.
+     *
+     * Creates a new Model and initializes things to suit it.
+     *
+     * @param firstRound  If true, create a new Cosmos.
+     */
+    public void startRound(boolean firstRound) {
+        Bundle smap =
+            getIntent().getBundleExtra(GameSetupAct.GAME_SETUP_BUNDLE);
+        ModelFactory fac = ModelFactory.fromBundle(smap);
+        if (firstRound) {
+            mCosmos = Cosmos.fromInitial(fac.getNumPlayers());
+        }
+        mModel = fac.createModel(mCosmos);
+        if (firstRound) {
+            mState = GameState.createInitialGameState();
+        }
+    }
+
+    public void continueRound() {
+        mGameControlView.initialize(mModel.getBackground(),
+                                   mModel.getForeground());
+    }
+
     /*================= Lifecycle =================*/
     @Override
     public void onCreate(Bundle map) {
-        super.onCreate(map);
-        mXmlColors = XmlColors.fromXml(getResources());
-
-        if (map == null) {
-            // We're starting up the game. Create the Model
-            Bundle smap =
-                getIntent().getBundleExtra(GameSetupAct.GAME_SETUP_BUNDLE);
-            ModelFactory fac = ModelFactory.fromBundle(smap);
-            mCosmos = Cosmos.fromInitial(fac.getNumPlayers());
-            mModel = fac.createModel(mCosmos);
-            mState = GameState.createInitialGameState();
-        }
-        else {
-            // Decompress saved state
-            mModel = Model.fromBundle(map);
-            mState = GameState.fromBundle(map);
-        }
-
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                WindowManager.LayoutParams.FLAG_FULLSCREEN);
-
-        setContentView(R.layout.game);
-
-        ////////////////// Get pointers to stuff
-        mGameControlView = (GameControlView)
-            findViewById(R.id.game_control_view);
-        mAngleText = (TextView)findViewById(R.id.angle_text);
-        mArmoryLeftButton = (Button)findViewById(R.id.armory_left_button);
-        mArmoryMainText = (TextView)findViewById(R.id.armory_main_text);
-        mArmorySecondaryText = (TextView)
-            findViewById(R.id.armory_secondary_text);
-        mArmoryRightButton = (Button)findViewById(R.id.armory_right_button);
-        mArmoryCenter = (RelativeLayout)findViewById(R.id.armory_center);
-        mFireButton = (Button)findViewById(R.id.fire_button);
-
-        ////////////////// Initialize stuff
-        mArmoryLeftButton.setOnClickListener(new OnClickListener() {
-            public void onClick(View arg0) {
-                synchronized (mStateLock) {
-                    if (mState.onButton(mAcc,
-                            GameState.GameButton.ARMORY_LEFT)) {
-                        mStateLock.notify();
-                    }
-                }
-            }
-        });
-
-        mArmoryRightButton.setOnClickListener(new OnClickListener() {
-            public void onClick(View arg0) {
-                synchronized (mStateLock) {
-                    if (mState.onButton(mAcc,
-                            GameState.GameButton.ARMORY_RIGHT)) {
-                        mStateLock.notify();
-                    }
-                }
-            }
-        });
-
-        mFireButton.setOnTouchListener(new View.OnTouchListener() {
-            public boolean onTouch(View v, MotionEvent event) {
-                int act = event.getAction();
-                if (act == MotionEvent.ACTION_DOWN) {
-                    synchronized (mStateLock) {
-                        if (mState.onButton(mAcc,
-                                GameState.GameButton.PRESS_FIRE)) {
-                            mStateLock.notify();
-                        }
-                    }
-                }
-                else if (act == MotionEvent.ACTION_UP) {
-                    synchronized (mStateLock) {
-                        if (mState.onButton(mAcc,
-                                GameState.GameButton.RELEASE_FIRE)) {
-                            mStateLock.notify();
-                        }
-                    }
-                }
-                return true;
-            }
-        });
-
-        mGameControlView.initialize(mModel.getBackground(),
-                                    mModel.getForeground());
-        mGameControlView.getHolder().addCallback(mGameControlViewObserver);
         synchronized (mStateLock) {
+            super.onCreate(map);
+            mXmlColors = XmlColors.fromXml(getResources());
+
+            requestWindowFeature(Window.FEATURE_NO_TITLE);
+            getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                    WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
+            setContentView(R.layout.game);
+
+            ////////////////// Get pointers to widgets
+            mGameControlView = (GameControlView)
+                findViewById(R.id.game_control_view);
+            mAngleText = (TextView)findViewById(R.id.angle_text);
+            mArmoryLeftButton = (Button)findViewById(R.id.armory_left_button);
+            mArmoryMainText = (TextView)findViewById(R.id.armory_main_text);
+            mArmorySecondaryText = (TextView)
+                findViewById(R.id.armory_secondary_text);
+            mArmoryRightButton =
+                (Button)findViewById(R.id.armory_right_button);
+            mArmoryCenter = (RelativeLayout)findViewById(R.id.armory_center);
+            mFireButton = (Button)findViewById(R.id.fire_button);
+
+            ///////////////// Initialize game state
+            if (map == null) {
+                startRound(true);
+                continueRound();
+            }
+            else {
+                // Decompress saved state
+                mCosmos = Cosmos.fromBundle(map);
+                mModel = Model.fromBundle(map);
+                mState = GameState.fromBundle(map);
+                continueRound();
+            }
+
+            ////////////////// Initialize widgets
+            mArmoryLeftButton.setOnClickListener(new OnClickListener() {
+                public void onClick(View arg0) {
+                    synchronized (mStateLock) {
+                        if (mState.onButton(mAcc,
+                                GameState.GameButton.ARMORY_LEFT)) {
+                            mStateLock.notify();
+                        }
+                    }
+                }
+            });
+
+            mArmoryRightButton.setOnClickListener(new OnClickListener() {
+                public void onClick(View arg0) {
+                    synchronized (mStateLock) {
+                        if (mState.onButton(mAcc,
+                                GameState.GameButton.ARMORY_RIGHT)) {
+                            mStateLock.notify();
+                        }
+                    }
+                }
+            });
+
+            mFireButton.setOnTouchListener(new View.OnTouchListener() {
+                public boolean onTouch(View v, MotionEvent event) {
+                    int act = event.getAction();
+                    if (act == MotionEvent.ACTION_DOWN) {
+                        synchronized (mStateLock) {
+                            if (mState.onButton(mAcc,
+                                    GameState.GameButton.PRESS_FIRE)) {
+                                mStateLock.notify();
+                            }
+                        }
+                    }
+                    else if (act == MotionEvent.ACTION_UP) {
+                        synchronized (mStateLock) {
+                            if (mState.onButton(mAcc,
+                                    GameState.GameButton.RELEASE_FIRE)) {
+                                mStateLock.notify();
+                            }
+                        }
+                    }
+                    return true;
+                }
+            });
+
+            mGameControlView.getHolder().
+                addCallback(mGameControlViewObserver);
             mThread.getStateController().setInitializationComplete();
         }
     }
