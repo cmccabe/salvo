@@ -343,8 +343,13 @@ public abstract class GameState {
 
         @Override
         public void onExit(RunGameActAccessor game) {
-            game.getRunGameAct().startRound(false);
-            game.getRunGameAct().continueRound();
+            if (game.getCosmos().moreRoundsRemaining()) {
+                game.getRunGameAct().startRound(false);
+                game.getRunGameAct().continueRound();
+            }
+            else {
+                game.getRunGameAct().finish();
+            }
         }
 
         @Override

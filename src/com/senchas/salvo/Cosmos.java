@@ -4,6 +4,7 @@ import com.senchas.salvo.PlayerColor;
 import com.senchas.salvo.WeaponType.Armory;
 
 import java.util.Arrays;
+import java.util.EmptyStackException;
 import java.util.HashMap;
 import java.util.Random;
 
@@ -228,6 +229,15 @@ public class Cosmos {
     }
 
     /*================= Data =================*/
+    public static class MyVars {
+        /** The current round, counting from 1 */
+        public short mCurRound;
+
+        /** The total number of rounds we expect to play */
+        public short mNumRounds;
+    }
+    private MyVars mV;
+
     /** The player information */
     private final PlayerInfo mPlayerInfo[];
 
@@ -247,31 +257,46 @@ public class Cosmos {
         return mLeaderboardAdaptor;
     }
 
+    public boolean moreRoundsRemaining() {
+        return (mV.mCurRound < mV.mNumRounds);
+    }
+
     /*================= Operations =================*/
+    public void nextRound() {
+        mV.mCurRound++;
+    }
+
     public void saveState(Bundle map) {
+        AutoPack.autoPack(map, AutoPack.EMPTY_STRING, mV);
         map.putShort(KEY_NUM_PLAYERS, (short)mPlayerInfo.length);
         for (int i = 0; i < mPlayerInfo.length; ++i)
             mPlayerInfo[i].saveState(i, map);
     }
 
     /*================= Lifecycle =================*/
-    public static Cosmos fromInitial(int numPlayers) {
+    public static Cosmos fromInitial(short numRounds, int numPlayers) {
+        MyVars v = new MyVars();
+        v.mCurRound = 0;
+        v.mNumRounds = numRounds;
         PlayerInfo pi[] = new PlayerInfo[numPlayers];
         for (int i = 0; i < numPlayers; i++) {
             pi[i] = PlayerInfo.fromInitial();
         }
-        return new Cosmos(pi);
+        return new Cosmos(v, pi);
     }
 
     public static Cosmos fromBundle(Bundle map) {
+        MyVars v = (MyVars)AutoPack.autoUnpack(map,
+                AutoPack.EMPTY_STRING, MyVars.class);
         int numPlayers = map.getShort(KEY_NUM_PLAYERS);
         PlayerInfo pi[] = new PlayerInfo[numPlayers];
         for (int i = 0; i < numPlayers; ++i)
             pi[i] = PlayerInfo.fromBundle(i, map);
-        return new Cosmos(pi);
+        return new Cosmos(v, pi);
     }
 
-    private Cosmos(PlayerInfo pi[]) {
+    private Cosmos(MyVars v, PlayerInfo pi[]) {
+        mV = v;
         mPlayerInfo = pi;
         mLeaderboardAdaptor = new LeaderboardAdaptor();
     }

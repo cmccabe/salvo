@@ -535,8 +535,10 @@ public class RunGameAct extends Activity {
             getIntent().getBundleExtra(GameSetupAct.GAME_SETUP_BUNDLE);
         ModelFactory fac = ModelFactory.fromBundle(smap);
         if (firstRound) {
-            mCosmos = Cosmos.fromInitial(fac.getNumPlayers());
+            mCosmos = Cosmos.fromInitial(fac.getNumRounds(),
+                                         fac.getNumPlayers());
         }
+        mCosmos.nextRound();
         mModel = fac.createModel(mCosmos);
         if (firstRound) {
             mState = GameState.createInitialGameState();
