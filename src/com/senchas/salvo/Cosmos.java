@@ -17,6 +17,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 /**
@@ -156,13 +157,13 @@ public class Cosmos {
         public View getView(int position, View convertView,
                             ViewGroup parent) {
             Context c = parent.getContext();
-            LinearLayout lay = null;
+            RelativeLayout lay = null;
             TextView left = null, right = null;
 
             // Figure out if we can reuse convertView for our purposes
             if (convertView != null) {
-                if (convertView instanceof LinearLayout) {
-                    LinearLayout ll = (LinearLayout)convertView;
+                if (convertView instanceof RelativeLayout) {
+                    RelativeLayout ll = (RelativeLayout)convertView;
                     if (ll.getChildCount() == 2) {
                         View u = ll.getChildAt(0);
                         View l = ll.getChildAt(1);
@@ -176,15 +177,22 @@ public class Cosmos {
                 }
             }
             if (lay == null) {
-                lay = new LinearLayout(c);
+                lay = new RelativeLayout(c);
                 left = new TextView(c);
                 right = new TextView(c);
                 lay.addView(left);
+                RelativeLayout.LayoutParams left_params =
+                    (RelativeLayout.LayoutParams) left.getLayoutParams();
+                left_params.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+
                 lay.addView(right);
+                RelativeLayout.LayoutParams right_params =
+                    (RelativeLayout.LayoutParams) right.getLayoutParams();
+                right_params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
             }
 
             // Set up the layout
-            lay.setOrientation(LinearLayout.HORIZONTAL);
+            //lay.setOrientation(LinearLayout.HORIZONTAL);
             lay.setHorizontalGravity(Gravity.LEFT);
 
             Entry entry = mEntries[position];

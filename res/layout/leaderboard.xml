@@ -31,8 +31,10 @@
         android:cacheColorHint="#00000000"
         android:layout_below="@+id/title"
         android:layout_above="@+id/ok"
-        android:padding="1mm"
-    />
+        android:paddingBottom="1mm"
+        android:paddingLeft="4.5mm"
+        android:paddingRight="4.5mm"
+        android:paddingTop="1mm"/>
     <Button
         android:id="@+id/ok"
         android:layout_width="fill_parent"
