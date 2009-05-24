@@ -2,7 +2,7 @@
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
+    android:layout_height="35mm"
     android:orientation="vertical"
     android:gravity="center"
     android:layout_margin="1mm"
@@ -12,7 +12,7 @@
         android:layout_width="70mm"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:textSize="4mm"
+        android:textSize="2.75mm"
         android:textColor="#fff"
         android:maxLines="1"
         android:text=""
@@ -23,9 +23,9 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:textSize="6.5mm"
+        android:textSize="4.2mm"
         android:textColor="#fff"
-        android:maxLines="1"
+        android:maxLines="10"
         android:text="And The Winner Is..."
         android:padding="1mm"
     />
@@ -37,3 +37,4 @@
         android:text="OK"
     />
 </LinearLayout>
+    
