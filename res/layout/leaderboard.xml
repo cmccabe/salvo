@@ -23,7 +23,7 @@
     <ListView
         android:id="@+id/scores"
         android:layout_width="fill_parent"
-        android:layout_height="19mm"
+        android:layout_height="25mm"
         android:visibility="visible"
         android:clickable="true"
         android:focusableInTouchMode="true"
