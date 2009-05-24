@@ -61,7 +61,7 @@ public class Cosmos {
         /*================= Lifecycle =================*/
         public static PlayerInfo fromInitial() {
             MyVars v = new MyVars();
-            v.mEarnings = Util.mRandom.nextInt(2000); //TODO: change this to 0
+            v.mEarnings = 0; //Util.mRandom.nextInt(2000); //TODO: change this to 0
             return new PlayerInfo(v, Armory.fromDefault());
         }
 
