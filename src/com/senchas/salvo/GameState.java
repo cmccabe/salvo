@@ -252,6 +252,8 @@ public abstract class GameState {
 
         /*================= Data =================*/
         private boolean mFinished;
+        private boolean mDisplayActive;
+        private long mDisplayTime;
 
         /*================= Operations =================*/
         @Override
@@ -261,23 +263,28 @@ public abstract class GameState {
 
         @Override
         public void onEnter(RunGameActAccessor game) {
-            mFinished = false;
-            RunGameAct runGameAct = game.getRunGameAct();
-            StartLeaderboardDialog dial =
-                new StartLeaderboardDialog(runGameAct);
-            runGameAct.runOnUiThread(dial);
-
-            game.getGameControlView().drawSky();
         }
 
         @Override
         public GameState main(RunGameActAccessor game) {
+            if (! mDisplayActive) {
+                long curTime = System.currentTimeMillis();
+                if (curTime < mDisplayTime)
+                    return null;
+                mDisplayActive = true;
+                RunGameAct runGameAct = game.getRunGameAct();
+                StartLeaderboardDialog dial =
+                    new StartLeaderboardDialog(runGameAct);
+                runGameAct.runOnUiThread(dial);
+                game.getGameControlView().drawSky();
+            }
+
             return (mFinished) ? BuyWeaponsState.create() : null;
         }
 
         @Override
         public int getBlockingDelay() {
-            return 0;
+            return mDisplayActive ? 0 : 100;
         }
 
         @Override
@@ -292,16 +299,19 @@ public abstract class GameState {
         }
 
         /*================= Lifecycle =================*/
-        private void initialize() {
+        private void initialize(int initialDelay) {
+            mFinished = false;
+            mDisplayActive = false;
+            mDisplayTime = System.currentTimeMillis() + initialDelay;
         }
 
-        public static LeaderboardState create() {
-            sMe.initialize();
+        public static LeaderboardState create(int initialDelay) {
+            sMe.initialize(initialDelay);
             return sMe;
         }
 
         public static LeaderboardState createFromBundle(Bundle map) {
-            sMe.initialize();
+            sMe.initialize(0);
             return sMe;
         }
 
@@ -343,13 +353,8 @@ public abstract class GameState {
 
         @Override
         public void onExit(RunGameActAccessor game) {
-            if (game.getCosmos().moreRoundsRemaining()) {
-                game.getRunGameAct().startRound(false);
-                game.getRunGameAct().continueRound();
-            }
-            else {
-                game.getRunGameAct().finish();
-            }
+            game.getRunGameAct().startRound(false);
+            game.getRunGameAct().continueRound();
         }
 
         @Override
@@ -389,6 +394,7 @@ public abstract class GameState {
     public static class TurnStartState extends GameState {
         /*================= Constants =================*/
         public static final byte ID = 10;
+        public static final int AFTER_ROUND_PAUSE = 3000;
 
         /*================= Static =================*/
         private static TurnStartState sMe = new TurnStartState();
@@ -412,13 +418,13 @@ public abstract class GameState {
         public GameState main(RunGameActAccessor game) {
             if (mInfo.isDraw()) {
                 // TODO: display "it was a draw!" or similar
-                return LeaderboardState.create();
+                return LeaderboardState.create(AFTER_ROUND_PAUSE);
             }
             else if (mInfo.curPlayerHasWon()) {
                 // Someone won the round.
                 // TODO: display "foo wins" or similar
                 // TODO: add gold to account, or whatever
-                return LeaderboardState.create();
+                return LeaderboardState.create(AFTER_ROUND_PAUSE);
             }
             else {
                 Model model = game.getModel();
