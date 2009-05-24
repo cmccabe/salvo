@@ -22,6 +22,7 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.senchas.salvo.RunGameAct.AnnounceWinnerDialog;
 import com.senchas.salvo.RunGameAct.BuyWeaponsDialog;
 import com.senchas.salvo.RunGameAct.LeaderboardDialog;
 import com.senchas.salvo.RunGameAct.RunGameActAccessor;
@@ -147,6 +148,24 @@ public abstract class GameState {
         }
     }
 
+    /** Runnable which starts the announce winner dialog box */
+    private static class StartAnnounceWinnerDialog implements Runnable {
+        /*================= Data =================*/
+        RunGameAct mRunGameAct;
+
+        /*================= Operations =================*/
+        public void run() {
+            AnnounceWinnerDialog announceWinner =
+                mRunGameAct.new AnnounceWinnerDialog(mRunGameAct);
+            announceWinner.show();
+        }
+
+        /*================= Lifecycle=================*/
+        StartAnnounceWinnerDialog(RunGameAct runGameAct) {
+            mRunGameAct = runGameAct;
+        }
+    }
+
     /*================= Operations =================*/
     /** Pack this GameState into a Bundle.
      *
@@ -195,15 +214,23 @@ public abstract class GameState {
     }
 
     /*================= Game States =================*/
-    //         +-------------------------+        no more rounds left
-    //         | LeaderboardState        |--------------> game over
-    //  force  |                         |
-    //  draw   | show the leaderboard    |<---------+
-    //  -----> |                         |          |
+    //         +-------------------------+
+    //         | AnnounceWinnerState     |
+    //         |                         |--------> end game
+    //         | announces the winner    |
+    //         |                         |
+    //         +-------------------------+
+    //                     ^
+    //                     |  no more rounds left
+    //         +-------------------------+
+    //         | LeaderboardState        |
+    //         |                         |
+    // force   | show the leaderboard    |<---------+
+    // draw -> |                         |          |
     //         +-------------------------+          |
-    //                     | next round button      |
+    //                     | next round             |
     //                     V                        |
-    //         +------------------------------+     |
+    //  start  +------------------------------+     |
     //  new    | BuyWeaponsState              |     |
     //  game   |                              |     |
     //  -----> | allow humans to buy          |     |
@@ -279,7 +306,12 @@ public abstract class GameState {
                 game.getGameControlView().drawSky();
             }
 
-            return (mFinished) ? BuyWeaponsState.create() : null;
+            if (!mFinished)
+                return null;
+            else if (game.getCosmos().moreRoundsRemaining())
+                return BuyWeaponsState.create();
+            else
+                return AnnounceWinnerState.create();
         }
 
         @Override
@@ -316,6 +348,84 @@ public abstract class GameState {
         }
 
         private LeaderboardState() { }
+    }
+
+    ///** Displays the "and the winner is..." message */
+    public static class AnnounceWinnerState extends GameState {
+        /*================= Constants =================*/
+        public static final byte ID = 1;
+
+        /*================= Static =================*/
+        private static AnnounceWinnerState sMe = new AnnounceWinnerState();
+
+        /*================= Data =================*/
+        private boolean mFinished;
+
+        private boolean mDisplayActive;
+
+        /*================= Operations =================*/
+        @Override
+        public void saveState(Bundle map) {
+            map.putByte(GAME_STATE_ID, ID);
+        }
+
+        @Override
+        public void onEnter(RunGameActAccessor game) {
+        }
+
+        @Override
+        public GameState main(RunGameActAccessor game) {
+            if (!mDisplayActive) {
+                RunGameAct runGameAct = game.getRunGameAct();
+                StartAnnounceWinnerDialog dial =
+                    new StartAnnounceWinnerDialog(runGameAct);
+                runGameAct.runOnUiThread(dial);
+                game.getGameControlView().drawSky();
+                mDisplayActive = true;
+            }
+
+            if (mFinished) {
+                game.getRunGameAct().endGame();
+                return null;
+            }
+            else {
+                return null;
+            }
+        }
+
+        @Override
+        public int getBlockingDelay() {
+            return 0;
+        }
+
+        @Override
+        public boolean onButton(RunGameActAccessor game, GameButton b) {
+            if (b == GameButton.OK) {
+                mFinished = true;
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+
+        /*================= Lifecycle =================*/
+        private void initialize() {
+            mFinished = false;
+            mDisplayActive = false;
+        }
+
+        public static AnnounceWinnerState create() {
+            sMe.initialize();
+            return sMe;
+        }
+
+        public static AnnounceWinnerState createFromBundle(Bundle map) {
+            sMe.initialize();
+            return sMe;
+        }
+
+        private AnnounceWinnerState() { }
     }
 
     /** Allows the user to buy weapons */
@@ -1769,6 +1879,8 @@ public abstract class GameState {
         switch (id) {
             case LeaderboardState.ID:
                 return LeaderboardState.createFromBundle(map);
+            case AnnounceWinnerState.ID:
+                return AnnounceWinnerState.createFromBundle(map);
             case BuyWeaponsState.ID:
                 return BuyWeaponsState.createFromBundle(map);
             case TurnStartState.ID:
@@ -1788,6 +1900,6 @@ public abstract class GameState {
     }
 
     public static GameState createInitialGameState() {
-        return TurnStartState.create();
+        return BuyWeaponsState.create();
     }
 }

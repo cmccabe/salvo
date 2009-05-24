@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:layout_margin="1mm"
+    >
+    <TextView
+        android:id="@+id/intro"
+        android:layout_width="70mm"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textSize="4mm"
+        android:textColor="#fff"
+        android:maxLines="1"
+        android:text=""
+        android:padding="1mm"
+    />
+    <TextView
+        android:id="@+id/player"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textSize="6.5mm"
+        android:textColor="#fff"
+        android:maxLines="1"
+        android:text="And The Winner Is..."
+        android:padding="1mm"
+    />
+    <Button
+        android:id="@+id/ok"
+        android:layout_width="40mm"
+        android:layout_height="wrap_content" 
+        android:layout_alignParentLeft="true"
+        android:text="OK"
+    />
+</LinearLayout>

@@ -4,4 +4,8 @@
         <!-- <item name="android:windowBackground">@drawable/blue</item>
         <item name="android:colorForeground">#f0f0</item> -->
     </style> 
+
+    <style name="announce_winner_dialog" parent="android:Theme.Dialog">
+        <item name="android:windowNoTitle">true</item> 
+    </style> 
 </resources>

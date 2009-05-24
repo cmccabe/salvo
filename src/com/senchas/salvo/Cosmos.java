@@ -80,6 +80,9 @@ public class Cosmos {
 
     /** Provides a view of the players, sorted by earnings */
     public static class LeaderboardAdaptor extends BaseAdapter {
+        /*================= Constants =================*/
+        private static final int BLACK = 0xff000000;
+
         /*================= Types =================*/
         public static class Entry implements Comparable <Entry> {
             /*================= Data =================*/
@@ -140,6 +143,58 @@ public class Cosmos {
         private int mLen;
 
         /*================= Access =================*/
+        /** Returns true only if there are at least two players tied for
+         * winner */
+        public boolean tieForWinner() {
+            if (mEntries.length < 2) {
+                return false;
+            }
+            return (mEntries[0].getEarnings() == mEntries[1].getEarnings());
+        }
+
+        /** Gets the text that should go in the dialog box talking about the
+         * winner */
+        public String getWinnerText() {
+            if (mEntries.length < 1) {
+                throw new RuntimeException("getWinnerText: no entries " +
+                                            "in mEntries");
+            }
+            int bestEarnings = mEntries[0].getEarnings();
+            int firstLoser;
+            for (firstLoser = 1;
+                firstLoser < mEntries.length;
+                firstLoser++)
+            {
+                if (mEntries[firstLoser].getEarnings() < bestEarnings)
+                    break;
+            }
+
+            if (firstLoser == 1) {
+                // only one person won
+                return mEntries[0].getName();
+            }
+            else {
+                // List all the players in the tie
+                StringBuilder b = new StringBuilder(150);
+                b.append(mEntries[0]);
+                for (int i = 0; i < firstLoser - 1; i++) {
+                    b.append(", ");
+                    b.append(mEntries[i]);
+                }
+                b.append(" and ");
+                b.append(mEntries[firstLoser - 1]);
+                return b.toString();
+            }
+        }
+
+        public int getWinnerColor() {
+            if (tieForWinner() || mEntries.length < 1)
+                return BLACK;
+            else {
+                return mEntries[0].getColor();
+            }
+        }
+
         public boolean areAllItemsEnabled() { return true; }
 
         public boolean isEnabled(int position) { return true; }

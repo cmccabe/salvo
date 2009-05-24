@@ -475,6 +475,56 @@ public class RunGameAct extends Activity {
         }
     }
 
+    /** Implements the "announce winner" dialog box */
+    public class AnnounceWinnerDialog extends Dialog
+                                        implements OnClickListener {
+        /*================= Types =================*/
+
+        /*================= Operations =================*/
+        public void onClick(View view) {
+            switch (view.getId()) {
+                case R.id.ok:
+                    synchronized (mStateLock) {
+                        if (mState.onButton(mAcc,
+                                GameState.GameButton.OK)) {
+                            mStateLock.notify();
+                        }
+                    }
+                    dismiss();
+                    break;
+            }
+        }
+
+        /*================= Lifecycle =================*/
+        @Override
+        protected void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            setCancelable(false);
+            setContentView(R.layout.announce_winner);
+
+            Button ok = (Button) findViewById(R.id.ok);
+            ok.setOnClickListener(this);
+
+            TextView intro = (TextView) findViewById(R.id.intro);
+            Cosmos.LeaderboardAdaptor adapt =
+                mCosmos.getLeaderboardAdaptor(mModel);
+            if (adapt.tieForWinner()) {
+                intro.setText("It's a tie between...");
+            }
+            else {
+                intro.setText("And the winner is...");
+            }
+
+            TextView player = (TextView) findViewById(R.id.player);
+            player.setText(adapt.getWinnerText());
+            player.setTextColor(adapt.getWinnerColor());
+        }
+
+        public AnnounceWinnerDialog(Context context) {
+            super(context, R.style.announce_winner_dialog);
+        }
+    }
+
     /*================= Operations =================*/
     /** Called from GameControlView to handle keystrokes */
     public boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -548,6 +598,11 @@ public class RunGameAct extends Activity {
     public void continueRound() {
         mGameControlView.initialize(mModel.getBackground(),
                                    mModel.getForeground());
+    }
+
+    public void endGame() {
+        // TODO: use condition code to signal to the other activities to quit
+        finish();
     }
 
     /*================= Lifecycle =================*/
