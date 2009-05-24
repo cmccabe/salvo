@@ -2,10 +2,11 @@
 
     <!--- android:layout_height="20mm" -->
 
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:orientation="vertical"
+    android:gravity="center"
     android:layout_margin="1mm"
     >
     <TextView
@@ -13,17 +14,16 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:textSize="4mm"
+        android:textSize="3mm"
         android:textColor="#fff"
         android:maxLines="1"
         android:text="High Scores"
         android:padding="1mm"
-        android:layout_alignParentTop="true"
     />
     <ListView
         android:id="@+id/scores"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="19mm"
         android:visibility="visible"
         android:clickable="true"
         android:focusableInTouchMode="true"
@@ -37,10 +37,13 @@
         android:paddingTop="1mm"/>
     <Button
         android:id="@+id/ok"
-        android:layout_width="fill_parent"
-        android:layout_height="8mm" 
+        android:layout_width="40mm"
+        android:layout_height="7mm"
         android:text="OK"
-        android:layout_alignParentBottom="true"        
-        android:padding="1mm"
+        android:padding="1mm"/>        
     />
-</RelativeLayout>
+    <ListView
+        android:id="@+id/stretcher"
+        android:layout_width="70mm"
+        android:layout_height="1px"/>
+</LinearLayout>

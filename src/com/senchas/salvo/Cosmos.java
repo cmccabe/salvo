@@ -205,7 +205,7 @@ public class Cosmos {
 
             right.setTextSize(TypedValue.COMPLEX_UNIT_MM, 3);
             right.setTextColor(entry.getColor());
-            right.setText(Integer.toString(entry.getEarnings()));
+            right.setText(Integer.toString(entry.getEarnings()) + "    ");
             return lay;
         }
 
