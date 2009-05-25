@@ -365,7 +365,7 @@ public class PlayerSetupAct extends Activity {
     protected void onActivityResult(
             int requestCode, int resultCode, Intent data) {
         if (requestCode != LAUNCH_RUN_GAME_ACT) {
-            Log.e(this.getClass().getName(), "can't understand " + 
+            Log.e(this.getClass().getName(), "can't understand " +
                         "requestCode " + requestCode);
             return;
         }
@@ -378,9 +378,9 @@ public class PlayerSetupAct extends Activity {
             case RunGameAct.RESULT_USER_PRESSED_BACK:
                 break;
             default:
-            	Log.e(this.getClass().getName(), "can't understand " + 
+                Log.e(this.getClass().getName(), "can't understand " +
                         "resultCode " + resultCode);
-            	break;
+                break;
         }
     }
 }

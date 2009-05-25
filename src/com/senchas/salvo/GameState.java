@@ -116,14 +116,14 @@ public abstract class GameState {
     private static class StartBuyWeaponsDialog implements Runnable {
         /*================= Data =================*/
         private RunGameAct mRunGameAct;
-        
+
         private Player mPlayer;
-        
+
         /*================= Operations =================*/
         public void run() {
             BuyWeaponsDialog buyWeapons =
                 mRunGameAct.new BuyWeaponsDialog(mRunGameAct,
-                			mPlayer.getName(), mPlayer.getBaseColor().toInt());
+                            mPlayer.getName(), mPlayer.getBaseColor().toInt());
             buyWeapons.show();
         }
 
@@ -455,7 +455,7 @@ public abstract class GameState {
             RunGameAct runGameAct = game.getRunGameAct();
             StartBuyWeaponsDialog dial =
                 new StartBuyWeaponsDialog(runGameAct,
-                		game.getModel().getPlayers()[0]);
+                        game.getModel().getPlayers()[0]);
             runGameAct.runOnUiThread(dial);
 
             game.getGameControlView().drawSky();

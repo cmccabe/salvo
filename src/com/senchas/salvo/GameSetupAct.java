@@ -151,7 +151,7 @@ public class GameSetupAct extends Activity {
     protected void onActivityResult(
             int requestCode, int resultCode, Intent data) {
         if (requestCode != LAUNCH_PLAYER_SETUP_ACT) {
-            Log.e(this.getClass().getName(), "can't understand " + 
+            Log.e(this.getClass().getName(), "can't understand " +
                         "requestCode " + requestCode);
             return;
         }
@@ -161,11 +161,11 @@ public class GameSetupAct extends Activity {
                 finish();
                 break;
             case Activity.RESULT_CANCELED:
-            	break;
+                break;
             default:
-            	Log.e(this.getClass().getName(), "can't understand " + 
+                Log.e(this.getClass().getName(), "can't understand " +
                         "resultCode " + resultCode);
-            	break;
+                break;
         }
     }
 }

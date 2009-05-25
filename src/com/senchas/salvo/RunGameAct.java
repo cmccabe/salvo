@@ -408,7 +408,7 @@ public class RunGameAct extends Activity {
     public class BuyWeaponsDialog extends Dialog implements OnClickListener {
         /*================= Data =================*/
         private TextView mCreditText;
-        
+
         private String mPlayerName;
 
         private int mPlayerColor;
@@ -439,13 +439,13 @@ public class RunGameAct extends Activity {
             TextView playerNameText = (TextView) findViewById(R.id.player_name);
             playerNameText.setText(mPlayerName);
             playerNameText.setTextColor(mPlayerColor);
-            
+
             mCreditText = (TextView) findViewById(R.id.credits);
             done.setOnClickListener(this);
         }
 
         public BuyWeaponsDialog(Context context,
-        						String playerName, int playerColor) {
+                                String playerName, int playerColor) {
             super(context, R.style.buy_weapons_dialog);
             mPlayerName = playerName;
             mPlayerColor = playerColor;
