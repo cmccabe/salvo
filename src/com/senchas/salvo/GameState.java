@@ -115,18 +115,22 @@ public abstract class GameState {
     /** Runnable which starts the 'buy weapons' dialog box */
     private static class StartBuyWeaponsDialog implements Runnable {
         /*================= Data =================*/
-        RunGameAct mRunGameAct;
-
+        private RunGameAct mRunGameAct;
+        
+        private Player mPlayer;
+        
         /*================= Operations =================*/
         public void run() {
             BuyWeaponsDialog buyWeapons =
-                mRunGameAct.new BuyWeaponsDialog(mRunGameAct);
+                mRunGameAct.new BuyWeaponsDialog(mRunGameAct,
+                			mPlayer.getName(), mPlayer.getBaseColor().toInt());
             buyWeapons.show();
         }
 
         /*================= Lifecycle=================*/
-        StartBuyWeaponsDialog(RunGameAct runGameAct) {
+        StartBuyWeaponsDialog(RunGameAct runGameAct, Player player) {
             mRunGameAct = runGameAct;
+            mPlayer = player;
         }
     }
 
@@ -450,7 +454,8 @@ public abstract class GameState {
             mFinished = false;
             RunGameAct runGameAct = game.getRunGameAct();
             StartBuyWeaponsDialog dial =
-                new StartBuyWeaponsDialog(runGameAct);
+                new StartBuyWeaponsDialog(runGameAct,
+                		game.getModel().getPlayers()[0]);
             runGameAct.runOnUiThread(dial);
 
             game.getGameControlView().drawSky();

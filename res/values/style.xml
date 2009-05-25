@@ -8,4 +8,8 @@
     <style name="announce_winner_dialog" parent="android:Theme.Dialog">
         <item name="android:windowNoTitle">true</item> 
     </style> 
+
+    <style name="buy_weapons_dialog" parent="android:Theme.Dialog">
+        <item name="android:windowNoTitle">true</item> 
+    </style> 
 </resources>

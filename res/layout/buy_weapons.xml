@@ -1,35 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-    <!--- android:layout_height="20mm" -->
-
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
+    android:layout_width="70mm"
+    android:layout_height="40mm"
     android:orientation="vertical"
+    android:gravity="center"
+    android:layout_margin="1mm"
     >
-    <TextView
-        android:id="@+id/buy_weapons"
-        android:layout_height="wrap_content"
+    <LinearLayout 
         android:layout_width="wrap_content"
-        android:gravity="center"
-        android:textSize="3mm"
-        android:textColor="#000"
-        android:maxLines="1"
-        android:text="Buy Weapons for "
-    />
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_gravity="center">
+        <TextView
+            android:id="@+id/buy_weapons_for"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:textSize="3.2mm"
+            android:maxLines="1"
+            android:textColor="#fff"
+            android:text="Buy Weapons for "
+        />
+        <TextView
+            android:id="@+id/player_name"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:textSize="3mm"
+            android:maxLines="1"
+            android:text=""
+        />
+    </LinearLayout>
     <TextView
         android:id="@+id/credits"
         android:layout_height="wrap_content"
         android:layout_width="wrap_content"
-        android:gravity="center"
-        android:textSize="2mm"
-        android:textColor="#0f0"
+        android:textSize="3mm"
         android:maxLines="1"
-        android:text="5000 Credits"
+        android:textColor="#fff"
+        android:text="5000 credits remaining"
     />
+    <ListView
+        android:id="@+id/weapons"
+        android:layout_width="fill_parent"
+        android:layout_height="25mm"
+        android:visibility="visible"
+        android:clickable="true"
+        android:focusableInTouchMode="true"
+        android:choiceMode="singleChoice"
+        android:cacheColorHint="#00000000"
+        android:layout_below="@+id/title"
+        android:layout_above="@+id/ok"
+        android:paddingBottom="1mm"
+        android:paddingLeft="4.5mm"
+        android:paddingRight="4.5mm"
+        android:paddingTop="1mm"/>
     <Button
         android:id="@+id/done"
-        android:layout_width="fill_parent"
+        android:layout_width="40mm"
         android:layout_height="wrap_content" 
         android:layout_alignParentLeft="true"
         android:text="Done"
