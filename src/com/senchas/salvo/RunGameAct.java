@@ -26,6 +26,13 @@ import android.view.View.OnClickListener;
 
 public class RunGameAct extends Activity {
     /*================= Constants =================*/
+    /** Result returned when the game ends */
+    public static final int RESULT_GAME_OVER = RESULT_FIRST_USER;
+
+    /** Result returned when the user presses back to abort the game */
+    public static final int RESULT_USER_PRESSED_BACK = RESULT_FIRST_USER + 1;
+
+    /* NOTE: We will return RESULT_CANCELLED if the activity crashes */
 
     /*================= Handles to Views =================*/
     /** A view representing the part of the screen where most of the graphics
@@ -559,7 +566,7 @@ public class RunGameAct extends Activity {
             new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog,
                                     int whichButton) {
-                    setResult(RESULT_OK);
+                    setResult(RESULT_USER_PRESSED_BACK);
                     finish();
                 }
             });
@@ -601,7 +608,7 @@ public class RunGameAct extends Activity {
     }
 
     public void endGame() {
-        // TODO: use condition code to signal to the other activities to quit
+        setResult(RESULT_GAME_OVER);
         finish();
     }
 

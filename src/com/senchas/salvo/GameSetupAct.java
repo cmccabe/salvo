@@ -21,6 +21,8 @@ public class GameSetupAct extends Activity {
     /*================= Constants =================*/
     public static final String GAME_SETUP_BUNDLE = "GAME_SETUP_BUNDLE";
 
+    private static final int LAUNCH_PLAYER_SETUP_ACT = 1;
+
     /*================= Types =================*/
 
     /*================= Data =================*/
@@ -131,7 +133,7 @@ public class GameSetupAct extends Activity {
                 Bundle map = new Bundle();
                 onSaveInstanceState(map);
                 myIntent.putExtra(GameSetupAct.GAME_SETUP_BUNDLE, map);
-                startActivity(myIntent);
+                startActivityForResult(myIntent, LAUNCH_PLAYER_SETUP_ACT);
             }
         });
     }
@@ -144,5 +146,27 @@ public class GameSetupAct extends Activity {
     @Override
     protected void onSaveInstanceState(Bundle b) {
         mModelFactory.saveState(b);
+    }
+
+    protected void onActivityResult(
+            int requestCode, int resultCode, Intent data) {
+        if (requestCode != LAUNCH_PLAYER_SETUP_ACT) {
+            Log.e(this.getClass().getName(), "can't understand " + 
+                        "requestCode " + requestCode);
+            return;
+        }
+        switch (resultCode) {
+            case RunGameAct.RESULT_GAME_OVER:
+            case Activity.RESULT_CANCELED:
+                setResult(resultCode);
+                finish();
+                break;
+            case RunGameAct.RESULT_USER_PRESSED_BACK:
+                break;
+            default:
+            	Log.e(this.getClass().getName(), "can't understand " + 
+                        "resultCode " + resultCode);
+            	break;
+        }
     }
 }

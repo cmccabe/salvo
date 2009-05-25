@@ -28,6 +28,7 @@ import android.widget.Spinner;
 
 public class PlayerSetupAct extends Activity {
     /*================= Constants =================*/
+    private static final int LAUNCH_RUN_GAME_ACT = 1;
 
     /*================= Types =================*/
 
@@ -355,6 +356,29 @@ public class PlayerSetupAct extends Activity {
         Bundle map = new Bundle();
         onSaveInstanceState(map);
         myIntent.putExtra(GameSetupAct.GAME_SETUP_BUNDLE, map);
-        startActivity(myIntent);
+        startActivityForResult(myIntent, LAUNCH_RUN_GAME_ACT);
+
+    }
+
+    protected void onActivityResult(
+            int requestCode, int resultCode, Intent data) {
+        if (requestCode != LAUNCH_RUN_GAME_ACT) {
+            Log.e(this.getClass().getName(), "can't understand " + 
+                        "requestCode " + requestCode);
+            return;
+        }
+        switch (resultCode) {
+            case RunGameAct.RESULT_GAME_OVER:
+            case Activity.RESULT_CANCELED:
+                setResult(resultCode);
+                finish();
+                break;
+            case RunGameAct.RESULT_USER_PRESSED_BACK:
+                break;
+            default:
+            	Log.e(this.getClass().getName(), "can't understand " + 
+                        "resultCode " + resultCode);
+            	break;
+        }
     }
 }
