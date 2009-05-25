@@ -162,7 +162,7 @@ public class Cosmos {
             int bestEarnings = mEntries[0].getEarnings();
             int firstLoser;
             for (firstLoser = 1;
-                firstLoser < mLen - 1;
+                firstLoser < mLen;
                 firstLoser++)
             {
                 if (mEntries[firstLoser].getEarnings() < bestEarnings)
