@@ -32,8 +32,6 @@ public class TitleScreenAct extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Sound.instance.init(this);
-
         ////////////////// setContentView
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.title);
