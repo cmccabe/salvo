@@ -156,13 +156,12 @@ public class GameSetupAct extends Activity {
             return;
         }
         switch (resultCode) {
-            case RunGameAct.RESULT_GAME_OVER:
-            case Activity.RESULT_CANCELED:
+            case PlayerSetupAct.RESULT_EXIT_OUT:
                 setResult(resultCode);
                 finish();
                 break;
-            case RunGameAct.RESULT_USER_PRESSED_BACK:
-                break;
+            case Activity.RESULT_CANCELED:
+            	break;
             default:
             	Log.e(this.getClass().getName(), "can't understand " + 
                         "resultCode " + resultCode);

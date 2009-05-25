@@ -30,6 +30,8 @@ public class PlayerSetupAct extends Activity {
     /*================= Constants =================*/
     private static final int LAUNCH_RUN_GAME_ACT = 1;
 
+    public static final int RESULT_EXIT_OUT = RESULT_FIRST_USER + 1;
+
     /*================= Types =================*/
 
     /*================= Data =================*/
@@ -370,7 +372,7 @@ public class PlayerSetupAct extends Activity {
         switch (resultCode) {
             case RunGameAct.RESULT_GAME_OVER:
             case Activity.RESULT_CANCELED:
-                setResult(resultCode);
+                setResult(RESULT_EXIT_OUT);
                 finish();
                 break;
             case RunGameAct.RESULT_USER_PRESSED_BACK:
