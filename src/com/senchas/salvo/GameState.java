@@ -117,19 +117,22 @@ public abstract class GameState {
         /*================= Data =================*/
         private RunGameAct mRunGameAct;
 
+        private Cosmos mCosmos;
+
         private Player mPlayer;
 
         /*================= Operations =================*/
         public void run() {
-            BuyWeaponsDialog buyWeapons =
-                mRunGameAct.new BuyWeaponsDialog(mRunGameAct,
-                            mPlayer.getName(), mPlayer.getBaseColor().toInt());
+            BuyWeaponsDialog buyWeapons = mRunGameAct.new
+                    BuyWeaponsDialog(mRunGameAct, mCosmos, mPlayer);
             buyWeapons.show();
         }
 
         /*================= Lifecycle=================*/
-        StartBuyWeaponsDialog(RunGameAct runGameAct, Player player) {
+        StartBuyWeaponsDialog(RunGameAct runGameAct,
+                              Cosmos cosmos, Player player) {
             mRunGameAct = runGameAct;
+            mCosmos = cosmos;
             mPlayer = player;
         }
     }
@@ -455,6 +458,7 @@ public abstract class GameState {
             RunGameAct runGameAct = game.getRunGameAct();
             StartBuyWeaponsDialog dial =
                 new StartBuyWeaponsDialog(runGameAct,
+                        game.getCosmos(),
                         game.getModel().getPlayers()[0]);
             runGameAct.runOnUiThread(dial);
 

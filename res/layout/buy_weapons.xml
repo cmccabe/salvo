@@ -16,7 +16,7 @@
             android:id="@+id/buy_weapons_for"
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"
-            android:textSize="3.2mm"
+            android:textSize="3mm"
             android:maxLines="1"
             android:textColor="#fff"
             android:text="Buy Weapons for "
@@ -40,7 +40,7 @@
         android:text="5000 credits remaining"
     />
     <ListView
-        android:id="@+id/weapons"
+        android:id="@+id/weapons_list"
         android:layout_width="fill_parent"
         android:layout_height="25mm"
         android:visibility="visible"

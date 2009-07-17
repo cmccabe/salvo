@@ -14,14 +14,20 @@ import android.view.SurfaceHolder;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.ZoomButton;
 
 import com.senchas.salvo.Model;
+import com.senchas.salvo.Cosmos.PlayerInfo;
+import com.senchas.salvo.WeaponType.Armory;
+import com.senchas.salvo.WeaponType.WeaponListAdapter;
+
 import android.view.View.OnClickListener;
 
 public class RunGameAct extends Activity {
@@ -409,9 +415,9 @@ public class RunGameAct extends Activity {
         /*================= Data =================*/
         private TextView mCreditText;
 
-        private String mPlayerName;
+        private Cosmos mCosmos;
 
-        private int mPlayerColor;
+        private Player mPlayer;
 
         /*================= Operations =================*/
         public void onClick(View view) {
@@ -436,19 +442,52 @@ public class RunGameAct extends Activity {
             setContentView(R.layout.buy_weapons);
 
             Button done = (Button) findViewById(R.id.done);
-            TextView playerNameText = (TextView) findViewById(R.id.player_name);
-            playerNameText.setText(mPlayerName);
-            playerNameText.setTextColor(mPlayerColor);
+            done.setOnClickListener(this);
+
+            TextView playerNameText =
+                (TextView) findViewById(R.id.player_name);
+            playerNameText.setText(mPlayer.getName());
+            playerNameText.setTextColor(mPlayer.getBaseColor().toInt());
 
             mCreditText = (TextView) findViewById(R.id.credits);
-            done.setOnClickListener(this);
+            updateCreditText();
+
+            final BuyWeaponsDialog enclosing = this;
+            ListView weaponList = (ListView)findViewById(R.id.weapons_list);
+            ListAdapter wla = WeaponType.
+                                getWeaponListAdapter(mCosmos, mPlayer);
+            weaponList.setAdapter(wla);
+            weaponList.setOnItemClickListener(
+                new AdapterView.OnItemClickListener() {
+                public void onItemClick(AdapterView<?> parent, View view,
+                                        int position, long id) {
+                    Armory armory = mPlayer.getArmory(mCosmos);
+                    WeaponType weapon =
+                        WeaponType.sSelectableWeapons[position];
+                    armory.addWeapon(weapon);
+
+                    PlayerInfo playerInfo =
+                        mCosmos.getPlayerInfo()[ mPlayer.getId() ];
+                    playerInfo.spendMoney(weapon.getPrice());
+
+                    enclosing.updateCreditText();
+                }
+            });
+        }
+
+        public void updateCreditText() {
+            StringBuilder b = new StringBuilder(80);
+            b.append("$");
+            b.append(mCosmos.getPlayerInfo()[ mPlayer.getId() ].
+                    getEarnings());
+            mCreditText.setText(b.toString());
         }
 
         public BuyWeaponsDialog(Context context,
-                                String playerName, int playerColor) {
+                                Cosmos cosmos, Player player) {
             super(context, R.style.buy_weapons_dialog);
-            mPlayerName = playerName;
-            mPlayerColor = playerColor;
+            mCosmos = cosmos;
+            mPlayer = player;
         }
     }
 

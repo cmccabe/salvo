@@ -58,6 +58,18 @@ public class Cosmos {
             mArmory.saveState(index, map);
         }
 
+        public void spendMoney(int amount) {
+            if (mV.mEarnings < amount) {
+                StringBuilder b = new StringBuilder(200);
+                b.append("spendMoney: we only have $");
+                b.append(mV.mEarnings);
+                b.append(", but we're trying to spend $");
+                b.append(amount);
+                throw new RuntimeException(b.toString());
+            }
+            mV.mEarnings -= amount;
+        }
+
         /*================= Lifecycle =================*/
         public static PlayerInfo fromInitial() {
             MyVars v = new MyVars();
