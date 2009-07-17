@@ -791,6 +791,7 @@ public class RunGameAct extends Activity {
         synchronized (mStateLock) {
             Log.w(this.getClass().getName(),
                     "RunGameAct.onSaveInstanceState");
+            mCosmos.saveState(map);
             mModel.saveState(map);
             mState.saveState(map);
         }
