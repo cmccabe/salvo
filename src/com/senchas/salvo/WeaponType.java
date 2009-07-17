@@ -478,16 +478,15 @@ public enum WeaponType {
             upper.setTextSize(TypedValue.COMPLEX_UNIT_MM, 2.5f);
 
             lower.setText(weapon.getDescription());
-            upper.setTextColor(0);
             lower.setTextSize(TypedValue.COMPLEX_UNIT_MM, 2.2f);
 
             if (isEnabled(position)) {
-                upper.setTextColor(0);
-                lower.setTextColor(0);
+                upper.setTextColor(Color.argb(0xff, 0xff, 0xff, 0xff));
+                lower.setTextColor(Color.argb(0xff, 0xff, 0xff, 0xff));
             }
             else {
-                upper.setTextColor(Color.argb(0xff, 0xff, 0, 0));
-                lower.setTextColor(Color.argb(0xff, 0xff, 0, 0));
+                upper.setTextColor(Color.argb(0xff, 0xee, 0x22, 0x22));
+                lower.setTextColor(Color.argb(0xff, 0xee, 0x22, 0x22));
             }
 
             return lay;

@@ -15,6 +15,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.AdapterView;
+import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListAdapter;
@@ -454,7 +455,7 @@ public class RunGameAct extends Activity {
 
             final BuyWeaponsDialog enclosing = this;
             ListView weaponList = (ListView)findViewById(R.id.weapons_list);
-            ListAdapter wla = WeaponType.
+            final ListAdapter wla = WeaponType.
                                 getWeaponListAdapter(mCosmos, mPlayer);
             weaponList.setAdapter(wla);
             weaponList.setOnItemClickListener(
@@ -471,6 +472,7 @@ public class RunGameAct extends Activity {
                     playerInfo.spendMoney(weapon.getPrice());
 
                     enclosing.updateCreditText();
+                    ((BaseAdapter) wla).notifyDataSetChanged();
                 }
             });
         }
@@ -643,7 +645,8 @@ public class RunGameAct extends Activity {
         ModelFactory fac = ModelFactory.fromBundle(smap);
         if (firstRound) {
             mCosmos = Cosmos.fromInitial(fac.getNumRounds(),
-                                         fac.getNumPlayers());
+                                         fac.getNumPlayers(),
+                                         fac.getStartingCash());
         }
         mCosmos.nextRound();
         mModel = fac.createModel(mCosmos);

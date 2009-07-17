@@ -71,9 +71,9 @@ public class Cosmos {
         }
 
         /*================= Lifecycle =================*/
-        public static PlayerInfo fromInitial() {
+        public static PlayerInfo fromInitial(int startingCash) {
             MyVars v = new MyVars();
-            v.mEarnings = 0; //Util.mRandom.nextInt(2000); //TODO: change this to 0
+            v.mEarnings = startingCash;
             return new PlayerInfo(v, Armory.fromDefault());
         }
 
@@ -349,13 +349,14 @@ public class Cosmos {
     }
 
     /*================= Lifecycle =================*/
-    public static Cosmos fromInitial(short numRounds, int numPlayers) {
+    public static Cosmos fromInitial(short numRounds, int numPlayers, 
+                                     int startingCash) {
         MyVars v = new MyVars();
         v.mCurRound = 0;
         v.mNumRounds = numRounds;
         PlayerInfo pi[] = new PlayerInfo[numPlayers];
         for (int i = 0; i < numPlayers; i++) {
-            pi[i] = PlayerInfo.fromInitial();
+            pi[i] = PlayerInfo.fromInitial(startingCash);
         }
         return new Cosmos(v, pi);
     }
