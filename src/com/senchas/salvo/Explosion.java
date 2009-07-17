@@ -1,5 +1,6 @@
 package com.senchas.salvo;
 
+import com.senchas.salvo.Cosmos.PlayerInfo;
 import com.senchas.salvo.RunGameAct.RunGameActAccessor;
 import com.senchas.salvo.WeaponType.ExplosionAttributes;
 import android.util.Log;
@@ -18,6 +19,12 @@ public class Explosion {
      */
     public static final int BULLSEYE_RADIUS =
         Projectile.PROJECTILE_COLLISION_RADIUS + Player.COLLISION_RADIUS + 2;
+
+    /** How much money players earn from being the last surviving tank */
+    public static final int SURVIVOR_BONUS = 200;
+
+    /** How much money players earn from making a kill */
+    private static final int KILL_BONUS = 150;
 
     public static final Explosion EMPTY_ARRAY[] = new Explosion[0];
 
@@ -108,6 +115,16 @@ public class Explosion {
                 b.append(" damage=").append(damage);
                 Log.w(this.getClass().getName(), b.toString());
                 p.takeDamage(damage);
+
+                // award money to the player who made the shot
+                int damageEarnings = (mPerp == p.getId()) ? -damage : damage;
+                PlayerInfo perpInfo =
+                    game.getCosmos().getPlayerInfo()[mPerp];
+                perpInfo.earnMoney(damageEarnings);
+                if ((! p.isAlive()) && (mPerp != p.getId())) {
+                    perpInfo.earnMoney(KILL_BONUS);
+                }
+
                 damagedUs = true;
             }
             if (dist < Brain.AGGRESSION_NOTIFICATION_DISTANCE) {

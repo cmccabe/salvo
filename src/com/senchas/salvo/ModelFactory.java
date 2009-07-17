@@ -93,10 +93,10 @@ public class ModelFactory {
     /** Represents the amount of cash players start with */
     public static enum StartingCash {
         C0(0),
+        C250(250),
+        C500(500),
         C1000(1000),
-        C2000(2000),
-        C3000(3000),
-        C4000(4000),
+        C1500(1500),
         C5000(5000),
         C10000(10000);
 
@@ -202,7 +202,6 @@ public class ModelFactory {
             v.mName = mV.mName;
             v.mCurWeaponType = arm.getFirstValidWeapon();
             v.mColor = mV.mColor;
-            v.mRoundEarnings = 0;
             Brain brain = mV.mBrainFac.createBrain();
             return new Player(index, v, brain);
         }

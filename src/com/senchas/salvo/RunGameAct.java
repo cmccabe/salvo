@@ -481,7 +481,7 @@ public class RunGameAct extends Activity {
             StringBuilder b = new StringBuilder(80);
             b.append("$");
             b.append(mCosmos.getPlayerInfo()[ mPlayer.getId() ].
-                    getEarnings());
+                    getCash());
             mCreditText.setText(b.toString());
         }
 

@@ -70,9 +70,6 @@ public class Player {
 
         /** Our color */
         public PlayerColor mColor;
-
-        /** Our total earnings so far */
-        public int mRoundEarnings;
     }
     private MyVars mV;
 
@@ -114,10 +111,6 @@ public class Player {
     /*================= Access =================*/
     public boolean getDeathExplosionPending() {
         return mDeathExplosionPending;
-    }
-
-    public int getRoundEarnings() {
-        return mV.mRoundEarnings;
     }
 
     public String getName() {

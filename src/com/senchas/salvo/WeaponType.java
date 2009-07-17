@@ -406,7 +406,7 @@ public enum WeaponType {
 
         public boolean isEnabled(int position) {
             return (sSelectableWeapons[position].getPrice() <=
-                        mPlayerInfo.getEarnings());
+                        mPlayerInfo.getCash());
         }
 
         public boolean areAllItemsSelectable() {

@@ -35,6 +35,9 @@ public class Cosmos {
     public static class PlayerInfo {
         /*================= Data =================*/
         public static class MyVars {
+            /** Current cash supply */
+            public int mCash;
+
             /** Total earnings for the whole game */
             public int mEarnings;
         }
@@ -44,6 +47,10 @@ public class Cosmos {
         Armory mArmory;
 
         /*================= Access =================*/
+        public int getCash() {
+            return mV.mCash;
+        }
+
         public int getEarnings() {
             return mV.mEarnings;
         }
@@ -59,21 +66,32 @@ public class Cosmos {
         }
 
         public void spendMoney(int amount) {
-            if (mV.mEarnings < amount) {
+            if (mV.mCash < amount) {
                 StringBuilder b = new StringBuilder(200);
                 b.append("spendMoney: we only have $");
-                b.append(mV.mEarnings);
+                b.append(mV.mCash);
                 b.append(", but we're trying to spend $");
                 b.append(amount);
                 throw new RuntimeException(b.toString());
             }
-            mV.mEarnings -= amount;
+            mV.mCash -= amount;
+        }
+
+        public void earnMoney(int amount) {
+            if (amount < 0) {
+                mV.mEarnings += amount;
+            }
+            else {
+                mV.mCash += amount;
+                mV.mEarnings += amount;
+            }
         }
 
         /*================= Lifecycle =================*/
         public static PlayerInfo fromInitial(int startingCash) {
             MyVars v = new MyVars();
-            v.mEarnings = startingCash;
+            v.mEarnings = 0;
+            v.mCash = startingCash;
             return new PlayerInfo(v, Armory.fromDefault());
         }
 
@@ -349,7 +367,7 @@ public class Cosmos {
     }
 
     /*================= Lifecycle =================*/
-    public static Cosmos fromInitial(short numRounds, int numPlayers, 
+    public static Cosmos fromInitial(short numRounds, int numPlayers,
                                      int startingCash) {
         MyVars v = new MyVars();
         v.mCurRound = 0;

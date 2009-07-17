@@ -543,6 +543,9 @@ public abstract class GameState {
                 // Someone won the round.
                 // TODO: display "foo wins" or similar
                 // TODO: add gold to account, or whatever
+                game.getCosmos().getPlayerInfo()
+                    [ game.getModel().getCurPlayer().getId() ].
+                        earnMoney(Explosion.SURVIVOR_BONUS);
                 return LeaderboardState.create(AFTER_ROUND_PAUSE);
             }
             else {
