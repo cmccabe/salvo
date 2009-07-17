@@ -379,14 +379,7 @@ public enum WeaponType {
             MyVars v = new MyVars();
             v.mWeapons = new int[weapons.length];
             for (int i = 0; i < weapons.length; i++) {
-                int startingAmount = weapons[i].getStartingAmount();
-
-                // Give a good selection of weapons...
-                // TODO: take this out
-                if (startingAmount == 0)
-                    startingAmount = 4;
-
-                v.mWeapons[i] = startingAmount;
+                v.mWeapons[i] = weapons[i].getStartingAmount();
             }
 
             return new Armory(v);
