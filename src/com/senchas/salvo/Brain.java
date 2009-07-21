@@ -389,6 +389,7 @@ public abstract class Brain {
     public static class EasyBrain extends Brain {
         /*================= Constants =================*/
         public static final short ID = 2;
+        public static final int INVALID_ERROR = Integer.MAX_VALUE;
 
         /*================= Static =================*/
         public static EasyBrain fromBundle(int index, Bundle map) {
@@ -419,18 +420,26 @@ public abstract class Brain {
         /*================= Utility =================*/
         // Get a random float from [minVal, maxVal].
         //
-        // The results will have a distribution which is sort of a truncated
-        // gaussian. Increasing "compression" will make the values farther
-        // from minVal and maxVal.
-        float getSkewedRandom(float minVal, float maxVal, float compression)
+        float getSkewedRandom(float minVal, float maxVal, int error)
         {
-            float r = (float)Util.mRandom.nextGaussian();
-            r /= compression;
-            if (r < -3f)
-                return minVal;
-            if (r > 3f)
-                return maxVal;
-            return ((r + 3f) * (maxVal - minVal)) / 6f;
+            if (error > 100) {
+                // These results will be uniformly distributed and large.
+                // This reflects the fact that we still don't have a good fix.
+                float r = Util.mRandom.nextFloat();
+                return (r * (maxVal - minVal)) + minVal;
+            }
+            else {
+                // These results will have a distribution which is sort of a
+                // truncated gaussian. This reflects the fact that we're already
+                // doing pretty well and we want to be conservative.
+                float r = (float)Util.mRandom.nextGaussian();
+                if (r < -3f)
+                    return minVal;
+                if (r > 3f)
+                    return maxVal;
+                r /= 3f;
+                return (r * (maxVal - minVal)) + minVal;
+            }
         }
 
         // Simulate what firing with the given angle and power would do.
@@ -459,39 +468,46 @@ public abstract class Brain {
         }
 
         // Test some alternate shots and pick the best one.
-        void refinementPass(RunGameActAccessor game, Player target)
+        // Returns the current error between the shot we're making and the target.
+        int refinementPass(RunGameActAccessor game, Player target, int error)
         {
+            int tx = target.getX();
             float angleRad = (float)Math.toRadians(mV.mAngle);
+
+            if (error == INVALID_ERROR) {
+                computeImpact(game, angleRad, mV.mPower);
+                error = Math.abs((int)mProjTmp.getCurX() - tx);
+            }
+            StringBuilder b = new StringBuilder(80);
+            b.append("refinementPass: error = ");
+            b.append(error);
+            Log.w(this.getClass().getName(), b.toString());
 
             // Smaller angle shot.
             // Remember that we are dealing with angles in radians from
             // 0 to pi.
             float smallerAngle = getSkewedRandom
-                (Player.MIN_TURRET_ANGLE_RAD, angleRad, 1.0f);
+                (Player.MIN_TURRET_ANGLE_RAD, angleRad, error);
             computeImpact(game, smallerAngle, mV.mPower);
-            int smallerAngleError =
-                Math.abs((int)mProjTmp.getCurX() - target.getX());
+            int smallerAngleError = Math.abs((int)mProjTmp.getCurX() - tx);
 
             // Larger angle shot.
             float biggerAngle = getSkewedRandom
-                (angleRad, Player.MAX_TURRET_ANGLE_RAD, 1.0f);
+                (angleRad, Player.MAX_TURRET_ANGLE_RAD, error);
             computeImpact(game, biggerAngle, mV.mPower);
-            int biggerAngleError =
-                Math.abs((int)mProjTmp.getCurX() - target.getX());
+            int biggerAngleError = Math.abs((int)mProjTmp.getCurX() - tx);
 
             // Smaller power shot.
             int smallerPower = (int)getSkewedRandom
-                (0, mV.mPower, 1.0f);
+                (0, mV.mPower, error);
             computeImpact(game, angleRad, smallerPower);
-            int smallerPowerError =
-                Math.abs((int)mProjTmp.getCurX() - target.getX());
+            int smallerPowerError = Math.abs((int)mProjTmp.getCurX() - tx);
 
             // Bigger power shot.
             int biggerPower = (int)getSkewedRandom
-                (mV.mPower, Player.MAX_POWER, 1.0f);
+                (mV.mPower, Player.MAX_POWER, error);
             computeImpact(game, angleRad, biggerPower);
-            int biggerPowerError =
-                Math.abs((int)mProjTmp.getCurX() - target.getX());
+            int biggerPowerError = Math.abs((int)mProjTmp.getCurX() - tx);
 
             // This switch statement is pretty clumsy, but at least it avoids
             // memory allocations.
@@ -501,35 +517,43 @@ public abstract class Brain {
                                           biggerPowerError);
             switch (minIdx) {
                 case 0:
-                	int smallerAngleDeg = (int)Math.toDegrees(smallerAngle);
-                	StringBuilder b = new StringBuilder(80);
-                	b.append("reducing angle to ");
-                	b.append(smallerAngleDeg);
-                    Log.w(this.getClass().getName(), b.toString());
+                    int smallerAngleDeg = (int)Math.toDegrees(smallerAngle);
+                    StringBuilder b1 = new StringBuilder(80);
+                    b1.append("reducing angle to ");
+                    b1.append(smallerAngleDeg);
+                    b1.append(" to get an error of ");
+                    b1.append(smallerAngleError);
+                    Log.w(this.getClass().getName(), b1.toString());
                     mV.mAngle = smallerAngleDeg;
-                    break;
+                    return smallerAngleError;
                 case 1:
-                	int biggerAngleDeg = (int)Math.toDegrees(biggerAngle);
-                	StringBuilder b2 = new StringBuilder(80);
-                	b2.append("increasing angle to ");
-                	b2.append(biggerAngleDeg);
+                    int biggerAngleDeg = (int)Math.toDegrees(biggerAngle);
+                    StringBuilder b2 = new StringBuilder(80);
+                    b2.append("increasing angle to ");
+                    b2.append(biggerAngleDeg);
+                    b2.append(" to get an error of ");
+                    b2.append(biggerAngleError);
                     Log.w(this.getClass().getName(), b2.toString());
                     mV.mAngle = biggerAngleDeg;
-                    break;
+                    return biggerAngleError;
                 case 2:
-                	StringBuilder b3 = new StringBuilder(80);
-                	b3.append("reducing power to ");
-                	b3.append(smallerPower);
+                    StringBuilder b3 = new StringBuilder(80);
+                    b3.append("reducing power to ");
+                    b3.append(smallerPower);
+                    b3.append(" to get an error of ");
+                    b3.append(smallerPowerError);
                     Log.w(this.getClass().getName(), b3.toString());
-                	mV.mPower = smallerPower;
-                    break;
+                    mV.mPower = smallerPower;
+                    return smallerPowerError;
                 case 3:
-                	StringBuilder b4 = new StringBuilder(80);
-                	b4.append("enlarging power to ");
-                	b4.append(biggerPower);
+                    StringBuilder b4 = new StringBuilder(80);
+                    b4.append("enlarging power to ");
+                    b4.append(biggerPower);
+                    b4.append(" to get an error of ");
+                    b4.append(biggerPowerError);
                     Log.w(this.getClass().getName(), b4.toString());
-                	mV.mPower = biggerPower;
-                    break;
+                    mV.mPower = biggerPower;
+                    return biggerPowerError;
                 default:
                     throw new RuntimeException("logic error in " +
                         "getMinimumOfFour: unknown return " + minIdx);
@@ -622,7 +646,7 @@ public abstract class Brain {
             WeaponType weapon = mArmTmp.getRandomWeapon();
 
             if (weapon.isProjectile()) {
-                refinementPass(game, target);
+                refinementPass(game, target, INVALID_ERROR);
             }
             out.initializeAsCpu(mV.mAngle, mV.mPower, weapon);
         }
