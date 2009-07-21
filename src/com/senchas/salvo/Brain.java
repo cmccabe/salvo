@@ -428,7 +428,7 @@ public abstract class Brain {
             r /= compression;
             if (r < -3f)
                 return minVal;
-            if (r > -3f)
+            if (r > 3f)
                 return maxVal;
             return ((r + 3f) * (maxVal - minVal)) / 6f;
         }
@@ -501,16 +501,34 @@ public abstract class Brain {
                                           biggerPowerError);
             switch (minIdx) {
                 case 0:
-                    mV.mAngle = (int)Math.toDegrees(smallerAngle);
+                	int smallerAngleDeg = (int)Math.toDegrees(smallerAngle);
+                	StringBuilder b = new StringBuilder(80);
+                	b.append("reducing angle to ");
+                	b.append(smallerAngleDeg);
+                    Log.w(this.getClass().getName(), b.toString());
+                    mV.mAngle = smallerAngleDeg;
                     break;
                 case 1:
-                    mV.mAngle = (int)Math.toDegrees(biggerAngle);
+                	int biggerAngleDeg = (int)Math.toDegrees(biggerAngle);
+                	StringBuilder b2 = new StringBuilder(80);
+                	b2.append("increasing angle to ");
+                	b2.append(biggerAngleDeg);
+                    Log.w(this.getClass().getName(), b2.toString());
+                    mV.mAngle = biggerAngleDeg;
                     break;
                 case 2:
-                    mV.mPower = smallerPower;
+                	StringBuilder b3 = new StringBuilder(80);
+                	b3.append("reducing power to ");
+                	b3.append(smallerPower);
+                    Log.w(this.getClass().getName(), b3.toString());
+                	mV.mPower = smallerPower;
                     break;
                 case 3:
-                    mV.mPower = biggerPower;
+                	StringBuilder b4 = new StringBuilder(80);
+                	b4.append("enlarging power to ");
+                	b4.append(biggerPower);
+                    Log.w(this.getClass().getName(), b4.toString());
+                	mV.mPower = biggerPower;
                     break;
                 default:
                     throw new RuntimeException("logic error in " +
@@ -557,7 +575,7 @@ public abstract class Brain {
 
             if (mV.mTargetId == Player.INVALID_PLAYER_ID) {
                 while (true) {
-                    mV.mTargetId = Util.mRandom.nextInt(Model.MAX_PLAYERS);
+                    mV.mTargetId = Util.mRandom.nextInt(players.length);
                     if (mV.mTargetId != curPlayer.getId()) {
                         if (players[mV.mTargetId].isAlive())
                             break;
