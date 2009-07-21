@@ -26,6 +26,11 @@ public class Player {
     public static final int MIN_TURRET_ANGLE = 0;
     public static final int MAX_TURRET_ANGLE = 180;
 
+    public static final float MIN_TURRET_ANGLE_RAD =
+        (float)Math.toRadians(MIN_TURRET_ANGLE);
+    public static final float MAX_TURRET_ANGLE_RAD =
+        (float)Math.toRadians(MAX_TURRET_ANGLE);
+
     public static final int INVALID_PLAYER_ID = -1;
 
     public static final int PLAYER_X_SIZE = 30;

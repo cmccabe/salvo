@@ -76,7 +76,8 @@ public class Projectile {
                         checkBoundaryCollisions(model) ||
                         checkTerrainCollisions(model) ||
                         checkPlayerCollisions(model)) {
-                    mWeapon.detonate(model, (int)mX, (int)mY, ball);
+                    if (ball != null)
+                        mWeapon.detonate(model, (int)mX, (int)mY, ball);
                     mInUse = false;
                 }
             }
@@ -91,7 +92,8 @@ public class Projectile {
             if ((mCurStep >= MAX_STEPS) || (mY < prevY) ||
                     checkBoundaryCollisions(model) ||
                     checkPlayerCollisions(model)) {
-                mWeapon.detonate(model, (int)mX, (int)mY, ball);
+                if (ball != null)
+                    mWeapon.detonate(model, (int)mX, (int)mY, ball);
                 mInUse = false;
             }
         }
@@ -148,6 +150,24 @@ public class Projectile {
         }
 
         return false;
+    }
+
+    static public void launchProjectile(Model model,
+                                 float angleRad, int power,
+                                 WeaponType weaponType,
+                                 Projectile projectile)
+    {
+        Player curPlayer = model.getCurPlayer();
+
+        float cos = (float)Math.cos(angleRad);
+        float sin = - (float)Math.sin(angleRad);
+        float dx = (cos * power) / 120f;
+        float dy = (sin * power) / 120f;
+        float turretX = curPlayer.getX() + (Player.TURRET_LENGTH * cos);
+        float turretY = curPlayer.getTurretCenterY()
+                + (Player.TURRET_LENGTH * sin);
+        projectile.initialize((int)turretX, (int)turretY,
+                              dx, dy, model.getWind(), weaponType, 0);
     }
 
     /*================= Lifecycle =================*/

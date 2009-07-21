@@ -1184,16 +1184,9 @@ public abstract class GameState {
             Player curPlayer = model.getCurPlayer();
             mCurPlayerId = curPlayer.getId();
 
-            float angle = curPlayer.getAngleRad();
-            float cos = (float)Math.cos(angle);
-            float sin = - (float)Math.sin(angle);
-            float dx = (cos * mPower) / 120f;
-            float dy = (sin * mPower) / 120f;
-            float turretX = curPlayer.getX() + (Player.TURRET_LENGTH * cos);
-            float turretY = curPlayer.getTurretCenterY()
-                    + (Player.TURRET_LENGTH * sin);
-            mAcc.newProjectile().initialize((int)turretX, (int)turretY,
-                                   dx, dy, model.getWind(), mInitWeapon, 0);
+            Projectile.launchProjectile(
+                model, curPlayer.getAngleRad(), mPower, mInitWeapon,
+                mAcc.newProjectile());
 
             game.getGameControlView().cacheTerrain(game);
         }

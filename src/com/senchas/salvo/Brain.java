@@ -398,17 +398,215 @@ public abstract class Brain {
         }
 
         /*================= Data =================*/
+        private ArmoryView mArmTmp;
+
+        private Projectile mProjTmp;
+
+        private int mArTmp[];
+
         public static class MyVars {
+            /// Id of the player we're targeting now, or INVALID_PLAYER_ID if
+            /// there is no such player.
+            private int mTargetId;
+
+            private int mAngle;
+
+            private int mPower;
         }
+
         private MyVars mV;
+
+        /*================= Utility =================*/
+        // Get a random float from [minVal, maxVal].
+        //
+        // The results will have a distribution which is sort of a truncated
+        // gaussian. Increasing "compression" will make the values farther
+        // from minVal and maxVal.
+        float getSkewedRandom(float minVal, float maxVal, float compression)
+        {
+            float r = (float)Util.mRandom.nextGaussian();
+            r /= compression;
+            if (r < -3f)
+                return minVal;
+            if (r > -3f)
+                return maxVal;
+            return ((r + 3f) * (maxVal - minVal)) / 6f;
+        }
+
+        // Simulate what firing with the given angle and power would do.
+        // The result will be in mProjTmp.getCurX() and mProjTmp.getCurY()
+        void computeImpact(RunGameActAccessor game, float angle, int power)
+        {
+            Projectile.launchProjectile(game.getModel(), angle,
+                                    power, WeaponType.SMALL_MISSILE,
+                                    mProjTmp);
+            Model model = game.getModel();
+            while (mProjTmp.getInUse()) {
+                mProjTmp.step(model, null);
+            }
+        }
+
+        // given four numbers, returns the index of the minimum one
+        int getMinimumOfFour(int x0, int x1, int x2, int x3)
+        {
+            mArTmp[0] = x0; mArTmp[1] = x1; mArTmp[2] = x2; mArTmp[3] = x3;
+            int minIdx = 0;
+            for (int i = 1; i < 4; i++) {
+                if (mArTmp[i] < mArTmp[minIdx])
+                    minIdx = i;
+            }
+            return minIdx;
+        }
+
+        // Test some alternate shots and pick the best one.
+        void refinementPass(RunGameActAccessor game, Player target)
+        {
+            float angleRad = (float)Math.toRadians(mV.mAngle);
+
+            // Smaller angle shot.
+            // Remember that we are dealing with angles in radians from
+            // 0 to pi.
+            float smallerAngle = getSkewedRandom
+                (Player.MIN_TURRET_ANGLE_RAD, angleRad, 1.0f);
+            computeImpact(game, smallerAngle, mV.mPower);
+            int smallerAngleError =
+                Math.abs((int)mProjTmp.getCurX() - target.getX());
+
+            // Larger angle shot.
+            float biggerAngle = getSkewedRandom
+                (angleRad, Player.MAX_TURRET_ANGLE_RAD, 1.0f);
+            computeImpact(game, biggerAngle, mV.mPower);
+            int biggerAngleError =
+                Math.abs((int)mProjTmp.getCurX() - target.getX());
+
+            // Smaller power shot.
+            int smallerPower = (int)getSkewedRandom
+                (0, mV.mPower, 1.0f);
+            computeImpact(game, angleRad, smallerPower);
+            int smallerPowerError =
+                Math.abs((int)mProjTmp.getCurX() - target.getX());
+
+            // Bigger power shot.
+            int biggerPower = (int)getSkewedRandom
+                (mV.mPower, Player.MAX_POWER, 1.0f);
+            computeImpact(game, angleRad, biggerPower);
+            int biggerPowerError =
+                Math.abs((int)mProjTmp.getCurX() - target.getX());
+
+            // This switch statement is pretty clumsy, but at least it avoids
+            // memory allocations.
+            int minIdx = getMinimumOfFour(smallerAngleError,
+                                          biggerAngleError,
+                                          smallerPowerError,
+                                          biggerPowerError);
+            switch (minIdx) {
+                case 0:
+                    mV.mAngle = (int)Math.toDegrees(smallerAngle);
+                    break;
+                case 1:
+                    mV.mAngle = (int)Math.toDegrees(biggerAngle);
+                    break;
+                case 2:
+                    mV.mPower = smallerPower;
+                    break;
+                case 3:
+                    mV.mPower = biggerPower;
+                    break;
+                default:
+                    throw new RuntimeException("logic error in " +
+                        "getMinimumOfFour: unknown return " + minIdx);
+            }
+        }
 
         /*================= Access =================*/
 
         /*================= Inputs =================*/
+        public void notifyPlayerTeleported(int playerId) {
+            if (playerId == mV.mTargetId) {
+                StringBuilder b = new StringBuilder(80 * 2);
+                b.append("notifyPlayerFell: we were targetting player ");
+                b.append(playerId);
+                b.append(", but he teleported away. Resetting mV.mTargetId.");
+                Log.w(this.getClass().getName(), b.toString());
+
+                mV.mTargetId = Player.INVALID_PLAYER_ID;
+            }
+        }
+
+        public void notifyPlayerFell(int perp, int victim)
+        {
+            if (victim == mV.mTargetId) {
+                StringBuilder b = new StringBuilder(80 * 2);
+                b.append("notifyPlayerFell: we were targetting player ");
+                b.append(victim);
+                b.append(", but he was destroyed. Resetting mV.mTargetId.");
+                Log.w(this.getClass().getName(), b.toString());
+
+                mV.mTargetId = Player.INVALID_PLAYER_ID;
+            }
+        }
 
         /*================= Outputs =================*/
+
+        /** Make a move */
         public void makeMove(RunGameActAccessor game, Move out) {
-            out.initializeAsHuman();
+            Model model = game.getModel();
+            Player curPlayer = model.getCurPlayer();
+            Player players[] = model.getPlayers();
+            Player target;
+
+            if (mV.mTargetId == Player.INVALID_PLAYER_ID) {
+                while (true) {
+                    mV.mTargetId = Util.mRandom.nextInt(Model.MAX_PLAYERS);
+                    if (mV.mTargetId != curPlayer.getId()) {
+                        if (players[mV.mTargetId].isAlive())
+                            break;
+                    }
+                }
+                target = players[mV.mTargetId];
+
+                StringBuilder b = new StringBuilder(80 * 2);
+                b.append("acquired new target: player ");
+                b.append(target.getName());
+                Log.w(this.getClass().getName(), b.toString());
+
+                mV.mAngle = Util.mRandom.nextInt(Player.MAX_TURRET_ANGLE);
+                mV.mPower = Util.mRandom.nextInt(Player.MAX_POWER);
+            }
+            else {
+                target = players[mV.mTargetId];
+            }
+
+            // Decide which weapon to choose
+            Armory armory = curPlayer.getArmory(game.getCosmos());
+            mArmTmp.initialize(armory);
+            int probs[] = mArmTmp.getProbs();
+            int validProbs = 0;
+            for (int i = 0; i < probs.length; i++) {
+                if (probs[i] != ArmoryView.INVALID_PROB)
+                    validProbs++;
+            }
+
+            int share = ArmoryView.TOTAL_PROB / validProbs;
+            int lastShare = ArmoryView.TOTAL_PROB -
+                (share * (validProbs - 1));
+            int v = 0;
+            for (int i = 0; i < probs.length; i++) {
+                if (probs[i] != ArmoryView.INVALID_PROB) {
+                    if (v != (validProbs-1))
+                        probs[i] = share;
+                    else
+                        probs[i] = lastShare;
+                    v++;
+                }
+            }
+
+            WeaponType weapon = mArmTmp.getRandomWeapon();
+
+            if (weapon.isProjectile()) {
+                refinementPass(game, target);
+            }
+            out.initializeAsCpu(mV.mAngle, mV.mPower, weapon);
         }
 
         /*================= Operations =================*/
@@ -418,14 +616,25 @@ public abstract class Brain {
         }
 
         /*================= Lifecycle =================*/
+        private void initializeTmp() {
+            mArmTmp = new ArmoryView();
+            mProjTmp = new Projectile();
+            mArTmp = new int[4];
+        }
+
         public EasyBrain() {
             super();
             mV = new MyVars();
+            mV.mTargetId = Player.INVALID_PLAYER_ID;
+            mV.mAngle = 0;
+            mV.mPower = 1000;
+            initializeTmp();
         }
 
         public EasyBrain(MyVars v) {
             super();
             mV = v;
+            initializeTmp();
         }
     }
 
