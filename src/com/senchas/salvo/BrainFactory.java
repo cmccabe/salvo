@@ -1,5 +1,7 @@
 package com.senchas.salvo;
 
+import android.util.Log;
+
 import com.senchas.salvo.Brain.*;
 
 /**
@@ -7,8 +9,7 @@ import com.senchas.salvo.Brain.*;
  */
 public enum BrainFactory {
     HUMAN("Human player", HumanBrain.class),
-    SILLY("Silly Computer", SillyBrain.class),
-    EASY("Easy Computer", EasyBrain.class),
+    RANDOM("Random Computer", RandomBrain.class),
     MEDIUM("Medium Computer", MediumBrain.class),
     HARD("Hard Computer", HardBrain.class);
 
@@ -28,6 +29,8 @@ public enum BrainFactory {
             return (Brain)mClass.newInstance();
         }
         catch (Exception e) {
+            Log.w(this.getClass().toString(),
+                  "createBrain: newInstance failed: " + e.toString());
             return null;
         }
     }

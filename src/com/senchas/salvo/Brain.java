@@ -309,15 +309,15 @@ public abstract class Brain {
         }
     }
 
-    public static class SillyBrain extends Brain {
+    public static class RandomBrain extends Brain {
         /*================= Constants =================*/
-        public static final short ID = 20;
+        public static final short ID = 2;
 
         /*================= Static =================*/
-        public static SillyBrain fromBundle(int index, Bundle map) {
+        public static RandomBrain fromBundle(int index, Bundle map) {
             MyVars v = (MyVars)AutoPack.
                 autoUnpack(map, Util.indexToString(index), MyVars.class);
-            return new SillyBrain(v);
+            return new RandomBrain(v);
         }
 
         /*================= Data =================*/
@@ -373,30 +373,24 @@ public abstract class Brain {
         }
 
         /*================= Lifecycle =================*/
-        public SillyBrain() {
+        public RandomBrain() {
             super();
             mV = new MyVars();
             mArmTmp = new ArmoryView();
         }
 
-        public SillyBrain(MyVars v) {
+        public RandomBrain(MyVars v) {
             super();
             mV = v;
             mArmTmp = new ArmoryView();
         }
     }
 
-    public static class EasyBrain extends Brain {
+    public static class RefinementBrain extends Brain {
         /*================= Constants =================*/
-        public static final short ID = 2;
         public static final int INVALID_ERROR = Integer.MAX_VALUE;
 
         /*================= Static =================*/
-        public static EasyBrain fromBundle(int index, Bundle map) {
-            MyVars v = (MyVars)AutoPack.
-                autoUnpack(map, Util.indexToString(index), MyVars.class);
-            return new EasyBrain(v);
-        }
 
         /*================= Data =================*/
         private ArmoryView mArmTmp;
@@ -420,7 +414,7 @@ public abstract class Brain {
         /*================= Utility =================*/
         // Get a random float from [minVal, maxVal].
         //
-        float getSkewedRandom(float minVal, float maxVal, int error)
+        private float getSkewedRandom(float minVal, float maxVal, int error)
         {
             if (error > 350) {
                 // These results will have a distribution which is sort of a
@@ -463,7 +457,8 @@ public abstract class Brain {
 
         // Simulate what firing with the given angle and power would do.
         // The result will be in mProjTmp.getCurX() and mProjTmp.getCurY()
-        void computeImpact(RunGameActAccessor game, float angle, int power)
+        private void computeImpact(RunGameActAccessor game,
+                                   float angle, int power)
         {
             Projectile.launchProjectile(game.getModel(), angle,
                                     power, WeaponType.SMALL_MISSILE,
@@ -475,7 +470,7 @@ public abstract class Brain {
         }
 
         // given four numbers, returns the index of the minimum one
-        int getMinimumOfFour(int x0, int x1, int x2, int x3)
+        private int getMinimumOfFour(int x0, int x1, int x2, int x3)
         {
             mArTmp[0] = x0; mArTmp[1] = x1; mArTmp[2] = x2; mArTmp[3] = x3;
             int minIdx = 0;
@@ -488,7 +483,7 @@ public abstract class Brain {
 
         // Computes the error between (tx, ty) and where mProjTmp
         // landed.
-        int computeError(int tx, int ty)
+        private int computeError(int tx, int ty)
         {
             float px = mProjTmp.getCurX();
             float py = mProjTmp.getCurY();
@@ -511,7 +506,8 @@ public abstract class Brain {
 
         // Test some alternate shots and pick the best one.
         // Returns the current error between the shot we're making and the target.
-        int refinementPass(RunGameActAccessor game, Player target, int error)
+        protected int refinementPass(RunGameActAccessor game,
+                                     Player target, int error)
         {
             int tx = target.getX();
             int ty = target.getY();
@@ -696,7 +692,6 @@ public abstract class Brain {
 
         /*================= Operations =================*/
         public void saveState(int index, Bundle map) {
-            map.putShort(Util.indexToString(index, KEY_BRAIN_TYPE_ID), ID);
             AutoPack.autoPack(map, Util.indexToString(index), mV);
         }
 
@@ -707,7 +702,7 @@ public abstract class Brain {
             mArTmp = new int[4];
         }
 
-        public EasyBrain() {
+        public RefinementBrain() {
             super();
             mV = new MyVars();
             mV.mTargetId = Player.INVALID_PLAYER_ID;
@@ -716,93 +711,106 @@ public abstract class Brain {
             initializeTmp();
         }
 
-        public EasyBrain(MyVars v) {
+        public RefinementBrain(MyVars v) {
             super();
             mV = v;
             initializeTmp();
         }
     }
 
-    public static class MediumBrain extends Brain {
+    public static class MediumBrain extends RefinementBrain {
         /*================= Constants =================*/
         public static final short ID = 3;
 
         /*================= Static =================*/
-        public static MediumBrain fromBundle(int i, Bundle b) {
-            return new MediumBrain();
+        public static MediumBrain fromBundle(int index, Bundle map) {
+            RefinementBrain.MyVars refineV =
+                (RefinementBrain.MyVars)AutoPack.
+                    autoUnpack(map, Util.indexToString(index),
+                        RefinementBrain.class);
+            MyVars v = (MyVars)AutoPack.
+                autoUnpack(map, Util.indexToString(index), MyVars.class);
+            return new MediumBrain(refineV, v);
         }
 
         /*================= Data =================*/
         public static class MyVars {
         }
+
         private MyVars mV;
 
-        /*================= Access =================*/
-
-        /*================= Inputs =================*/
+        /*================= Utility =================*/
 
         /*================= Outputs =================*/
+        /** Make a move */
         public void makeMove(RunGameActAccessor game, Move out) {
-            out.initializeAsHuman();
+            super.makeMove(game, out);
         }
 
         /*================= Operations =================*/
         public void saveState(int index, Bundle map) {
+            super.saveState(index, map);
             map.putShort(Util.indexToString(index, KEY_BRAIN_TYPE_ID), ID);
             AutoPack.autoPack(map, Util.indexToString(index), mV);
         }
 
         /*================= Lifecycle =================*/
+        public MediumBrain(RefinementBrain.MyVars refineV, MyVars v) {
+            super(refineV);
+            mV = v;
+        }
+
         public MediumBrain() {
             super();
             mV = new MyVars();
         }
-
-        public MediumBrain(MyVars v) {
-            super();
-            mV = v;
-        }
     }
 
-
-    public static class HardBrain extends Brain {
+    public static class HardBrain extends RefinementBrain {
         /*================= Constants =================*/
         public static final short ID = 4;
 
         /*================= Static =================*/
-        public static HardBrain fromBundle(int i, Bundle b) {
-            return new HardBrain();
+        public static HardBrain fromBundle(int index, Bundle map) {
+            RefinementBrain.MyVars refineV =
+                (RefinementBrain.MyVars)AutoPack.
+                    autoUnpack(map, Util.indexToString(index),
+                        RefinementBrain.class);
+            MyVars v = (MyVars)AutoPack.
+                autoUnpack(map, Util.indexToString(index), MyVars.class);
+            return new HardBrain(refineV, v);
         }
 
         /*================= Data =================*/
         public static class MyVars {
         }
+
         private MyVars mV;
 
-        /*================= Access =================*/
-
-        /*================= Inputs =================*/
+        /*================= Utility =================*/
 
         /*================= Outputs =================*/
+        /** Make a move */
         public void makeMove(RunGameActAccessor game, Move out) {
-            out.initializeAsHuman();
+            super.makeMove(game, out);
         }
 
         /*================= Operations =================*/
         public void saveState(int index, Bundle map) {
+            super.saveState(index, map);
             map.putShort(Util.indexToString(index, KEY_BRAIN_TYPE_ID), ID);
             AutoPack.autoPack(map, Util.indexToString(index), mV);
         }
 
         /*================= Lifecycle =================*/
+        public HardBrain(RefinementBrain.MyVars refineV, MyVars v) {
+            super(refineV);
+            mV = v;
+        }
+
         public HardBrain() {
             super();
             mV = new MyVars();
-        }
-
-        public HardBrain(MyVars v) {
-            super();
-            mV = v;
         }
     }
 
@@ -816,10 +824,8 @@ public abstract class Brain {
         switch (brainTypeId) {
             case HumanBrain.ID:
                 return HumanBrain.fromBundle(i, b);
-            case SillyBrain.ID:
-                return SillyBrain.fromBundle(i, b);
-            case EasyBrain.ID:
-                return EasyBrain.fromBundle(i, b);
+            case RandomBrain.ID:
+                return RandomBrain.fromBundle(i, b);
             case MediumBrain.ID:
                 return MediumBrain.fromBundle(i, b);
             case HardBrain.ID:
