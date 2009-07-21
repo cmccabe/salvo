@@ -422,6 +422,24 @@ public abstract class Brain {
         //
         float getSkewedRandom(float minVal, float maxVal, int error)
         {
+            if (error > 350) {
+                // These results will have a distribution which is sort of a
+                // truncated and reversed gaussian which emphasizes the
+                // extremes.
+                // This reflects the fact that our current fix is very bad.
+                float r = (float)Util.mRandom.nextGaussian();
+                if (r < -3f)
+                    return minVal;
+                if (r > 3f)
+                    return maxVal;
+                if (r < 0)
+                    r = (-3.0f - r);
+                if (r > 0)
+                    r = (3.0f - r);
+                r /= 6f;
+                r += 0.5f;
+                return (r * (maxVal - minVal)) + minVal;
+            }
             if (error > 100) {
                 // These results will be uniformly distributed and large.
                 // This reflects the fact that we still don't have a good fix.
@@ -437,7 +455,8 @@ public abstract class Brain {
                     return minVal;
                 if (r > 3f)
                     return maxVal;
-                r /= 3f;
+                r /= 6f;
+                r += 0.5f;
                 return (r * (maxVal - minVal)) + minVal;
             }
         }
@@ -467,16 +486,40 @@ public abstract class Brain {
             return minIdx;
         }
 
+        // Computes the error between (tx, ty) and where mProjTmp
+        // landed.
+        int computeError(int tx, int ty)
+        {
+            float px = mProjTmp.getCurX();
+            float py = mProjTmp.getCurY();
+
+            if ((px < 0) || (px > Terrain.MAX_X)) {
+                // If our projectile ran into the edge of the screen,
+                // include the Y error in the error metric.
+                // If we don't do this, shooting at the edge of the screen (which is
+                // a hard boundary) looks much more attractive to the AI than it really
+                // should be.
+                // It is not much use to explode your projectile at the edge of the
+                // screen far up in the air.
+                return (int)Math.sqrt(((py - ty) * (py - ty)) +
+                                      ((px - tx) * (px - tx)));
+            }
+            else {
+                return Math.abs((int)px - tx);
+            }
+        }
+
         // Test some alternate shots and pick the best one.
         // Returns the current error between the shot we're making and the target.
         int refinementPass(RunGameActAccessor game, Player target, int error)
         {
             int tx = target.getX();
+            int ty = target.getY();
             float angleRad = (float)Math.toRadians(mV.mAngle);
 
             if (error == INVALID_ERROR) {
                 computeImpact(game, angleRad, mV.mPower);
-                error = Math.abs((int)mProjTmp.getCurX() - tx);
+                error = computeError(tx, ty);
             }
             StringBuilder b = new StringBuilder(80);
             b.append("refinementPass: error = ");
@@ -489,25 +532,25 @@ public abstract class Brain {
             float smallerAngle = getSkewedRandom
                 (Player.MIN_TURRET_ANGLE_RAD, angleRad, error);
             computeImpact(game, smallerAngle, mV.mPower);
-            int smallerAngleError = Math.abs((int)mProjTmp.getCurX() - tx);
+            int smallerAngleError = computeError(tx, ty);
 
             // Larger angle shot.
             float biggerAngle = getSkewedRandom
                 (angleRad, Player.MAX_TURRET_ANGLE_RAD, error);
             computeImpact(game, biggerAngle, mV.mPower);
-            int biggerAngleError = Math.abs((int)mProjTmp.getCurX() - tx);
+            int biggerAngleError = computeError(tx, ty);
 
             // Smaller power shot.
             int smallerPower = (int)getSkewedRandom
                 (0, mV.mPower, error);
             computeImpact(game, angleRad, smallerPower);
-            int smallerPowerError = Math.abs((int)mProjTmp.getCurX() - tx);
+            int smallerPowerError = computeError(tx, ty);
 
             // Bigger power shot.
             int biggerPower = (int)getSkewedRandom
                 (mV.mPower, Player.MAX_POWER, error);
             computeImpact(game, angleRad, biggerPower);
-            int biggerPowerError = Math.abs((int)mProjTmp.getCurX() - tx);
+            int biggerPowerError = computeError(tx, ty);
 
             // This switch statement is pretty clumsy, but at least it avoids
             // memory allocations.
