@@ -59,6 +59,12 @@ public class Cosmos {
             return mArmory;
         }
 
+        /** Returns true if this player can buy at least one weapon of any
+         * type*/
+        public boolean canBuySomething() {
+            return (mV.mCash >= WeaponType.sMinimumWeaponCost);
+        }
+
         /*================= Operations =================*/
         public void saveState(int index, Bundle map) {
             AutoPack.autoPack(map, Util.indexToString(index), mV);

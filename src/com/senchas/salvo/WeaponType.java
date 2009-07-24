@@ -199,6 +199,22 @@ public enum WeaponType {
         }
     }
 
+    /** The minimum amount of money that any buyable weapon costs. */ 
+    static int sMinimumWeaponCost;
+
+    static {
+        // Initialize sMinimumWeaponCost
+        sMinimumWeaponCost = Integer.MAX_VALUE;
+        for (WeaponType w : weapons) {
+            int price = w.getPrice();
+            if (price != Const.UNBUYABLE) {
+                if (price < sMinimumWeaponCost) {
+                    sMinimumWeaponCost = price;
+                }
+            }
+        }
+    }
+
     static public WeaponListAdapter
             getWeaponListAdapter(Cosmos cosmos, Player player) {
         return new WeaponListAdapter(cosmos, player);

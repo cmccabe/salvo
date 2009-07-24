@@ -315,8 +315,10 @@ public abstract class GameState {
 
             if (!mFinished)
                 return null;
-            else if (game.getCosmos().moreRoundsRemaining())
-                return BuyWeaponsState.create();
+            else if (game.getCosmos().moreRoundsRemaining()) {
+                game.
+                return BuyWeaponsState.create(0);
+            }
             else
                 return AnnounceWinnerState.create();
         }
@@ -446,15 +448,29 @@ public abstract class GameState {
         /*================= Data =================*/
         private boolean mFinished;
 
+        public class MyVars {
+            /** Index of the current player buying weapons */
+            public int mPlayerIdx;
+        }
+
+        private MyVars mV;
+
         /*================= Operations =================*/
         @Override
         public void saveState(Bundle map) {
             map.putByte(GAME_STATE_ID, ID);
+            AutoPack.autoPack(map, AutoPack.EMPTY_STRING, mV);
         }
 
         @Override
         public void onEnter(RunGameActAccessor game) {
-            mFinished = false;
+            if (! game.getCosmos().getPlayerInfo()[mV.mPlayerIdx].
+                        canBuySomething())
+                return;
+
+            if (! game.getPlayers()[mV.mPlayerIdx].getBrain().isHuman())
+                return
+
             RunGameAct runGameAct = game.getRunGameAct();
             StartBuyWeaponsDialog dial =
                 new StartBuyWeaponsDialog(runGameAct,
@@ -467,13 +483,31 @@ public abstract class GameState {
 
         @Override
         public GameState main(RunGameActAccessor game) {
-            return (mFinished) ? TurnStartState.create() : null;
+            PlayerInfo playerInfo = game.getCosmos().
+                getPlayerInfo()[mV.mPlayerIdx];
+            if (! playerInfo.canBuySomething())
+                return null;
+            Brain playerBrain = game.getPlayers()[mV.mPlayerIdx].getBrain();
+            if (playerBrain.isHuman()) {
+                if (! mFinished)
+                    return null;
+            }
+            else {
+                playerBrain.buyWeapons(playerInfo);
+            }
+
+            nextIdx = mV.mPlayerIdx + 1;
+            if (nextIdx > game.getPlayers().length) {
+                game.getRunGameAct().startRound(false);
+                game.getRunGameAct().continueRound();
+                return TurnStartState.create();
+            }
+            else
+                return BuyWeaponsState.create(nextIdx);
         }
 
         @Override
         public void onExit(RunGameActAccessor game) {
-            game.getRunGameAct().startRound(false);
-            game.getRunGameAct().continueRound();
         }
 
         @Override
@@ -493,20 +527,32 @@ public abstract class GameState {
         }
 
         /*================= Lifecycle =================*/
-        private void initialize() {
+        private void initialize(int playerIdx) {
+            mV.mPlayerIdx = playerIdx;
+            mFinished = false;
         }
 
-        public static BuyWeaponsState create() {
-            sMe.initialize();
+        private void initialize(MyVars v) {
+            mV = v;
+            mFinished = false;
+        }
+
+        public static BuyWeaponsState create(int playerIdx) {
+            sMe.initialize(playerIdx);
             return sMe;
         }
 
         public static BuyWeaponsState createFromBundle(Bundle map) {
-            sMe.initialize();
+            MyVars v = (MyVars)AutoPack.
+                autoUnpack(map, AutoPack.EMPTY_STRING, MyVars.class);
+            sMe.initialize(v);
             return sMe;
         }
 
-        private BuyWeaponsState() { }
+        private BuyWeaponsState() {
+            mV = new MyVars();
+            mV.mPlayerIdx = 0;
+        }
     }
 
     /** The start of a turn. */
@@ -1905,6 +1951,6 @@ public abstract class GameState {
     }
 
     public static GameState createInitialGameState() {
-        return BuyWeaponsState.create();
+        return BuyWeaponsState.create(0);
     }
 }
