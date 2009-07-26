@@ -465,7 +465,7 @@ public abstract class GameState {
         @Override
         public void onEnter(RunGameActAccessor game) {
             Log.w(this.getClass().getName(), "entering BuyWeaonsState (idx=" +
-            		mV.mPlayerIdx + ")");
+                    mV.mPlayerIdx + ")");
             if (! game.getCosmos().getPlayerInfo()[mV.mPlayerIdx].
                         canBuySomething())
                 return;
@@ -486,18 +486,18 @@ public abstract class GameState {
 
         @Override
         public GameState main(RunGameActAccessor game) {
-        	Model model = game.getModel();
+            Model model = game.getModel();
             PlayerInfo playerInfo = game.getCosmos().
                 getPlayerInfo()[mV.mPlayerIdx];
             if (playerInfo.canBuySomething()) {
-	            Brain playerBrain = model.getPlayers()[mV.mPlayerIdx].getBrain();
-	            if (playerBrain.isHuman()) {
-	                if (! mFinished)
-	                    return null;
-	            }
-	            else {
-	                playerBrain.buyWeapons(playerInfo);
-	            }
+                Brain playerBrain = model.getPlayers()[mV.mPlayerIdx].getBrain();
+                if (playerBrain.isHuman()) {
+                    if (! mFinished)
+                        return null;
+                }
+                else {
+                    playerBrain.buyWeapons(playerInfo);
+                }
             }
 
             int nextIdx = mV.mPlayerIdx + 1;

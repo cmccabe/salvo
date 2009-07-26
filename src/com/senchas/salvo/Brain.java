@@ -98,7 +98,6 @@ public abstract class Brain {
         /** Set up a uniform random distribution of weapons */
         public void setUniformlyRandomProbs()
         {
-            int validProbs = 0;
             for (int i = 0; i < mProbs.length; i++) {
                 if (mProbs[i] != ArmoryView.INVALID_PROB)
                     mProbs[i] = 1;
@@ -163,13 +162,19 @@ public abstract class Brain {
                     total += mProbs[i];
             }
 
+            if (total <= 0) {
+                Log.w(this.getClass().getName(),
+                        "unreasonable 'total' value of " + total);
+                logStats();
+            }
             int val = Util.mRandom.nextInt(total);
             int sum = 0;
             for (int i = 0; i < mProbs.length; i++) {
-                if (mProbs[i] != INVALID_PROB)
+                if (mProbs[i] != INVALID_PROB) {
                     sum += mProbs[i];
-                if (sum >= val)
-                    return WeaponType.values()[i];
+                    if (sum >= val)
+                        return WeaponType.values()[i];
+                }
             }
 
             throw new RuntimeException("unreachable");
@@ -214,7 +219,7 @@ public abstract class Brain {
             mProbs = new int[WeaponType.values().length];
             mSPCTmp = new SPCTmp[3];
             for (int i = 0; i < mSPCTmp.length; i++) {
-            	mSPCTmp[i] = new SPCTmp();
+                mSPCTmp[i] = new SPCTmp();
             }
         }
     }
@@ -482,7 +487,7 @@ public abstract class Brain {
         }
     }
 
-    public static class RefinementBrain extends Brain {
+    public abstract static class RefinementBrain extends Brain {
         /*================= Constants =================*/
         public static final int INVALID_ERROR = Integer.MAX_VALUE;
 
@@ -512,9 +517,19 @@ public abstract class Brain {
             private int mDefCon;
         }
 
-        private MyVars mV;
+        protected MyVars mV;
 
         /*================= Utility =================*/
+        /** Get an initial fix for our targetting */
+        protected abstract void getInitialFix(RunGameActAccessor game,
+                                              Player target,
+                                              RefinementBrain r);
+
+        /** Improve our targetting */
+        protected abstract void refinementStep(RunGameActAccessor game,
+                                               Player target,
+                                               RefinementBrain r);
+
         // Get a random float from [minVal, maxVal].
         //
         private float getSkewedRandom(float minVal, float maxVal, int error)
@@ -572,12 +587,13 @@ public abstract class Brain {
             }
         }
 
-        // given four numbers, returns the index of the minimum one
-        private int getMinimumOfFour(int x0, int x1, int x2, int x3)
+        // given five numbers, returns the index of the minimum one
+        private int getMinimumOfFive(int x0, int x1, int x2, int x3, int x4)
         {
-            mArTmp[0] = x0; mArTmp[1] = x1; mArTmp[2] = x2; mArTmp[3] = x3;
+            mArTmp[0] = x0; mArTmp[1] = x1; mArTmp[2] = x2;
+            mArTmp[3] = x3; mArTmp[4] = x4;
             int minIdx = 0;
-            for (int i = 1; i < 4; i++) {
+            for (int i = 1; i < mArTmp.length; i++) {
                 if (mArTmp[i] < mArTmp[minIdx])
                     minIdx = i;
             }
@@ -610,7 +626,8 @@ public abstract class Brain {
         // Test some alternate shots and pick the best one.
         // Returns the current error between the shot we're making and the target.
         protected int refinementPass(RunGameActAccessor game,
-                                     Player target, int error)
+                                     Player target, int error,
+                                     boolean allowRegression)
         {
             int tx = target.getX();
             int ty = target.getY();
@@ -639,24 +656,55 @@ public abstract class Brain {
             computeImpact(game, biggerAngle, mV.mPower);
             int biggerAngleError = computeError(tx, ty);
 
-            // Smaller power shot.
-            int smallerPower = (int)getSkewedRandom
-                (0, mV.mPower, error);
-            computeImpact(game, angleRad, smallerPower);
-            int smallerPowerError = computeError(tx, ty);
+            // Different power shot
+            int differentPower;
+            if (Util.mRandom.nextBoolean()) {
+                // Smaller power shot.
+                differentPower = (int)getSkewedRandom
+                    (0, mV.mPower, error);
+            }
+            else {
+                // Bigger power shot.
+                differentPower = (int)getSkewedRandom
+                    (mV.mPower, Player.MAX_POWER, error);
+            }
+            computeImpact(game, angleRad, differentPower);
+            int differentPowerError = computeError(tx, ty);
 
-            // Bigger power shot.
-            int biggerPower = (int)getSkewedRandom
-                (mV.mPower, Player.MAX_POWER, error);
-            computeImpact(game, angleRad, biggerPower);
-            int biggerPowerError = computeError(tx, ty);
+            // Combined change shot
+            int combinedPower;
+            if (Util.mRandom.nextBoolean()) {
+                // Smaller power shot.
+                combinedPower = (int)getSkewedRandom
+                    (0, mV.mPower, error);
+            }
+            else {
+                // Bigger power shot.
+                combinedPower = (int)getSkewedRandom
+                    (mV.mPower, Player.MAX_POWER, error);
+            }
+            float combinedAngle;
+            if (Util.mRandom.nextBoolean()) {
+                // Smaller angle shot
+                combinedAngle = getSkewedRandom
+                    (Player.MIN_TURRET_ANGLE_RAD, angleRad, error);
+            }
+            else {
+                // Bigger angle shot
+                combinedAngle = getSkewedRandom
+                    (angleRad, Player.MAX_TURRET_ANGLE_RAD, error);
+            }
+            computeImpact(game, combinedAngle, combinedPower);
+            int combinedError = computeError(tx, ty);
 
             // This switch statement is pretty clumsy, but at least it avoids
             // memory allocations.
-            int minIdx = getMinimumOfFour(smallerAngleError,
-                                          biggerAngleError,
-                                          smallerPowerError,
-                                          biggerPowerError);
+            int minIdx = getMinimumOfFive(smallerAngleError,
+                              biggerAngleError,
+                              differentPowerError,
+                              combinedError,
+                              allowRegression ? Integer.MAX_VALUE : error);
+
             switch (minIdx) {
                 case 0:
                     int smallerAngleDeg = (int)Math.toDegrees(smallerAngle);
@@ -680,22 +728,30 @@ public abstract class Brain {
                     return biggerAngleError;
                 case 2:
                     StringBuilder b3 = new StringBuilder(80);
-                    b3.append("reducing power to ");
-                    b3.append(smallerPower);
+                    b3.append("changing power to ");
+                    b3.append(differentPower);
                     b3.append(" to get an error of ");
-                    b3.append(smallerPowerError);
+                    b3.append(differentPowerError);
                     Log.w(this.getClass().getName(), b3.toString());
-                    mV.mPower = smallerPower;
-                    return smallerPowerError;
+                    mV.mPower = differentPower;
+                    return differentPowerError;
                 case 3:
+                    int combinedAngleDeg = (int)Math.toDegrees(combinedAngle);
                     StringBuilder b4 = new StringBuilder(80);
-                    b4.append("enlarging power to ");
-                    b4.append(biggerPower);
+                    b4.append("changing power to ");
+                    b4.append(combinedPower);
+                    b4.append(" and angle to ");
+                    b4.append(combinedAngleDeg);
                     b4.append(" to get an error of ");
-                    b4.append(biggerPowerError);
+                    b4.append(combinedError);
                     Log.w(this.getClass().getName(), b4.toString());
-                    mV.mPower = biggerPower;
-                    return biggerPowerError;
+                    mV.mAngle = combinedAngleDeg;
+                    mV.mPower = combinedPower;
+                    return combinedError;
+                case 4:
+                    Log.w(this.getClass().getName(),
+                          "not changing anything.");
+                    return error;
                 default:
                     throw new RuntimeException("logic error in " +
                         "getMinimumOfFour: unknown return " + minIdx);
@@ -748,9 +804,6 @@ public abstract class Brain {
         /*================= Outputs =================*/
         /** Make a move */
         public void makeMove(RunGameActAccessor game, Move out) {
-        	Log.w(this.getClass().getName(), "WeaponType.sMinimumWeaponCost = " +
-        			WeaponType.sMinimumWeaponCost);
-        	
             Model model = game.getModel();
             Player curPlayer = model.getCurPlayer();
             Player players[] = model.getPlayers();
@@ -771,13 +824,11 @@ public abstract class Brain {
                 b.append(target.getName());
                 Log.w(this.getClass().getName(), b.toString());
 
-                mV.mAngle = Util.mRandom.nextInt(Player.MAX_TURRET_ANGLE);
-                mV.mPower = Util.mRandom.nextInt(Player.MAX_POWER);
-                mV.mError = refinementPass(game, target, INVALID_ERROR);
+                getInitialFix(game, target, this);
             }
             else {
                 target = players[mV.mTargetId];
-                mV.mError = refinementPass(game, target, mV.mError);
+                refinementStep(game, target, this);
             }
 
             // Decide which weapon to choose
@@ -822,8 +873,11 @@ public abstract class Brain {
             // type of weapon
             Armory armory = playerInfo.getArmory();
             WeaponType weapons[] = WeaponType.values();
-            while (playerInfo.getCash() > WeaponType.sMinimumWeaponCost) {
+            while (playerInfo.getCash() >= WeaponType.sMinimumWeaponCost) {
                 mArmTmp.initialize(playerInfo.getCash());
+                Log.w(this.getClass().getName(),
+                        "initialized with cash " + playerInfo.getCash());
+                mArmTmp.logStats();
                 int probs[] = mArmTmp.getProbs();
                 int totalWeapons = 0;
                 for (int i = 0; i < probs.length; i++) {
@@ -833,10 +887,15 @@ public abstract class Brain {
 
                 for (int i = 0; i < probs.length; i++) {
                     if (probs[i] != ArmoryView.INVALID_PROB) {
-                        probs[i] =
+                        probs[i] = 1 +
                             totalWeapons - armory.getAmount(weapons[i]);
                     }
                 }
+
+                Log.w(this.getClass().getName(),
+                        "after our foolin' ");
+                mArmTmp.logStats();
+
                 WeaponType weapon = mArmTmp.getRandomWeapon();
                 armory.addWeapon(weapon);
                 playerInfo.spendMoney(weapon.getPrice());
@@ -852,7 +911,7 @@ public abstract class Brain {
         private void initializeTmp() {
             mArmTmp = new ArmoryView();
             mProjTmp = new Projectile();
-            mArTmp = new int[4];
+            mArTmp = new int[5];
         }
 
         public RefinementBrain() {
@@ -895,6 +954,21 @@ public abstract class Brain {
         private MyVars mV;
 
         /*================= Utility =================*/
+        protected void getInitialFix(RunGameActAccessor game,
+                                     Player target,
+                                     RefinementBrain r)
+        {
+            r.mV.mAngle = Util.mRandom.nextInt(Player.MAX_TURRET_ANGLE);
+            r.mV.mPower = Util.mRandom.nextInt(Player.MAX_POWER);
+            r.mV.mError = refinementPass(game, target, INVALID_ERROR, true);
+        }
+
+        protected void refinementStep(RunGameActAccessor game,
+                                      Player target,
+                                      RefinementBrain r)
+        {
+            r.mV.mError = refinementPass(game, target, r.mV.mError, true);
+        }
 
         /*================= Outputs =================*/
         /** Make a move */
@@ -943,6 +1017,41 @@ public abstract class Brain {
         private MyVars mV;
 
         /*================= Utility =================*/
+        protected void getInitialFix(RunGameActAccessor game,
+                                     Player target,
+                                     RefinementBrain r)
+        {
+            for (int i = 0; i < 3; i++) {
+                int oldAngle = r.mV.mAngle;
+                int oldPower = r.mV.mPower;
+                int oldError = r.mV.mError;
+
+                r.mV.mAngle = Util.mRandom.nextInt(Player.MAX_TURRET_ANGLE);
+                r.mV.mPower = Util.mRandom.nextInt(Player.MAX_POWER);
+                r.mV.mError = refinementPass(game, target,
+                                             INVALID_ERROR, false);
+                r.mV.mError = refinementPass(game, target,
+                                             r.mV.mError, false);
+
+                if (i != 0) {
+                    if (oldError < r.mV.mError) {
+                        r.mV.mAngle = oldAngle;
+                        r.mV.mPower = oldPower;
+                        r.mV.mError = oldError;
+                    }
+                }
+            }
+        }
+
+        protected void refinementStep(RunGameActAccessor game,
+                                      Player target,
+                                      RefinementBrain r)
+        {
+            for (int i = 0; i < 3; i++) {
+                r.mV.mError = refinementPass(game, target,
+                                             r.mV.mError, false);
+            }
+        }
 
         /*================= Outputs =================*/
         /** Make a move */
