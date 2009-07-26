@@ -712,8 +712,11 @@ public abstract class GameState {
                     }
                 }
                 Armory armory = curPlayer.getArmory(game.getCosmos());
-                curPlayer.setCurWeaponType(armory.
+                armory.useWeapon(weapon);
+                if (armory.getAmount(weapon) == 0) {
+                    curPlayer.setCurWeaponType(armory.
                         getNextWeapon(curPlayer.getCurWeaponType()));
+                }
                 return ExtraArmorState.create();
             }
             else {
