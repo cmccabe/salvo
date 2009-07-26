@@ -317,6 +317,7 @@ public abstract class GameState {
             if (!mFinished)
                 return null;
             else if (game.getCosmos().moreRoundsRemaining()) {
+                game.getCosmos().nextRound();
                 return BuyWeaponsState.create(0);
             }
             else

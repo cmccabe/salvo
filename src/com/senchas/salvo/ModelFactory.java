@@ -591,7 +591,7 @@ public class ModelFactory {
         MyVars v = new MyVars();
         v.mTerrainFac = TerrainFactory.Rolling;
         v.mUseRandomPlayerPlacement = true;
-        v.mNumRounds = (short)3;
+        v.mNumRounds = (short)2;
         v.mStartingCash = (short)0;
 
         // Create some default players

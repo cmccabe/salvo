@@ -648,7 +648,6 @@ public class RunGameAct extends Activity {
                                          fac.getNumPlayers(),
                                          fac.getStartingCash());
         }
-        mCosmos.nextRound();
         mModel = fac.createModel(mCosmos);
         if (firstRound) {
             mState = GameState.createInitialGameState();
