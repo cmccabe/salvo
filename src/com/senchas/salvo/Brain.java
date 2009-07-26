@@ -53,33 +53,33 @@ public abstract class Brain {
 
     /*================= Types =================*/
     public static class ArmoryView {
-        /*================= Constants =================*/
-        public static final int TOTAL_PROB = 10000;
+        /*================= Types =================*/
+        /** Scratch space used in setProbabilitiesByClass.
+         * This is terrible style, but it's here for performance reasons.
+         */
+        static class SPCTmp {
+            public WeaponType.Const.UseClass useClass;
+            public int prob;
+            public int count;
+            public int val;
+        }
 
+        /*================= Constants =================*/
         public static final int INVALID_PROB = -1;
 
         /*================= Data =================*/
-        /** Probability that a given weapon will be chosen, in terms of
-         * 100ths of a percent.
+        /** Probability that a given weapon will be chosen.
+         *
+         * The probabilty that weapon[i] will be chosen is
+         * weapon[i] / sum(weapon[0]...weapon[n])
+         *
          * If a given slot has a probability of -1, that means that that
          * weapon cannot be selected. */
         private int mProbs[];
 
-        /*================= Access =================*/
-        public void verifyStats() {
-            // verify that all probabilities sum to TOTAL_PROB
-            int sum = 0;
-            for (int i = 0; i < mProbs.length; i++) {
-                if (mProbs[i] != INVALID_PROB)
-                    sum += mProbs[i];
-            }
-            if (sum != TOTAL_PROB) {
-                logStats();
-                throw new RuntimeException("verifyStats: " +
-                        "probabilities must sum to TOTAL_PROB");
-            }
-        }
+        private SPCTmp mSPCTmp[];
 
+        /*================= Access =================*/
         public void logStats() {
             WeaponType values[] = WeaponType.values();
             StringBuilder b = new StringBuilder(80 * 20);
@@ -96,73 +96,83 @@ public abstract class Brain {
 
         /*================= Operations =================*/
         /** Set up a uniform random distribution of weapons */
-        public void setUniformlyRandomProbs() 
+        public void setUniformlyRandomProbs()
         {
             int validProbs = 0;
             for (int i = 0; i < mProbs.length; i++) {
                 if (mProbs[i] != ArmoryView.INVALID_PROB)
-                    validProbs++;
+                    mProbs[i] = 1;
+            }
+        }
+
+        /** Set up our distribution by weapon use classification. */
+        public void setProbabilitiesByClass(
+            int defensiveProb, int smallProb, int aggroProb)
+        {
+            mSPCTmp[0].useClass = WeaponType.Const.UseClass.DEFENSIVE;
+            mSPCTmp[0].prob = defensiveProb;
+
+            mSPCTmp[1].useClass = WeaponType.Const.UseClass.SMALL;
+            mSPCTmp[1].prob = smallProb;
+
+            mSPCTmp[2].useClass = WeaponType.Const.UseClass.AGGRO;
+            mSPCTmp[2].prob = aggroProb;
+
+            for (SPCTmp s : mSPCTmp) {
+                s.count = 0;
             }
 
-            int share = ArmoryView.TOTAL_PROB / validProbs;
-            int lastShare = ArmoryView.TOTAL_PROB -
-                (share * (validProbs - 1));
-            int v = 0;
+            WeaponType values[] = WeaponType.values();
             for (int i = 0; i < mProbs.length; i++) {
                 if (mProbs[i] != ArmoryView.INVALID_PROB) {
-                    if (v != (validProbs-1))
-                        mProbs[i] = share;
-                    else
-                        mProbs[i] = lastShare;
-                    v++;
+                    for (SPCTmp s : mSPCTmp) {
+                        if (s.useClass == values[i].getUseClass()) {
+                            s.count++;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            for (SPCTmp s : mSPCTmp) {
+                if (s.count == 0)
+                    s.val = 0;
+                else
+                    s.val = (100 * s.prob) / s.count;
+            }
+
+            for (int i = 0; i < mProbs.length; i++) {
+                if (mProbs[i] != ArmoryView.INVALID_PROB) {
+                    for (SPCTmp s : mSPCTmp) {
+                        if (s.useClass == values[i].getUseClass()) {
+                            mProbs[i] = s.val;
+                            break;
+                        }
+                    }
                 }
             }
         }
 
-        /** Given an array of probabilities where at least one is non-zero,
-         * scale all entries so that the sum of all the entries becomes
-         * exactly ArmoryView.TOTAL_PROB.  Note: We consistently round down
-         * when scaling, and throw the difference in the final bucket. */
-        public void normalize() {
-            int totalProb = 0;
-            for (int i = 0; i < probs.length; i++) {
-                if (probs[i] != ArmoryView.INVALID_PROB)
-                    totalProb += probs[i]; 
-            }
-            int v = 0;
-            float multiplier = ArmoryView.TOTAL_PROB;
-            multiplier /= totalProb;
-            int count = 0;
-            for (int i = 0; i < probs.length; i++) {
-                if (probs[i] == ArmoryView.INVALID_PROB)
-                    continue;
-                else if (v != (validProbs-1))
-                    probs[i] = ArmoryView.TOTAL_PROB - count;
-                else {
-                    probs[i] *= multiplier;
-                    count += probs[i];
-                }
-                v++;
-            }
-        }
-
-        /** Chooses a random weapon.
-         *
-         * The probability that any given weapon will be chosen is
-         * linearly proportional to its mProbs entry.
+        /** Chooses a random weapon from this ArmoryView.
          */
-        public WeaponType getRandomWeapon() {
-            verifyStats();
-            int num = Util.mRandom.nextInt(TOTAL_PROB);
+        public WeaponType getRandomWeapon()
+        {
+            int total = 0;
+            for (int i = 0; i < mProbs.length; i++) {
+                if (mProbs[i] != INVALID_PROB)
+                    total += mProbs[i];
+            }
+
+            int val = Util.mRandom.nextInt(total);
             int sum = 0;
             for (int i = 0; i < mProbs.length; i++) {
                 if (mProbs[i] != INVALID_PROB)
                     sum += mProbs[i];
-                if (sum > num)
+                if (sum >= val)
                     return WeaponType.values()[i];
             }
-            throw new RuntimeException("getRandomWeapon: " +
-                    "probabilities must sum to TOTAL_PROB");
+
+            throw new RuntimeException("unreachable");
         }
 
         public int[] getProbs() {
@@ -170,7 +180,9 @@ public abstract class Brain {
         }
 
         /*================= Lifecycle =================*/
-        /** Get a list of weapons that are currently in our armory. */
+        /** Initialize with the set of weapons that are currently in our
+         *  armory.
+         */
         public void initialize(Armory arm) {
             WeaponType weapons[] = WeaponType.values();
             for (int i = 0; i < weapons.length; i++) {
@@ -182,12 +194,14 @@ public abstract class Brain {
             }
         }
 
-        /** Get a list of buyable weapons whose cost is less than maxCost. */
+        /** Initialize with all of the weapons whose cost is less than
+         * maxCost.
+         */
         public void initialize(int maxCost) {
             WeaponType weapons[] = WeaponType.values();
             for (int i = 0; i < weapons.length; i++) {
-                int cost = weapons[i].getCost();
-                if (cost == Const.UNBUYABLE)
+                int cost = weapons[i].getPrice();
+                if (cost == WeaponType.Const.UNBUYABLE)
                     mProbs[i] = INVALID_PROB;
                 else if (cost > maxCost)
                     mProbs[i] = INVALID_PROB;
@@ -198,6 +212,7 @@ public abstract class Brain {
 
         public ArmoryView() {
             mProbs = new int[WeaponType.values().length];
+            mSPCTmp = new SPCTmp[3];
         }
     }
 
@@ -368,7 +383,7 @@ public abstract class Brain {
         public void buyWeapons(Cosmos.PlayerInfo playerInfo) {
             // Yes, it's lame to have methods-of-a-class that aren't
             // implemented.
-            throw new RuntimeException("HumanBrain doesn't "
+            throw new RuntimeException("HumanBrain doesn't " +
                 "implement buyWeapons");
         }
 
@@ -485,6 +500,13 @@ public abstract class Brain {
             private int mAngle;
 
             private int mPower;
+
+            /** The error of the last shot we took. */
+            private int mError;
+
+            /** The greater the threat from other players, the higher the
+             * defCon level. */
+            private int mDefCon;
         }
 
         private MyVars mV;
@@ -708,6 +730,18 @@ public abstract class Brain {
             }
         }
 
+        public void notifyAggression(int perp,
+                                float distance, boolean damagedUs)
+        {
+            if (damagedUs)
+                mV.mDefCon += 4;
+            else
+                mV.mDefCon++;
+            if (mV.mDefCon > 4) {
+                mV.mDefCon = 4;
+            }
+        }
+
         /*================= Outputs =================*/
         /** Make a move */
         public void makeMove(RunGameActAccessor game, Move out) {
@@ -733,40 +767,47 @@ public abstract class Brain {
 
                 mV.mAngle = Util.mRandom.nextInt(Player.MAX_TURRET_ANGLE);
                 mV.mPower = Util.mRandom.nextInt(Player.MAX_POWER);
+                mV.mError = refinementPass(game, target, INVALID_ERROR);
             }
             else {
                 target = players[mV.mTargetId];
+                mV.mError = refinementPass(game, target, mV.mError);
             }
 
             // Decide which weapon to choose
+            int aggroProb = 0;
+            int smallProb = 0;
+            int defensiveProb = 0;
+            if (mV.mError < 50) {
+                aggroProb = 10;
+                smallProb = 1;
+            }
+            else if (mV.mError < 100) {
+                aggroProb = 3;
+                smallProb = 8;
+            }
+            else {
+                aggroProb = 1;
+                smallProb = 10;
+            }
+            if (mV.mDefCon >= 4) {
+                defensiveProb = 30;
+            }
+            else if (mV.mDefCon > 0) {
+                defensiveProb = 10;
+            }
+            else {
+                defensiveProb = 1;
+            }
+            mV.mDefCon--;
+            if (mV.mDefCon < 0)
+                mV.mDefCon = 0;
+
             Armory armory = curPlayer.getArmory(game.getCosmos());
             mArmTmp.initialize(armory);
-            int probs[] = mArmTmp.getProbs();
-            int validProbs = 0;
-            for (int i = 0; i < probs.length; i++) {
-                if (probs[i] != ArmoryView.INVALID_PROB)
-                    validProbs++;
-            }
-
-            int share = ArmoryView.TOTAL_PROB / validProbs;
-            int lastShare = ArmoryView.TOTAL_PROB -
-                (share * (validProbs - 1));
-            int v = 0;
-            for (int i = 0; i < probs.length; i++) {
-                if (probs[i] != ArmoryView.INVALID_PROB) {
-                    if (v != (validProbs-1))
-                        probs[i] = share;
-                    else
-                        probs[i] = lastShare;
-                    v++;
-                }
-            }
-
+            mArmTmp.setProbabilitiesByClass(
+                defensiveProb, smallProb, aggroProb);
             WeaponType weapon = mArmTmp.getRandomWeapon();
-
-            if (weapon.isProjectile()) {
-                refinementPass(game, target, INVALID_ERROR);
-            }
             out.initializeAsCpu(mV.mAngle, mV.mPower, weapon);
         }
 
@@ -779,30 +820,18 @@ public abstract class Brain {
             while (cash > WeaponType.sMinimumWeaponCost) {
                 mArmTmp.initialize(cash);
                 int probs[] = mArmTmp.getProbs();
-                
-                int validProbs = 0;
                 int totalWeapons = 0;
                 for (int i = 0; i < probs.length; i++) {
-                    if (probs[i] != ArmoryView.INVALID_PROB) {
-                        validProbs++;
+                    if (probs[i] != ArmoryView.INVALID_PROB)
                         totalWeapons += armory.getAmount(weapons[i]);
-                    }
-                }
-                if (totalWeapons == 0) {
-                    mArmTmp.setUniformlyRandomProbs();
-                }
-                else {
-                    int cur = 0;
-                    for (int i = 0; i < probs.length; i++) {
-                        if (probs[i] == ArmoryView.INVALID_PROB)
-                            continue;
-                        probs[i] = ArmoryView.TOTAL_PROB *
-                            (totalWeapons - armory.getAmount(weapons[i]));
-                    }
-
-                    mArmTmp.normalize();
                 }
 
+                for (int i = 0; i < probs.length; i++) {
+                    if (probs[i] != ArmoryView.INVALID_PROB) {
+                        probs[i] =
+                            totalWeapons - armory.getAmount(weapons[i]);
+                    }
+                }
                 WeaponType weapon = mArmTmp.getRandomWeapon();
                 armory.addWeapon(weapon);
                 playerInfo.spendMoney(weapon.getPrice());
@@ -827,6 +856,8 @@ public abstract class Brain {
             mV.mTargetId = Player.INVALID_PLAYER_ID;
             mV.mAngle = 0;
             mV.mPower = 1000;
+            mV.mDefCon = 0;
+            mV.mError = INVALID_ERROR;
             initializeTmp();
         }
 

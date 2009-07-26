@@ -28,105 +28,120 @@ public enum WeaponType {
         Const.UNBUYABLE,
         DetonationAttr.EXPLODE,
         EnumSet.of(Attr.PROJECTILE),
-        AutoPack.EMPTY_STRING
+        AutoPack.EMPTY_STRING,
+        Const.UseClass.SMALL
     ),
     MEDIUM_MISSILE("Medium Missile", 2,
         new ExplosionAttributes(20, Const.RED, 175),
         100,
         DetonationAttr.EXPLODE,
         EnumSet.of(Attr.PROJECTILE),
-        "A bigger missle"
+        "A bigger missle",
+        Const.UseClass.AGGRO
         ),
     LARGE_MISSILE("Large Missile", 0,
         new ExplosionAttributes(35, Const.RED, 200),
         150,
         DetonationAttr.EXPLODE,
         EnumSet.of(Attr.PROJECTILE),
-        "The biggest missle"
+        "The biggest missle",
+        Const.UseClass.AGGRO
     ),
     EARTHMOVER("Earthmover", 0,
         new ExplosionAttributes(45, Const.GREY, 0),
         50,
         DetonationAttr.EXPLODE,
         EnumSet.of(Attr.PROJECTILE),
-        "Does no direct damage, but reshapes the terrain"
+        "Does no direct damage, but reshapes the terrain",
+        Const.UseClass.SMALL
     ),
     LARGE_EARTHMOVER("Large Earthmover", 0,
         new ExplosionAttributes(74, Const.GREY, 0),
         100,
         DetonationAttr.EXPLODE,
         EnumSet.of(Attr.PROJECTILE),
-        "A bigger version of the Earthmover"
+        "A bigger version of the Earthmover",
+        Const.UseClass.AGGRO
     ),
     EXTRA_ARMOR("Extra Armor", 0,
         null,
         400,
         DetonationAttr.CANNOT_DETONATE,
         EnumSet.of(Attr.EXTRA_ARMOR),
-        "Gives you back your health"
+        "Gives you back your health",
+        Const.UseClass.DEFENSIVE
     ),
     TELEPORTER("Teleporter", 0,
         null,
         250,
         DetonationAttr.CANNOT_DETONATE,
         EnumSet.of(Attr.TELEPORTER),
-        "Moves you to a random location"
+        "Moves you to a random location",
+        Const.UseClass.DEFENSIVE
     ),
     ROLLER("Roller", 0,
         null,
         350,
         DetonationAttr.MAKE_ROLLER,
         EnumSet.of(Attr.PROJECTILE),
-        "Rolls downhill until it hits something"
+        "Rolls downhill until it hits something",
+        Const.UseClass.AGGRO
     ),
     ROLLER_PAYLOAD("Roller Payload", Const.UNSELECTABLE,
         new ExplosionAttributes(22, Const.RED, 150),
         Const.UNBUYABLE,
         DetonationAttr.EXPLODE,
         EnumSet.of(Attr.ROLLER),
-        AutoPack.EMPTY_STRING
+        AutoPack.EMPTY_STRING,
+        null
     ),
     LARGE_ROLLER("Large Roller", 0,
         null,
         500,
         DetonationAttr.MAKE_ROLLER,
         EnumSet.of(Attr.PROJECTILE, Attr.LARGE),
-        "A bigger Roller"
+        "A bigger roller",
+        Const.UseClass.AGGRO
     ),
     LARGE_ROLLER_PAYLOAD("Large Roller Payload", Const.UNSELECTABLE,
         new ExplosionAttributes(35, Const.RED, 200),
         Const.UNBUYABLE,
         DetonationAttr.EXPLODE,
         EnumSet.of(Attr.ROLLER),
-        AutoPack.EMPTY_STRING
+        AutoPack.EMPTY_STRING,
+        null
     ),
     CLUSTER_BOMB("Cluster Bomb", 0,
         null,
         330,
         DetonationAttr.MAKE_CLUSTER,
         EnumSet.of(Attr.PROJECTILE, Attr.LARGE),
-        "Splits into multiple grenades on impact"
+        "Splits into multiple grenades on impact",
+        Const.UseClass.AGGRO
     ),
     CLUSTER_BOMB_PAYLOAD("Cluster Bomb Payload", Const.UNSELECTABLE,
         new ExplosionAttributes(30, Const.RED, 50),
         Const.UNBUYABLE,
         DetonationAttr.EXPLODE,
         EnumSet.of(Attr.PROJECTILE),
-        AutoPack.EMPTY_STRING
+        AutoPack.EMPTY_STRING,
+        null
     ),
     DOOMHAMMER("Doomhammer", 0,
         null,
         650,
         DetonationAttr.MAKE_CLUSTER,
         EnumSet.of(Attr.PROJECTILE, Attr.EXTRA_LARGE),
-        "A powerful but wildly inaccurate weapon"
+        "A good weapon for supervillains",
+        Const.UseClass.AGGRO
     ),
     PLAYER_DEATH("Player Death", Const.UNSELECTABLE,
         new ExplosionAttributes(36, Const.RED, 200),
         Const.UNBUYABLE,
         DetonationAttr.EXPLODE,
         EnumSet.of(Attr.PROJECTILE),
-        AutoPack.EMPTY_STRING
+        AutoPack.EMPTY_STRING,
+        null
     );
 
     /*================= Constants =================*/
@@ -170,6 +185,13 @@ public enum WeaponType {
          * moves.
          */
         private static final float ROLLER_PAYLOAD_INIT_POWER = 1.0f;
+
+        /** Classifications of weapon uses */
+        enum UseClass {
+            DEFENSIVE,
+            SMALL,
+            AGGRO
+        };
     }
 
     /*================= Static =================*/
@@ -199,13 +221,13 @@ public enum WeaponType {
         }
     }
 
-    /** The minimum amount of money that any buyable weapon costs. */ 
+    /** The minimum amount of money that any buyable weapon costs. */
     static int sMinimumWeaponCost;
 
     static {
         // Initialize sMinimumWeaponCost
         sMinimumWeaponCost = Integer.MAX_VALUE;
-        for (WeaponType w : weapons) {
+        for (WeaponType w : WeaponType.values()) {
             int price = w.getPrice();
             if (price != Const.UNBUYABLE) {
                 if (price < sMinimumWeaponCost) {
@@ -515,6 +537,7 @@ public enum WeaponType {
     private final DetonationAttr mDetonationAttr;
     private final EnumSet<Attr> mAttrs;
     private final String mDescription;
+    private final Const.UseClass mUseClass;
 
     /*================= Access =================*/
     public String getName() {
@@ -535,6 +558,10 @@ public enum WeaponType {
 
     public String getDescription() {
         return mDescription;
+    }
+
+    public Const.UseClass getUseClass() {
+        return mUseClass;
     }
 
     public boolean isProjectile() {
@@ -626,7 +653,8 @@ public enum WeaponType {
                        int price,
                        DetonationAttr detonationAttr,
                        EnumSet<Attr> attrs,
-                       String description)
+                       String description,
+                       Const.UseClass useClass)
     {
         // validation
         if (detonationAttr == DetonationAttr.EXPLODE) {
@@ -651,5 +679,6 @@ public enum WeaponType {
         mDetonationAttr = detonationAttr;
         mAttrs = attrs;
         mDescription = description;
+        mUseClass = useClass;
     }
 }

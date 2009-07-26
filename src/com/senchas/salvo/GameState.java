@@ -22,6 +22,7 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.senchas.salvo.Cosmos.PlayerInfo;
 import com.senchas.salvo.RunGameAct.AnnounceWinnerDialog;
 import com.senchas.salvo.RunGameAct.BuyWeaponsDialog;
 import com.senchas.salvo.RunGameAct.LeaderboardDialog;
@@ -316,7 +317,6 @@ public abstract class GameState {
             if (!mFinished)
                 return null;
             else if (game.getCosmos().moreRoundsRemaining()) {
-                game.
                 return BuyWeaponsState.create(0);
             }
             else
@@ -468,8 +468,9 @@ public abstract class GameState {
                         canBuySomething())
                 return;
 
-            if (! game.getPlayers()[mV.mPlayerIdx].getBrain().isHuman())
-                return
+            if (! game.getModel().getPlayers()
+                    [mV.mPlayerIdx].getBrain().isHuman())
+                return;
 
             RunGameAct runGameAct = game.getRunGameAct();
             StartBuyWeaponsDialog dial =
@@ -483,11 +484,12 @@ public abstract class GameState {
 
         @Override
         public GameState main(RunGameActAccessor game) {
+            Model model = game.getModel();
             PlayerInfo playerInfo = game.getCosmos().
                 getPlayerInfo()[mV.mPlayerIdx];
             if (! playerInfo.canBuySomething())
                 return null;
-            Brain playerBrain = game.getPlayers()[mV.mPlayerIdx].getBrain();
+            Brain playerBrain = model.getPlayers()[mV.mPlayerIdx].getBrain();
             if (playerBrain.isHuman()) {
                 if (! mFinished)
                     return null;
@@ -496,8 +498,8 @@ public abstract class GameState {
                 playerBrain.buyWeapons(playerInfo);
             }
 
-            nextIdx = mV.mPlayerIdx + 1;
-            if (nextIdx > game.getPlayers().length) {
+            int nextIdx = mV.mPlayerIdx + 1;
+            if (nextIdx > model.getPlayers().length) {
                 game.getRunGameAct().startRound(false);
                 game.getRunGameAct().continueRound();
                 return TurnStartState.create();
