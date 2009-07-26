@@ -213,6 +213,9 @@ public abstract class Brain {
         public ArmoryView() {
             mProbs = new int[WeaponType.values().length];
             mSPCTmp = new SPCTmp[3];
+            for (int i = 0; i < mSPCTmp.length; i++) {
+            	mSPCTmp[i] = new SPCTmp();
+            }
         }
     }
 
@@ -745,6 +748,9 @@ public abstract class Brain {
         /*================= Outputs =================*/
         /** Make a move */
         public void makeMove(RunGameActAccessor game, Move out) {
+        	Log.w(this.getClass().getName(), "WeaponType.sMinimumWeaponCost = " +
+        			WeaponType.sMinimumWeaponCost);
+        	
             Model model = game.getModel();
             Player curPlayer = model.getCurPlayer();
             Player players[] = model.getPlayers();
@@ -814,11 +820,10 @@ public abstract class Brain {
         public void buyWeapons(Cosmos.PlayerInfo playerInfo) {
             // RefinementBrain tries to have roughly equal numbers of each
             // type of weapon
-            int cash = playerInfo.getCash();
             Armory armory = playerInfo.getArmory();
             WeaponType weapons[] = WeaponType.values();
-            while (cash > WeaponType.sMinimumWeaponCost) {
-                mArmTmp.initialize(cash);
+            while (playerInfo.getCash() > WeaponType.sMinimumWeaponCost) {
+                mArmTmp.initialize(playerInfo.getCash());
                 int probs[] = mArmTmp.getProbs();
                 int totalWeapons = 0;
                 for (int i = 0; i < probs.length; i++) {
