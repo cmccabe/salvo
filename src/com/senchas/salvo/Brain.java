@@ -767,7 +767,7 @@ public abstract class Brain {
         public void notifyPlayerTeleported(int playerId) {
             if (playerId == mV.mTargetId) {
                 StringBuilder b = new StringBuilder(80 * 2);
-                b.append("notifyPlayerFell: we were targetting player ");
+                b.append("notifyPlayerTeleported: we were targetting player ");
                 b.append(playerId);
                 b.append(", but he teleported away. Resetting mV.mTargetId.");
                 Log.w(this.getClass().getName(), b.toString());
@@ -782,7 +782,7 @@ public abstract class Brain {
                 StringBuilder b = new StringBuilder(80 * 2);
                 b.append("notifyPlayerFell: we were targetting player ");
                 b.append(victim);
-                b.append(", but he was destroyed. Resetting mV.mTargetId.");
+                b.append(", but he fell. Resetting mV.mTargetId.");
                 Log.w(this.getClass().getName(), b.toString());
 
                 mV.mTargetId = Player.INVALID_PLAYER_ID;
