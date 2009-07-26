@@ -14,8 +14,8 @@
         </activity>
 <!-- android:label=”@string/activity_dialog”
 android:theme=”@android:style/Theme.Dialog” -->
-        <activity android:name=".ReadStuffAct"
-                  android:label="ReadStuffAct">
+        <activity android:name=".HelpAct"
+                  android:label="HelpAct">
         </activity>
         <activity android:name=".GameSetupAct"
                   android:label="GameSetupAct">

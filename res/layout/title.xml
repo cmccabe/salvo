@@ -54,16 +54,6 @@
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
                     android:text="New Game" android:typeface="monospace"/>
-            <Button android:id="@+id/about"
-                    android:layout_gravity="right"
-                    android:layout_width="fill_parent"
-                    android:layout_height="wrap_content"
-                    android:text="About" android:typeface="monospace"/>
-            <Button android:id="@+id/buy_game"
-                    android:layout_gravity="right"
-                    android:layout_width="fill_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Buy Game" android:typeface="monospace"/>
             <Button android:id="@+id/help"
                     android:layout_gravity="right"
                     android:layout_width="fill_parent"

@@ -38,8 +38,6 @@ public class TitleScreenAct extends Activity {
 
         ////////////////// Get pointers to stuff
         final Button newGame = (Button)findViewById(R.id.new_game);
-        final Button about = (Button)findViewById(R.id.about);
-        final Button buyGame = (Button)findViewById(R.id.buy_game);
         final Button help = (Button)findViewById(R.id.help);
 
         ////////////////// Initialize stuff
@@ -51,21 +49,10 @@ public class TitleScreenAct extends Activity {
                 startActivity(setupIntent);
             }
         });
-        about.setOnClickListener(new OnClickListener() {
-            public void onClick(View arg0) {
-                Intent setupIntent = new Intent().
-                    setClass(titleActivity, ReadStuffAct.class);
-                setupIntent.putExtra(ReadStuffAct.STUFF_TYPE_EXTRA,
-                    ReadStuffAct.StuffText.ABOUT_BOX.toCode());
-                startActivity(setupIntent);
-            }
-        });
         help.setOnClickListener(new OnClickListener() {
             public void onClick(View arg0) {
                 Intent setupIntent = new Intent().
-                    setClass(titleActivity, ReadStuffAct.class);
-                setupIntent.putExtra(ReadStuffAct.STUFF_TYPE_EXTRA,
-                    ReadStuffAct.StuffText.HELP_BOX.toCode());
+                    setClass(titleActivity, HelpAct.class);
                 startActivity(setupIntent);
             }
         });
