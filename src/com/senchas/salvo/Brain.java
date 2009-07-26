@@ -464,6 +464,7 @@ public abstract class Brain {
                 WeaponType weapon = mArmTmp.getRandomWeapon();
                 armory.addWeapon(weapon);
                 playerInfo.spendMoney(weapon.getPrice());
+                cash = playerInfo.getCash();
             }
         }
 
