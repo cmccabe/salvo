@@ -479,7 +479,7 @@ public abstract class GameState {
             StartBuyWeaponsDialog dial =
                 new StartBuyWeaponsDialog(runGameAct,
                         game.getCosmos(),
-                        game.getModel().getPlayers()[0]);
+                        game.getModel().getPlayers()[mV.mPlayerIdx]);
             runGameAct.runOnUiThread(dial);
 
             game.getGameControlView().drawSky();
@@ -505,6 +505,7 @@ public abstract class GameState {
             if (nextIdx >= model.getPlayers().length) {
                 game.getRunGameAct().startRound(false);
                 game.getRunGameAct().continueRound();
+                mV.mPlayerIdx = -1;
                 return TurnStartState.create();
             }
             else
@@ -556,7 +557,7 @@ public abstract class GameState {
 
         private BuyWeaponsState() {
             mV = new MyVars();
-            mV.mPlayerIdx = 0;
+            mV.mPlayerIdx = -1;
         }
     }
 

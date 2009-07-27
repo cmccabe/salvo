@@ -329,7 +329,7 @@ public enum WeaponType {
             for (int i = 1; i < weapons.length; i++) {
                 int j = (curWeapon.ordinal() + i) % weapons.length;
                 int w = mV.mWeapons[j];
-                if ((w != Const.UNSELECTABLE) & (w > 0) |
+                if (((w != Const.UNSELECTABLE) && (w > 0)) ||
                         (w == Const.UNLIMITED))
                     return weapons[j];
             }
@@ -348,7 +348,7 @@ public enum WeaponType {
                 int j = (weapons.length + curWeapon.ordinal() - i) %
                             weapons.length;
                 int w = mV.mWeapons[j];
-                if ((w != Const.UNSELECTABLE) & (w > 0) |
+                if (((w != Const.UNSELECTABLE) && (w > 0)) ||
                         (w == Const.UNLIMITED))
                     return weapons[j];
             }
