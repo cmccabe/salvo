@@ -278,7 +278,7 @@ public abstract class Brain {
      */
     public static class Move {
         /*================= Data =================*/
-        public class MyVars {
+        public static class MyVars {
             public boolean mIsHuman;
             public int mAngle;
             public int mPower;
