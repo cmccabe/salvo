@@ -504,18 +504,18 @@ public abstract class Brain {
         public static class MyVars {
             /// Id of the player we're targeting now, or INVALID_PLAYER_ID if
             /// there is no such player.
-            private int mTargetId;
+            public int mTargetId;
 
-            private int mAngle;
+            public int mAngle;
 
-            private int mPower;
+            public int mPower;
 
             /** The error of the last shot we took. */
-            private int mError;
+            public int mError;
 
             /** The greater the threat from other players, the higher the
              * defCon level. */
-            private int mDefCon;
+            public int mDefCon;
         }
 
         protected MyVars mV;
