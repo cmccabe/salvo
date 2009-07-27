@@ -324,6 +324,7 @@ public abstract class Brain {
 
         /*================= Operations =================*/
         public void saveState(Bundle map) {
+            Log.w(this.getClass().getName(), "trying to save state. foo");
             AutoPack.autoPack(map, AutoPack.EMPTY_STRING, mV);
         }
 
@@ -517,7 +518,7 @@ public abstract class Brain {
              * defCon level. */
             public int mDefCon;
         }
-
+        
         protected MyVars mV;
 
         /*================= Utility =================*/
@@ -904,11 +905,17 @@ public abstract class Brain {
         }
 
         /*================= Operations =================*/
-        public void saveState(int index, Bundle map) {
-            AutoPack.autoPack(map, Util.indexToString(index), mV);
-        }
 
         /*================= Lifecycle =================*/
+        private void initializeMyVars() {
+            mV = new MyVars();
+            mV.mTargetId = Player.INVALID_PLAYER_ID;
+            mV.mAngle = 0;
+            mV.mPower = 1000;
+            mV.mDefCon = 0;
+            mV.mError = INVALID_ERROR;
+        }
+
         private void initializeTmp() {
             mArmTmp = new ArmoryView();
             mProjTmp = new Projectile();
@@ -917,12 +924,7 @@ public abstract class Brain {
 
         public RefinementBrain() {
             super();
-            mV = new MyVars();
-            mV.mTargetId = Player.INVALID_PLAYER_ID;
-            mV.mAngle = 0;
-            mV.mPower = 1000;
-            mV.mDefCon = 0;
-            mV.mError = INVALID_ERROR;
+            initializeMyVars();
             initializeTmp();
         }
 
@@ -939,20 +941,14 @@ public abstract class Brain {
 
         /*================= Static =================*/
         public static MediumBrain fromBundle(int index, Bundle map) {
-            RefinementBrain.MyVars refineV =
+            RefinementBrain.MyVars v =
                 (RefinementBrain.MyVars)AutoPack.
                     autoUnpack(map, Util.indexToString(index),
-                        RefinementBrain.class);
-            MyVars v = (MyVars)AutoPack.
-                autoUnpack(map, Util.indexToString(index), MyVars.class);
-            return new MediumBrain(refineV, v);
+                        RefinementBrain.MyVars.class);
+            return new MediumBrain(v);
         }
 
         /*================= Data =================*/
-        public static class MyVars {
-        }
-
-        private MyVars mV;
 
         /*================= Utility =================*/
         protected void getInitialFix(RunGameActAccessor game,
@@ -979,20 +975,17 @@ public abstract class Brain {
 
         /*================= Operations =================*/
         public void saveState(int index, Bundle map) {
-            super.saveState(index, map);
             map.putShort(Util.indexToString(index, KEY_BRAIN_TYPE_ID), ID);
             AutoPack.autoPack(map, Util.indexToString(index), mV);
         }
 
         /*================= Lifecycle =================*/
-        public MediumBrain(RefinementBrain.MyVars refineV, MyVars v) {
-            super(refineV);
-            mV = v;
+        public MediumBrain(RefinementBrain.MyVars v) {
+            super(v);
         }
 
         public MediumBrain() {
             super();
-            mV = new MyVars();
         }
     }
 
@@ -1002,20 +995,14 @@ public abstract class Brain {
 
         /*================= Static =================*/
         public static HardBrain fromBundle(int index, Bundle map) {
-            RefinementBrain.MyVars refineV =
+            RefinementBrain.MyVars v =
                 (RefinementBrain.MyVars)AutoPack.
                     autoUnpack(map, Util.indexToString(index),
-                        RefinementBrain.class);
-            MyVars v = (MyVars)AutoPack.
-                autoUnpack(map, Util.indexToString(index), MyVars.class);
-            return new HardBrain(refineV, v);
+                        RefinementBrain.MyVars.class);
+            return new HardBrain(v);
         }
 
         /*================= Data =================*/
-        public static class MyVars {
-        }
-
-        private MyVars mV;
 
         /*================= Utility =================*/
         protected void getInitialFix(RunGameActAccessor game,
@@ -1062,20 +1049,17 @@ public abstract class Brain {
 
         /*================= Operations =================*/
         public void saveState(int index, Bundle map) {
-            super.saveState(index, map);
             map.putShort(Util.indexToString(index, KEY_BRAIN_TYPE_ID), ID);
             AutoPack.autoPack(map, Util.indexToString(index), mV);
         }
 
         /*================= Lifecycle =================*/
-        public HardBrain(RefinementBrain.MyVars refineV, MyVars v) {
-            super(refineV);
-            mV = v;
+        public HardBrain(RefinementBrain.MyVars v) {
+            super(v);
         }
 
         public HardBrain() {
             super();
-            mV = new MyVars();
         }
     }
 
