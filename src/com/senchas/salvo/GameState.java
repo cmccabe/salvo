@@ -1953,6 +1953,8 @@ public abstract class GameState {
                 return BallisticsState.createFromBundle(map);
             case TeleportState.ID:
                 return TeleportState.createFromBundle(map);
+            case ExtraArmorState.ID:
+                return ExtraArmorState.createFromBundle(map);
             default:
                 throw new RuntimeException("can't recognize state with ID = "
                                             + id);
