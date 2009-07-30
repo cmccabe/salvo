@@ -271,16 +271,19 @@ class GameControlView extends SurfaceView  {
         try {
             getHolder().setType(
                 android.view.SurfaceHolder.SURFACE_TYPE_HARDWARE);
-            Log.w(this.getClass().getName(),
-                "GameControlView: activated hardware acceleration");
+            if (Util.mDebug > 1)
+                Log.w(this.getClass().getName(),
+                    "GameControlView: activated hardware acceleration");
         }
         catch(Exception e) {
             getHolder().setType(
                 android.view.SurfaceHolder.SURFACE_TYPE_NORMAL);
-            StringBuilder b = new StringBuilder(160);
-            b.append("GameControlView: no acceleration ");
-            b.append("(error: ").append(e.toString()).append(")");
-            Log.w(this.getClass().getName(), b.toString());
+            if (Util.mDebug > 1) {
+                StringBuilder b = new StringBuilder(160);
+                b.append("GameControlView: no acceleration ");
+                b.append("(error: ").append(e.toString()).append(")");
+                Log.w(this.getClass().getName(), b.toString());
+            }
         }
     }
 
@@ -308,10 +311,12 @@ class GameControlView extends SurfaceView  {
         mForegroundPaint.setColor(fg.getColor());
         mForegroundPaint.setAntiAlias(false);
 
-        StringBuilder b = new StringBuilder(80);
-        b.append("Using foreground=").append(fg.name());
-        b.append(" background=").append(bg.name());
-        Log.w(this.getClass().getName(), b.toString());
+        if (Util.mDebug > 1) {
+            StringBuilder b = new StringBuilder(80);
+            b.append("Using foreground=").append(fg.name());
+            b.append(" background=").append(bg.name());
+            Log.w(this.getClass().getName(), b.toString());
+        }
 
         mCachedTerrain = Bitmap.createBitmap(Terrain.MAX_X, Terrain.MAX_Y,
                                              mBackgroundImage.getConfig());

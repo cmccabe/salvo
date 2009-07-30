@@ -332,7 +332,8 @@ public class RunGameAct extends Activity {
         /*================= Operations =================*/
         @Override
         public void run() {
-            Log.w(this.getClass().getName(), "Starting RunGameThread...");
+            if (Util.mDebug > 1)
+                Log.w(this.getClass().getName(), "Starting RunGameThread...");
 
             try {
                 while (true) {
@@ -760,7 +761,8 @@ public class RunGameAct extends Activity {
         // The game is no longer in the foreground
         super.onPause();
         synchronized (mStateLock) {
-            Log.w(this.getClass().getName(), "onPause called");
+            if (Util.mDebug > 1)
+                Log.w(this.getClass().getName(), "onPause called");
             mThread.getStateController().changeStopRequested(true);
             mStateLock.notify();
         }
@@ -771,7 +773,8 @@ public class RunGameAct extends Activity {
         // The game is back in the foreground
         super.onResume();
         synchronized (mStateLock) {
-            Log.w(this.getClass().getName(), "onResume called");
+            if (Util.mDebug > 1)
+                Log.w(this.getClass().getName(), "onResume called");
             mThread.getStateController().changeStopRequested(false);
             mStateLock.notify();
         }
@@ -788,8 +791,9 @@ public class RunGameAct extends Activity {
     protected void onSaveInstanceState(Bundle map) {
         super.onSaveInstanceState(map);
         synchronized (mStateLock) {
-            Log.w(this.getClass().getName(),
-                    "RunGameAct.onSaveInstanceState");
+            if (Util.mDebug > 1)
+                Log.w(this.getClass().getName(),
+                        "RunGameAct.onSaveInstanceState");
             mCosmos.saveState(map);
             mModel.saveState(map);
             mState.saveState(map);

@@ -104,16 +104,18 @@ public class Explosion {
             int safeDist = Player.COLLISION_RADIUS + mAttr.getRadius();
             boolean damagedUs = false;
             if (dist < safeDist) {
-                StringBuilder b = new StringBuilder(80 * 5);
-                b.append("doDirectDamage(player=").append(p.getName());
-                b.append(" full=").append(full);
-                b.append(" dist=").append(dist);
-                b.append(" safeDist=").append(safeDist);
                 int damage = Util.linearInterpolation(full, 0,
-                                        BULLSEYE_RADIUS, safeDist,
-                                        (int)dist);
-                b.append(" damage=").append(damage);
-                Log.w(this.getClass().getName(), b.toString());
+                        BULLSEYE_RADIUS, safeDist,
+                        (int)dist);
+            	if (Util.mDebug > 1) {
+                    StringBuilder b = new StringBuilder(80 * 5);
+                    b.append("doDirectDamage(player=").append(p.getName());
+                    b.append(" full=").append(full);
+                    b.append(" dist=").append(dist);
+                    b.append(" safeDist=").append(safeDist);
+                    b.append(" damage=").append(damage);
+                    Log.w(this.getClass().getName(), b.toString());
+                }
                 p.takeDamage(damage);
 
                 // award money to the player who made the shot

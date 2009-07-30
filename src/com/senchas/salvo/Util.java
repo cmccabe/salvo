@@ -36,6 +36,8 @@ public abstract class Util {
     }
 
     /*================= Static =================*/
+    public static final int mDebug = 1;
+
     /** Returns the Euclidian distance between (x0,y0) and (x1,1) */
     public static float calcDistance(float x0, float y0, float x1, float y1) {
         return (float)

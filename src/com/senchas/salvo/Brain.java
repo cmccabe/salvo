@@ -324,7 +324,6 @@ public abstract class Brain {
 
         /*================= Operations =================*/
         public void saveState(Bundle map) {
-            Log.w(this.getClass().getName(), "trying to save state. foo");
             AutoPack.autoPack(map, AutoPack.EMPTY_STRING, mV);
         }
 
@@ -642,7 +641,9 @@ public abstract class Brain {
             StringBuilder b = new StringBuilder(80);
             b.append("refinementPass: error = ");
             b.append(error);
-            Log.w(this.getClass().getName(), b.toString());
+
+            if (Util.mDebug > 0)
+                Log.w(this.getClass().getName(), b.toString());
 
             // Smaller angle shot.
             // Remember that we are dealing with angles in radians from
@@ -710,49 +711,59 @@ public abstract class Brain {
             switch (minIdx) {
                 case 0:
                     int smallerAngleDeg = (int)Math.toDegrees(smallerAngle);
-                    StringBuilder b1 = new StringBuilder(80);
-                    b1.append("reducing angle to ");
-                    b1.append(smallerAngleDeg);
-                    b1.append(" to get an error of ");
-                    b1.append(smallerAngleError);
-                    Log.w(this.getClass().getName(), b1.toString());
+                    if (Util.mDebug > 0) {
+                        StringBuilder b1 = new StringBuilder(80);
+                        b1.append("reducing angle to ");
+                        b1.append(smallerAngleDeg);
+                        b1.append(" to get an error of ");
+                        b1.append(smallerAngleError);
+                        Log.w(this.getClass().getName(), b1.toString());
+                    }
                     mV.mAngle = smallerAngleDeg;
                     return smallerAngleError;
                 case 1:
                     int biggerAngleDeg = (int)Math.toDegrees(biggerAngle);
-                    StringBuilder b2 = new StringBuilder(80);
-                    b2.append("increasing angle to ");
-                    b2.append(biggerAngleDeg);
-                    b2.append(" to get an error of ");
-                    b2.append(biggerAngleError);
-                    Log.w(this.getClass().getName(), b2.toString());
+                    if (Util.mDebug > 0) {
+                        StringBuilder b2 = new StringBuilder(80);
+                        b2.append("increasing angle to ");
+                        b2.append(biggerAngleDeg);
+                        b2.append(" to get an error of ");
+                        b2.append(biggerAngleError);
+                        Log.w(this.getClass().getName(), b2.toString());
+                    }
                     mV.mAngle = biggerAngleDeg;
                     return biggerAngleError;
                 case 2:
-                    StringBuilder b3 = new StringBuilder(80);
-                    b3.append("changing power to ");
-                    b3.append(differentPower);
-                    b3.append(" to get an error of ");
-                    b3.append(differentPowerError);
-                    Log.w(this.getClass().getName(), b3.toString());
+                    if (Util.mDebug > 0) {
+                        StringBuilder b3 = new StringBuilder(80);
+                        b3.append("changing power to ");
+                        b3.append(differentPower);
+                        b3.append(" to get an error of ");
+                        b3.append(differentPowerError);
+                        Log.w(this.getClass().getName(), b3.toString());
+                    }
                     mV.mPower = differentPower;
                     return differentPowerError;
                 case 3:
                     int combinedAngleDeg = (int)Math.toDegrees(combinedAngle);
-                    StringBuilder b4 = new StringBuilder(80);
-                    b4.append("changing power to ");
-                    b4.append(combinedPower);
-                    b4.append(" and angle to ");
-                    b4.append(combinedAngleDeg);
-                    b4.append(" to get an error of ");
-                    b4.append(combinedError);
-                    Log.w(this.getClass().getName(), b4.toString());
+                    if (Util.mDebug > 0) {
+                        StringBuilder b4 = new StringBuilder(80);
+                        b4.append("changing power to ");
+                        b4.append(combinedPower);
+                        b4.append(" and angle to ");
+                        b4.append(combinedAngleDeg);
+                        b4.append(" to get an error of ");
+                        b4.append(combinedError);
+                        Log.w(this.getClass().getName(), b4.toString());
+                    }
                     mV.mAngle = combinedAngleDeg;
                     mV.mPower = combinedPower;
                     return combinedError;
                 case 4:
-                    Log.w(this.getClass().getName(),
-                          "not changing anything.");
+                    if (Util.mDebug > 0) {
+                        Log.w(this.getClass().getName(),
+                              "not changing anything.");
+                    }
                     return error;
                 default:
                     throw new RuntimeException("logic error in " +
@@ -768,11 +779,15 @@ public abstract class Brain {
         /*================= Inputs =================*/
         public void notifyPlayerTeleported(int playerId) {
             if (playerId == mV.mTargetId) {
-                StringBuilder b = new StringBuilder(80 * 2);
-                b.append("notifyPlayerTeleported: we were targetting player ");
-                b.append(playerId);
-                b.append(", but he teleported away. Resetting mV.mTargetId.");
-                Log.w(this.getClass().getName(), b.toString());
+                if (Util.mDebug > 0) {
+                    StringBuilder b = new StringBuilder(80 * 2);
+                    b.append("notifyPlayerTeleported: we were ");
+                    b.append("targetting player ");
+                    b.append(playerId);
+                    b.append(", but he teleported away. Resetting ");
+                    b.append(mV.mTargetId).append(")");
+                    Log.w(this.getClass().getName(), b.toString());
+                }
 
                 mV.mTargetId = Player.INVALID_PLAYER_ID;
             }
@@ -781,11 +796,13 @@ public abstract class Brain {
         public void notifyPlayerFell(int perp, int victim)
         {
             if (victim == mV.mTargetId) {
-                StringBuilder b = new StringBuilder(80 * 2);
-                b.append("notifyPlayerFell: we were targetting player ");
-                b.append(victim);
-                b.append(", but he fell. Resetting mV.mTargetId.");
-                Log.w(this.getClass().getName(), b.toString());
+                if (Util.mDebug > 0) {
+                    StringBuilder b = new StringBuilder(80 * 2);
+                    b.append("notifyPlayerFell: we were targetting player ");
+                    b.append(victim);
+                    b.append(", but he fell. Resetting mV.mTargetId.");
+                    Log.w(this.getClass().getName(), b.toString());
+                }
 
                 mV.mTargetId = Player.INVALID_PLAYER_ID;
             }
@@ -821,10 +838,12 @@ public abstract class Brain {
                 }
                 target = players[mV.mTargetId];
 
-                StringBuilder b = new StringBuilder(80 * 2);
-                b.append("acquired new target: player ");
-                b.append(target.getName());
-                Log.w(this.getClass().getName(), b.toString());
+                if (Util.mDebug > 0) {
+                    StringBuilder b = new StringBuilder(80 * 2);
+                    b.append("acquired new target: player ");
+                    b.append(target.getName());
+                    Log.w(this.getClass().getName(), b.toString());
+                }
 
                 getInitialFix(game, target, this);
             }
@@ -877,8 +896,10 @@ public abstract class Brain {
             WeaponType weapons[] = WeaponType.values();
             while (playerInfo.getCash() >= WeaponType.sMinimumWeaponCost) {
                 mArmTmp.initialize(playerInfo.getCash());
-                Log.w(this.getClass().getName(),
-                        "initialized with cash " + playerInfo.getCash());
+                if (Util.mDebug > 1) {
+                    Log.w(this.getClass().getName(),
+                            "initialized with cash " + playerInfo.getCash());
+                }
                 mArmTmp.logStats();
                 int probs[] = mArmTmp.getProbs();
                 int totalWeapons = 0;
@@ -894,9 +915,11 @@ public abstract class Brain {
                     }
                 }
 
-                Log.w(this.getClass().getName(),
-                        "after our foolin' ");
-                mArmTmp.logStats();
+                if (Util.mDebug > 1) {
+                    Log.w(this.getClass().getName(),
+                            "after our foolin' ");
+                    mArmTmp.logStats();
+                }
 
                 WeaponType weapon = mArmTmp.getRandomWeapon();
                 armory.addWeapon(weapon);

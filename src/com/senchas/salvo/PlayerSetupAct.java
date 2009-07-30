@@ -57,7 +57,8 @@ public class PlayerSetupAct extends Activity {
     public void onCreate(Bundle map) {
         super.onCreate(map);
 
-        Log.w(this.getClass().getName(), "onCreate");
+        if (Util.mDebug > 1)
+            Log.w(this.getClass().getName(), "onCreate");
 
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
@@ -78,8 +79,9 @@ public class PlayerSetupAct extends Activity {
     @Override
     public void onStart() {
         super.onStart();
-        Log.w(this.getClass().getName(),
-            "onStart (mInitialized = " + mInitialized + ")");
+        if (Util.mDebug > 1)
+            Log.w(this.getClass().getName(),
+                "onStart (mInitialized = " + mInitialized + ")");
         if (mInitialized)
             return;
         else

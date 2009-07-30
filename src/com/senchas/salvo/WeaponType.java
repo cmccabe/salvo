@@ -11,7 +11,6 @@ import com.senchas.salvo.Cosmos.PlayerInfo;
 import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -54,14 +53,6 @@ public enum WeaponType {
         EnumSet.of(Attr.PROJECTILE),
         "Does no direct damage, but reshapes the terrain",
         Const.UseClass.SMALL
-    ),
-    LARGE_EARTHMOVER("Large Earthmover", 0,
-        new ExplosionAttributes(74, Const.GREY, 0),
-        100,
-        DetonationAttr.EXPLODE,
-        EnumSet.of(Attr.PROJECTILE),
-        "A bigger version of the Earthmover",
-        Const.UseClass.AGGRO
     ),
     EXTRA_ARMOR("Extra Armor", 0,
         null,
@@ -120,7 +111,7 @@ public enum WeaponType {
         Const.UseClass.AGGRO
     ),
     CLUSTER_BOMB_PAYLOAD("Cluster Bomb Payload", Const.UNSELECTABLE,
-        new ExplosionAttributes(30, Const.RED, 50),
+        new ExplosionAttributes(30, Const.RED, 65),
         Const.UNBUYABLE,
         DetonationAttr.EXPLODE,
         EnumSet.of(Attr.PROJECTILE),
