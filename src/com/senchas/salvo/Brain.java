@@ -518,7 +518,7 @@ public abstract class Brain {
              * defCon level. */
             public int mDefCon;
         }
-        
+
         protected MyVars mV;
 
         /*================= Utility =================*/

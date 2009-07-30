@@ -449,7 +449,7 @@ public abstract class GameState {
         /*================= Data =================*/
         private boolean mFinished;
 
-        public class MyVars {
+        public static class MyVars {
             /** Index of the current player buying weapons */
             public int mPlayerIdx;
         }
@@ -1418,7 +1418,7 @@ public abstract class GameState {
         private static TeleportState sMe = new TeleportState();
 
         /*================= Data =================*/
-        public class MyVars {
+        public static class MyVars {
             /** Index of the first player being teleported */
             public int mP1Index;
 

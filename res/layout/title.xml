@@ -38,7 +38,7 @@
                       android:layout_gravity="center_horizontal"
                       android:layout_height="wrap_content"
                       android:textColor="#000"
-                      android:text="Copyright Sencha Software LLC, 2009"
+                      android:text="Copyright Sencha Software LLC, 2009 v1.0"
                       android:layout_margin="1mm" android:typeface="monospace">
             </TextView>
         </LinearLayout>
