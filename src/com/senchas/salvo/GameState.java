@@ -590,13 +590,10 @@ public abstract class GameState {
         @Override
         public GameState main(RunGameActAccessor game) {
             if (mInfo.isDraw()) {
-                // TODO: display "it was a draw!" or similar
                 return LeaderboardState.create(AFTER_ROUND_PAUSE);
             }
             else if (mInfo.curPlayerHasWon()) {
                 // Someone won the round.
-                // TODO: display "foo wins" or similar
-                // TODO: add gold to account, or whatever
                 game.getCosmos().getPlayerInfo()
                     [ game.getModel().getCurPlayer().getId() ].
                         earnMoney(Explosion.SURVIVOR_BONUS);

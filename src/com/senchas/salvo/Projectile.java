@@ -63,7 +63,6 @@ public class Projectile {
     }
 
     public void step(Model model, GameState.BallisticsState.Accessor ball) {
-        // TODO: implement roller by moving delta logic off to WeaponType
         if (mWeapon.isProjectile()) {
             mX += mDeltaX;
             mY += mDeltaY;
