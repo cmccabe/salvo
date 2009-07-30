@@ -53,7 +53,6 @@ public class ModelFactory {
         FIVE(5),
         SIX(6),
         SEVEN(7),
-        EIGHT(8),
         TEN(10),
         TWENTY(20);
 
@@ -93,12 +92,15 @@ public class ModelFactory {
     /** Represents the amount of cash players start with */
     public static enum StartingCash {
         C0(0),
+        C150(150),
         C250(250),
         C500(500),
+        C750(750),
         C1000(1000),
         C1500(1500),
-        C5000(5000),
-        C10000(10000);
+        C2000(2000),
+        C4000(4000),
+        C15000(15000);
 
         /*================= Static =================*/
         public static StartingCash fromShort(short cash) {

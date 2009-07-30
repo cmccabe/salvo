@@ -23,7 +23,7 @@ import android.widget.TextView;
  */
 public enum WeaponType {
     SMALL_MISSILE("Small Missile", Const.UNLIMITED,
-        new ExplosionAttributes(10, Const.RED, 125),
+        new ExplosionAttributes(15, Const.RED, 130),
         Const.UNBUYABLE,
         DetonationAttr.EXPLODE,
         EnumSet.of(Attr.PROJECTILE),
@@ -31,7 +31,7 @@ public enum WeaponType {
         Const.UseClass.SMALL
     ),
     MEDIUM_MISSILE("Medium Missile", 2,
-        new ExplosionAttributes(20, Const.RED, 175),
+        new ExplosionAttributes(24, Const.RED, 200),
         100,
         DetonationAttr.EXPLODE,
         EnumSet.of(Attr.PROJECTILE),
@@ -39,7 +39,7 @@ public enum WeaponType {
         Const.UseClass.AGGRO
         ),
     LARGE_MISSILE("Large Missile", 0,
-        new ExplosionAttributes(35, Const.RED, 200),
+        new ExplosionAttributes(40, Const.RED, 250),
         150,
         DetonationAttr.EXPLODE,
         EnumSet.of(Attr.PROJECTILE),
@@ -48,11 +48,11 @@ public enum WeaponType {
     ),
     EARTHMOVER("Earthmover", 0,
         new ExplosionAttributes(45, Const.GREY, 0),
-        50,
+        20,
         DetonationAttr.EXPLODE,
         EnumSet.of(Attr.PROJECTILE),
         "Does no direct damage, but reshapes the terrain",
-        Const.UseClass.SMALL
+        null
     ),
     EXTRA_ARMOR("Extra Armor", 0,
         null,
@@ -111,7 +111,7 @@ public enum WeaponType {
         Const.UseClass.AGGRO
     ),
     CLUSTER_BOMB_PAYLOAD("Cluster Bomb Payload", Const.UNSELECTABLE,
-        new ExplosionAttributes(30, Const.RED, 65),
+        new ExplosionAttributes(30, Const.RED, 70),
         Const.UNBUYABLE,
         DetonationAttr.EXPLODE,
         EnumSet.of(Attr.PROJECTILE),
@@ -127,7 +127,7 @@ public enum WeaponType {
         Const.UseClass.AGGRO
     ),
     PLAYER_DEATH("Player Death", Const.UNSELECTABLE,
-        new ExplosionAttributes(36, Const.RED, 200),
+        new ExplosionAttributes(36, Const.RED, 240),
         Const.UNBUYABLE,
         DetonationAttr.EXPLODE,
         EnumSet.of(Attr.PROJECTILE),
