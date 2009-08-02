@@ -317,7 +317,7 @@ public enum WeaponType {
          */
         public WeaponType getNextWeapon(WeaponType curWeapon) {
             WeaponType weapons[] = WeaponType.values();
-            for (int i = 1; i < weapons.length; i++) {
+            for (int i = 1; i <= weapons.length; i++) {
                 int j = (curWeapon.ordinal() + i) % weapons.length;
                 int w = mV.mWeapons[j];
                 if (((w != Const.UNSELECTABLE) && (w > 0)) ||
@@ -335,7 +335,7 @@ public enum WeaponType {
          */
         public WeaponType getPrevWeapon(WeaponType curWeapon) {
             WeaponType weapons[] = WeaponType.values();
-            for (int i = 1; i < weapons.length; i++) {
+            for (int i = 1; i <= weapons.length; i++) {
                 int j = (weapons.length + curWeapon.ordinal() - i) %
                             weapons.length;
                 int w = mV.mWeapons[j];
