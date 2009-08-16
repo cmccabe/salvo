@@ -81,6 +81,8 @@ public abstract class Brain {
 
         /*================= Access =================*/
         public void logStats() {
+            if (Util.mDebug < 1)
+                return;
             WeaponType values[] = WeaponType.values();
             StringBuilder b = new StringBuilder(80 * 20);
             int total = 0;

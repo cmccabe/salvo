@@ -1,7 +1,6 @@
 package com.senchas.salvo;
 
 import android.graphics.Color;
-import android.util.Log;
 
 /* Represents a projectile flying across the screen.
  *

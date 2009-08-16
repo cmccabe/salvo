@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Random;
 
 import android.os.Bundle;
-import android.util.Log;
 
 /**
  * Represents the game terrain.
