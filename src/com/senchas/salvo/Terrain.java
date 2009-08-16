@@ -1,8 +1,5 @@
 package com.senchas.salvo;
 
-import java.util.HashMap;
-import java.util.Random;
-
 import android.os.Bundle;
 
 /**
@@ -88,7 +85,6 @@ public class Terrain {
         if (a > b) {
             throw new RuntimeException("getAverageValue: must have a <= b");
         }
-        short h[] = mV.mBoard;
         int acc = 0;
         for (int i = a; i <= b; i++) {
             acc += safeGetVal(i);

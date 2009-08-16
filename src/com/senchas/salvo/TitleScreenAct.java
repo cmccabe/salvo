@@ -5,12 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
-import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.ZoomButton;
-
-import com.senchas.salvo.Model;
 import android.view.View.OnClickListener;
 
 public class TitleScreenAct extends Activity {

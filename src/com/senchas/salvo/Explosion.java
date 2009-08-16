@@ -41,12 +41,6 @@ public class Explosion {
     /** The perpetrator of this explosion */
     private int mPerp;
 
-    /** True if this object is in use-- otherwise, it should be ignored */
-    private boolean mInUse;
-
-    /** True if the explosion has reached its maximum size */
-    private boolean mFinished;
-
     /** The time we started displaying the explosion */
     private long mStartTime;
 
@@ -183,7 +177,6 @@ public class Explosion {
         mPerp = perp;
 
         mStartTime = System.currentTimeMillis();
-        mFinished = false;
     }
 
     public Explosion() {

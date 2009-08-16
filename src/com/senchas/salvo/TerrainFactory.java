@@ -1,11 +1,5 @@
 package com.senchas.salvo;
 
-import java.util.HashMap;
-import java.util.Random;
-
-import android.os.Bundle;
-import android.util.Log;
-
 /**
  * Creates a Terrain
  *
@@ -40,7 +34,6 @@ public enum TerrainFactory {
         public Terrain toTerrain() {
             short h[] = new short[Terrain.MAX_X];
             for (int i = 0; i < Terrain.MAX_X; i++) {
-                int tmp = (Terrain.MAX_X - 1);
                 h[i] = (short)((Terrain.MAX_Y * i) / Terrain.MAX_X);
             }
             Terrain.MyVars v = new Terrain.MyVars();

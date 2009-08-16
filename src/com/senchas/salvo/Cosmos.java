@@ -4,9 +4,6 @@ import com.senchas.salvo.PlayerColor;
 import com.senchas.salvo.WeaponType.Armory;
 
 import java.util.Arrays;
-import java.util.EmptyStackException;
-import java.util.HashMap;
-import java.util.Random;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -15,7 +12,6 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 

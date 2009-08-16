@@ -2,9 +2,6 @@ package com.senchas.salvo;
 
 import com.senchas.salvo.WeaponType.Armory;
 
-import java.util.SortedMap;
-
-import com.senchas.salvo.ModelFactory.MyVars;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;

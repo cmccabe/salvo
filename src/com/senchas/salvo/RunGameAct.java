@@ -17,17 +17,14 @@ import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.ZoomButton;
 
 import com.senchas.salvo.Model;
 import com.senchas.salvo.Cosmos.PlayerInfo;
 import com.senchas.salvo.WeaponType.Armory;
-import com.senchas.salvo.WeaponType.WeaponListAdapter;
 
 import android.view.View.OnClickListener;
 

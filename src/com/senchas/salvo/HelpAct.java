@@ -1,7 +1,6 @@
 package com.senchas.salvo;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.View.OnClickListener;
 import android.view.View;
@@ -10,7 +9,6 @@ import android.view.WindowManager;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.Button;
-import android.widget.TextView;
 
 public class HelpAct extends Activity {
     /*================= Types =================*/

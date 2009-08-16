@@ -25,7 +25,6 @@ public class Projectile {
     /*================= Data =================*/
     private float mX, mY;
     private float mDeltaX, mDeltaY;
-    private boolean mIsRolling;
     private float mWind;
     private boolean mInUse;
 
@@ -81,7 +80,6 @@ public class Projectile {
             }
         }
         else if (mWeapon.isRoller()) {
-            short h[] = model.getTerrain().getBoard();
             mX += mDeltaX;
             int prevY = (int)mY;
             mY = model.getTerrain().safeGetVal((int)mX);

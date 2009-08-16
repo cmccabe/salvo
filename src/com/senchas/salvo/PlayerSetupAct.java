@@ -1,6 +1,5 @@
 package com.senchas.salvo;
 
-import java.util.HashSet;
 import java.util.LinkedList;
 
 import com.senchas.salvo.ModelFactory.PlayerFactory;
@@ -21,7 +20,6 @@ import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Spinner;

@@ -6,15 +6,8 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.graphics.Rect;
-import android.graphics.RectF;
-import android.graphics.Region;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -59,8 +52,6 @@ class GameControlView extends SurfaceView  {
     private float mLineTemp[];
 
     private Paint mTempPlayerPaint;
-
-    private RectF mScratchRectF;
 
     private Path mPathTmp, mPathTmp2;
 
@@ -332,7 +323,6 @@ class GameControlView extends SurfaceView  {
         mLineTemp = new float[LINE_TEMP_SIZE * COORDS_PER_LINE];
         mTempPlayerPaint = new Paint();
         mTempPlayerPaint.setAntiAlias(true);
-        mScratchRectF = new RectF();
         mPathTmp = new Path();
         mPathTmp2 = new Path();
     }

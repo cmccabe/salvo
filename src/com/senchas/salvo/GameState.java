@@ -1,26 +1,18 @@
 package com.senchas.salvo;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.graphics.Canvas;
 import android.graphics.Color;
 import android.os.Bundle;
 import java.lang.System;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.SortedMap;
-import java.util.TreeMap;
 
 import android.util.Log;
-import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.senchas.salvo.Cosmos.PlayerInfo;
 import com.senchas.salvo.RunGameAct.AnnounceWinnerDialog;
@@ -1877,7 +1869,6 @@ public abstract class GameState {
     /** Sets the current angle text to a custom string */
     private static void setCustomAngleText(RunGameActAccessor game,
                                            String text) {
-        Player curPlayer = game.getModel().getCurPlayer();
         TextView angleText = game.getAngleText();
         game.getRunGameAct().runOnUiThread(new SetTextView(angleText, text));
     }

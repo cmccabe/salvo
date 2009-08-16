@@ -1,8 +1,5 @@
 package com.senchas.salvo;
 
-import com.senchas.salvo.GameState.ComputerMoveState;
-import com.senchas.salvo.GameState.HumanMoveState;
-import com.senchas.salvo.ModelFactory.MyVars;
 import com.senchas.salvo.RunGameAct.RunGameActAccessor;
 import com.senchas.salvo.WeaponType.Armory;
 

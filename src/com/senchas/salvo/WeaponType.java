@@ -1,10 +1,6 @@
 package com.senchas.salvo;
 
 import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.SortedMap;
-import java.util.SortedSet;
-import java.util.TreeMap;
 
 import com.senchas.salvo.Cosmos.PlayerInfo;
 
