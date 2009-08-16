@@ -611,9 +611,7 @@ public class RunGameAct extends Activity {
     private void showAreYouSureYouWantToQuit() {
         // display alert that we can't have any more players
         AlertDialog.Builder b = new AlertDialog.Builder(this);
-        b.setMessage("Are you sure you want to end this game?\n" +
-                    "If you want to switch apps without quitting, " +
-                    "press \"HOME\"");
+        b.setMessage("Are you sure you want to end this game?\n");
         b.setCancelable(false);
         b.setNegativeButton("End Game",
             new DialogInterface.OnClickListener() {
