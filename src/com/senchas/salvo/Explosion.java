@@ -101,7 +101,7 @@ public class Explosion {
                 int damage = Util.linearInterpolation(full, 0,
                         BULLSEYE_RADIUS, safeDist,
                         (int)dist);
-            	if (Util.mDebug > 1) {
+                if (Util.mDebug > 1) {
                     StringBuilder b = new StringBuilder(80 * 5);
                     b.append("doDirectDamage(player=").append(p.getName());
                     b.append(" full=").append(full);

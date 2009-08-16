@@ -458,7 +458,7 @@ public abstract class GameState {
         @Override
         public void onEnter(RunGameActAccessor game) {
             if (Util.mDebug > 1)
-                Log.w(this.getClass().getName(), 
+                Log.w(this.getClass().getName(),
                     "entering BuyWeaonsState (idx=" +
                     mV.mPlayerIdx + ")");
             if (! game.getCosmos().getPlayerInfo()[mV.mPlayerIdx].
