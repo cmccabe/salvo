@@ -1,0 +1,13 @@
+Salvo is a turn-based artillery game in which tanks do battle with wacky
+weapons.  Choose from three different AI opponents, ranging from the simple
+Random computer, to the devious Hard opponent. You can also play against
+multiple human opponents.
+
+Salvo was written for Android 1.0, although it should work on later versions as
+well.
+
+I hope that you find this code useful and informative, and maybe even fun! This
+code is licensed under Apache 2.0. See LICENSE for details.
+
+cheers,
+Colin Patrick McCabe
